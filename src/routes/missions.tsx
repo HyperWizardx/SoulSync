@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
 import { useState } from "react";
 import { Lock } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/missions")({
   component: MissionsPage,
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/missions")({
 
 const tabs = ["Activas", "Completadas", "Bloqueadas"] as const;
 
-const activeMissions = [
+const initialActiveMissions = [
   { title: "Meditación matutina", desc: "5 min de respiración guiada", xp: 50, progress: 60, emoji: "🧘", rarity: "Común" },
   { title: "Diario emocional", desc: "Escribe cómo te sientes hoy", xp: 30, progress: 30, emoji: "📓", rarity: "Común" },
   { title: "Caminata consciente", desc: "20 min al aire libre", xp: 40, progress: 0, emoji: "🚶", rarity: "Raro" },
@@ -27,6 +28,23 @@ const blockedMissions = [
 
 function MissionsPage() {
   const [tab, setTab] = useState<typeof tabs[number]>("Activas");
+  const [activeMissions, setActiveMissions] = useState(initialActiveMissions);
+
+  const handleProgress = (index: number) => {
+    setActiveMissions((prev) => {
+      const updated = [...prev];
+      const m = updated[index];
+      if (m.progress >= 100) return prev;
+      const newProgress = Math.min(m.progress + 25, 100);
+      updated[index] = { ...m, progress: newProgress };
+      if (newProgress >= 100) {
+        toast.success(`¡${m.title} completada! +${m.xp} XP`, { icon: "🎉" });
+      } else {
+        toast(`Progreso: ${newProgress}%`, { icon: m.emoji });
+      }
+      return updated;
+    });
+  };
 
   return (
     <MobileLayout>
@@ -40,8 +58,8 @@ function MissionsPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${
-                tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-300 active:scale-95 ${
+                tab === t ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {t}
@@ -50,14 +68,20 @@ function MissionsPage() {
         </div>
 
         {/* Content */}
-        <div className="mt-4 space-y-3">
-          {tab === "Activas" && activeMissions.map((m) => (
-            <div key={m.title} className="rounded-xl border border-border bg-card p-4">
+        <div className="mt-4 space-y-3 animate-fade-in" key={tab}>
+          {tab === "Activas" && activeMissions.map((m, i) => (
+            <button
+              key={m.title}
+              onClick={() => handleProgress(i)}
+              className={`w-full rounded-xl border bg-card p-4 text-left transition-all duration-300 active:scale-[0.97] ${
+                m.progress >= 100 ? "border-soul-teal/50 bg-soul-teal/5" : "border-border hover:border-primary/50 hover:shadow-sm"
+              }`}
+            >
               <div className="flex items-start gap-3">
-                <span className="text-3xl">{m.emoji}</span>
+                <span className="text-3xl">{m.progress >= 100 ? "✅" : m.emoji}</span>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="font-semibold text-foreground">{m.title}</p>
+                    <p className={`font-semibold ${m.progress >= 100 ? "text-soul-teal line-through" : "text-foreground"}`}>{m.title}</p>
                     <span className={`text-[10px] rounded-full px-2 py-0.5 ${
                       m.rarity === "Raro" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
                     }`}>{m.rarity}</span>
@@ -65,17 +89,22 @@ function MissionsPage() {
                   <p className="mt-0.5 text-xs text-muted-foreground">{m.desc}</p>
                   <div className="mt-2 flex items-center gap-2">
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${m.progress}%` }} />
+                      <div className={`h-full rounded-full transition-all duration-700 ${m.progress >= 100 ? "bg-soul-teal" : "bg-primary"}`} style={{ width: `${m.progress}%` }} />
                     </div>
                     <span className="text-[10px] font-bold text-soul-gold">+{m.xp} XP</span>
                   </div>
+                  {m.progress < 100 && <p className="mt-1 text-[10px] text-primary">Toca para avanzar →</p>}
                 </div>
               </div>
-            </div>
+            </button>
           ))}
 
           {tab === "Completadas" && completedMissions.map((m) => (
-            <div key={m.title} className="rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4">
+            <button
+              key={m.title}
+              onClick={() => toast(`${m.title}: +${m.xp} XP ganados`, { icon: m.emoji })}
+              className="w-full rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4 text-left transition-all hover:border-soul-teal/50 active:scale-[0.97]"
+            >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{m.emoji}</span>
                 <div>
@@ -84,11 +113,15 @@ function MissionsPage() {
                   <span className="text-[10px] text-soul-gold">+{m.xp} XP ganados</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
 
           {tab === "Bloqueadas" && blockedMissions.map((m) => (
-            <div key={m.title} className="rounded-xl border border-border bg-card/50 p-4 opacity-70">
+            <button
+              key={m.title}
+              onClick={() => toast.error(`Requiere ${m.req}`, { icon: "🔒" })}
+              className="w-full rounded-xl border border-border bg-card/50 p-4 opacity-70 text-left transition-all hover:opacity-90 active:scale-[0.97]"
+            >
               <div className="flex items-center gap-3">
                 <Lock className="h-6 w-6 text-muted-foreground" />
                 <div>
@@ -99,7 +132,7 @@ function MissionsPage() {
                   }`}>{m.rarity} • Requiere {m.req}</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
