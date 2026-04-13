@@ -9,8 +9,62 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorldRouteImport } from './routes/world'
+import { Route as StoreRouteImport } from './routes/store'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MissionsRouteImport } from './routes/missions'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CreateAvatarRouteImport } from './routes/create-avatar'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as AlertRouteImport } from './routes/alert'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WorldRoute = WorldRouteImport.update({
+  id: '/world',
+  path: '/world',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreRoute = StoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissionsRoute = MissionsRouteImport.update({
+  id: '/missions',
+  path: '/missions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateAvatarRoute = CreateAvatarRouteImport.update({
+  id: '/create-avatar',
+  path: '/create-avatar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertRoute = AlertRouteImport.update({
+  id: '/alert',
+  path: '/alert',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +73,158 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/alert': typeof AlertRoute
+  '/community': typeof CommunityRoute
+  '/create-avatar': typeof CreateAvatarRoute
+  '/dashboard': typeof DashboardRoute
+  '/missions': typeof MissionsRoute
+  '/profile': typeof ProfileRoute
+  '/store': typeof StoreRoute
+  '/world': typeof WorldRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/alert': typeof AlertRoute
+  '/community': typeof CommunityRoute
+  '/create-avatar': typeof CreateAvatarRoute
+  '/dashboard': typeof DashboardRoute
+  '/missions': typeof MissionsRoute
+  '/profile': typeof ProfileRoute
+  '/store': typeof StoreRoute
+  '/world': typeof WorldRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/alert': typeof AlertRoute
+  '/community': typeof CommunityRoute
+  '/create-avatar': typeof CreateAvatarRoute
+  '/dashboard': typeof DashboardRoute
+  '/missions': typeof MissionsRoute
+  '/profile': typeof ProfileRoute
+  '/store': typeof StoreRoute
+  '/world': typeof WorldRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ai'
+    | '/alert'
+    | '/community'
+    | '/create-avatar'
+    | '/dashboard'
+    | '/missions'
+    | '/profile'
+    | '/store'
+    | '/world'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ai'
+    | '/alert'
+    | '/community'
+    | '/create-avatar'
+    | '/dashboard'
+    | '/missions'
+    | '/profile'
+    | '/store'
+    | '/world'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai'
+    | '/alert'
+    | '/community'
+    | '/create-avatar'
+    | '/dashboard'
+    | '/missions'
+    | '/profile'
+    | '/store'
+    | '/world'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiRoute: typeof AiRoute
+  AlertRoute: typeof AlertRoute
+  CommunityRoute: typeof CommunityRoute
+  CreateAvatarRoute: typeof CreateAvatarRoute
+  DashboardRoute: typeof DashboardRoute
+  MissionsRoute: typeof MissionsRoute
+  ProfileRoute: typeof ProfileRoute
+  StoreRoute: typeof StoreRoute
+  WorldRoute: typeof WorldRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/world': {
+      id: '/world'
+      path: '/world'
+      fullPath: '/world'
+      preLoaderRoute: typeof WorldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store': {
+      id: '/store'
+      path: '/store'
+      fullPath: '/store'
+      preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missions': {
+      id: '/missions'
+      path: '/missions'
+      fullPath: '/missions'
+      preLoaderRoute: typeof MissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create-avatar': {
+      id: '/create-avatar'
+      path: '/create-avatar'
+      fullPath: '/create-avatar'
+      preLoaderRoute: typeof CreateAvatarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alert': {
+      id: '/alert'
+      path: '/alert'
+      fullPath: '/alert'
+      preLoaderRoute: typeof AlertRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +237,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiRoute: AiRoute,
+  AlertRoute: AlertRoute,
+  CommunityRoute: CommunityRoute,
+  CreateAvatarRoute: CreateAvatarRoute,
+  DashboardRoute: DashboardRoute,
+  MissionsRoute: MissionsRoute,
+  ProfileRoute: ProfileRoute,
+  StoreRoute: StoreRoute,
+  WorldRoute: WorldRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
