@@ -172,7 +172,7 @@ function ProfilePage() {
               >
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-foreground">{attr.name}</span>
-                  <span className="text-muted-foreground">{attr.value}/{attr.max}</span>
+                  <span className="text-muted-foreground">{attr.value}/100</span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-secondary">
                   <div className="h-full rounded-full bg-primary transition-all duration-1000" style={{ width: `${attr.value}%` }} />
