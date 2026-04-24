@@ -95,41 +95,53 @@ function DashboardPage() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </Link>
 
-        {/* Active Missions */}
+        {/* Streak + Recursos */}
+        <div className="mt-6 grid grid-cols-3 gap-2">
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-soul-gold/30 bg-soul-gold/5 p-2">
+            <Flame className="h-4 w-4 text-soul-gold" />
+            <span className="text-sm font-bold text-soul-gold">{user.streak}d</span>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-2 text-center">
+            <p className="text-[10px] text-muted-foreground">Monedas</p>
+            <p className="text-sm font-bold text-foreground">{user.coins}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-2 text-center">
+            <p className="text-[10px] text-muted-foreground">Gemas</p>
+            <p className="text-sm font-bold text-primary">{user.gems}</p>
+          </div>
+        </div>
+
+        {/* Misiones recientes / acceso */}
         <div className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-cinzel font-semibold text-foreground">Misiones Activas</h2>
-            <Link to="/missions" className="text-xs text-primary hover:underline transition-colors">Ver todas</Link>
+            <h2 className="font-cinzel font-semibold text-foreground">Actividad reciente</h2>
+            <Link to="/missions" className="text-xs text-primary hover:underline transition-colors">
+              Ir a misiones →
+            </Link>
           </div>
-          <div className="mt-3 space-y-3">
-            {missions.map((m, i) => (
-              <button
-                key={m.title}
-                onClick={() => handleMissionProgress(i)}
-                className={`flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left transition-all duration-300 active:scale-[0.97] ${
-                  m.progress >= 100
-                    ? "border-soul-teal/50 bg-soul-teal/5"
-                    : "border-border hover:border-primary/50 hover:shadow-sm"
-                }`}
+          <div className="mt-3 space-y-2">
+            {recent.length === 0 ? (
+              <Link
+                to="/missions"
+                className="block rounded-xl border border-dashed border-primary/40 bg-card/40 p-4 text-center text-sm text-muted-foreground transition-all hover:border-primary hover:bg-card active:scale-[0.98]"
               >
-                <span className={`text-2xl transition-transform ${m.progress >= 100 ? "" : "hover:scale-110"}`}>
-                  {m.progress >= 100 ? "✅" : m.emoji}
-                </span>
-                <div className="flex-1">
-                  <p className={`text-sm font-medium ${m.progress >= 100 ? "text-soul-teal line-through" : "text-foreground"}`}>{m.title}</p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={`h-full rounded-full transition-all duration-700 ${m.progress >= 100 ? "bg-soul-teal" : "bg-primary"}`}
-                        style={{ width: `${m.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-soul-gold">+{m.xp} XP</span>
+                Aún no tienes misiones hoy. ¡Empieza una! ✨
+              </Link>
+            ) : (
+              recent.map((h, i) => (
+                <div
+                  key={`${h.id}-${i}`}
+                  className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-3"
+                >
+                  <span className="text-xl">✅</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{h.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{h.date}</p>
                   </div>
+                  <span className="text-[10px] font-bold text-soul-gold">+{h.xp} XP</span>
                 </div>
-                {m.progress >= 100 && <Check className="h-4 w-4 text-soul-teal" />}
-              </button>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
