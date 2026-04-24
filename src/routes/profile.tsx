@@ -9,15 +9,6 @@ export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
 
-const attributes = [
-  { name: "Resiliencia", value: 58, max: 100 },
-  { name: "Empatía", value: 72, max: 100 },
-  { name: "Mindfulness", value: 45, max: 100 },
-  { name: "Autoconocimiento", value: 64, max: 100 },
-  { name: "Conexión Social", value: 38, max: 100 },
-  { name: "Creatividad", value: 80, max: 100 },
-];
-
 const achievements = [
   { emoji: "🏅", name: "Primera misión" },
   { emoji: "🔥", name: "3 días seguidos" },
@@ -31,6 +22,15 @@ function ProfilePage() {
   const [editName, setEditName] = useState(user.name);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedAttr, setExpandedAttr] = useState<string | null>(null);
+
+  const attributes = [
+    { name: "Resiliencia", value: user.attributes.resiliencia },
+    { name: "Empatía", value: user.attributes.empatia },
+    { name: "Mindfulness", value: user.attributes.mindfulness },
+    { name: "Autoconocimiento", value: user.attributes.autoconocimiento },
+    { name: "Conexión Social", value: user.attributes.conexionSocial },
+    { name: "Creatividad", value: user.attributes.creatividad },
+  ];
 
   const handleSaveName = () => {
     if (editName.trim()) {
