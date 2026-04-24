@@ -1,141 +1,379 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { useState } from "react";
-import { Lock } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Lock, Flame, Coins, Gem, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useUserStore, type MissionReward } from "@/hooks/useUserStore";
+import { BreathingMission } from "@/components/missions/BreathingMission";
+import { JournalMission } from "@/components/missions/JournalMission";
+import { TimerMission } from "@/components/missions/TimerMission";
+import { GratitudeMission } from "@/components/missions/GratitudeMission";
+import { QuizMission } from "@/components/missions/QuizMission";
 
 export const Route = createFileRoute("/missions")({
   component: MissionsPage,
 });
 
+type MissionType = "breathing" | "journal" | "timer" | "gratitude" | "quiz";
+
+interface Mission {
+  id: string;
+  type: MissionType;
+  title: string;
+  desc: string;
+  emoji: string;
+  rarity: "Común" | "Raro" | "Épica" | "Legendaria";
+  reward: MissionReward;
+  /** Solo para timer */
+  durationSec?: number;
+  requiredLevel?: number;
+}
+
+const MISSIONS: Mission[] = [
+  {
+    id: "breath-4",
+    type: "breathing",
+    title: "Respiración guiada",
+    desc: "4 ciclos de respiración consciente",
+    emoji: "🧘",
+    rarity: "Común",
+    reward: {
+      xp: 50,
+      coins: 15,
+      stats: { bienestar: 4, energia: 3 },
+      attributes: { mindfulness: 3, resiliencia: 1 },
+    },
+  },
+  {
+    id: "journal-1",
+    type: "journal",
+    title: "Diario emocional",
+    desc: "Escribe cómo te sientes hoy",
+    emoji: "📓",
+    rarity: "Común",
+    reward: {
+      xp: 40,
+      coins: 10,
+      stats: { claridad: 5, bienestar: 2 },
+      attributes: { autoconocimiento: 4, empatia: 2 },
+    },
+  },
+  {
+    id: "walk-30",
+    type: "timer",
+    title: "Caminata consciente",
+    desc: "30 segundos de pausa activa (demo)",
+    emoji: "🚶",
+    rarity: "Raro",
+    durationSec: 30,
+    reward: {
+      xp: 70,
+      coins: 25,
+      stats: { energia: 6, bienestar: 4 },
+      attributes: { mindfulness: 2, resiliencia: 2 },
+    },
+  },
+  {
+    id: "gratitude-3",
+    type: "gratitude",
+    title: "3 Gratitudes",
+    desc: "Anota tres cosas por las que estás agradecido",
+    emoji: "✨",
+    rarity: "Raro",
+    reward: {
+      xp: 60,
+      coins: 20,
+      gems: 1,
+      stats: { bienestar: 6, claridad: 2 },
+      attributes: { empatia: 3, autoconocimiento: 2 },
+    },
+  },
+  {
+    id: "quiz-mind",
+    type: "quiz",
+    title: "Quiz de sabiduría",
+    desc: "3 preguntas sobre bienestar mental",
+    emoji: "🧠",
+    rarity: "Épica",
+    reward: {
+      xp: 90,
+      coins: 30,
+      gems: 2,
+      stats: { claridad: 7 },
+      attributes: { autoconocimiento: 4, creatividad: 2 },
+    },
+  },
+  {
+    id: "deep-breath",
+    type: "breathing",
+    title: "Respiración profunda 8 ciclos",
+    desc: "Sesión extendida para nivel avanzado",
+    emoji: "🌬️",
+    rarity: "Legendaria",
+    requiredLevel: 5,
+    reward: {
+      xp: 150,
+      coins: 60,
+      gems: 3,
+      stats: { bienestar: 10, energia: 5, claridad: 4 },
+      attributes: { mindfulness: 6, resiliencia: 4 },
+    },
+  },
+];
+
 const tabs = ["Activas", "Completadas", "Bloqueadas"] as const;
 
-const initialActiveMissions = [
-  { title: "Meditación matutina", desc: "5 min de respiración guiada", xp: 50, progress: 60, emoji: "🧘", rarity: "Común" },
-  { title: "Diario emocional", desc: "Escribe cómo te sientes hoy", xp: 30, progress: 30, emoji: "📓", rarity: "Común" },
-  { title: "Caminata consciente", desc: "20 min al aire libre", xp: 40, progress: 0, emoji: "🚶", rarity: "Raro" },
-];
-
-const completedMissions = [
-  { title: "Primera meditación", desc: "Completaste tu primera sesión", xp: 25, emoji: "✅", rarity: "Común" },
-  { title: "Intro al diario", desc: "Tu primera entrada", xp: 20, emoji: "📝", rarity: "Común" },
-];
-
-const blockedMissions = [
-  { title: "Modo difícil: 7 días", desc: "Completa 7 días seguidos", xp: 200, emoji: "🔒", rarity: "Épica", req: "Nivel 5" },
-  { title: "Guardián del bosque", desc: "Desbloquea el Bosque Interior", xp: 150, emoji: "🔒", rarity: "Legendaria", req: "Nivel 10" },
-];
-
 function MissionsPage() {
+  const { user, completeMission } = useUserStore();
   const [tab, setTab] = useState<typeof tabs[number]>("Activas");
-  const [activeMissions, setActiveMissions] = useState(initialActiveMissions);
+  const [active, setActive] = useState<Mission | null>(null);
 
-  const handleProgress = (index: number) => {
-    setActiveMissions((prev) => {
-      const updated = [...prev];
-      const m = updated[index];
-      if (m.progress >= 100) return prev;
-      const newProgress = Math.min(m.progress + 25, 100);
-      updated[index] = { ...m, progress: newProgress };
-      if (newProgress >= 100) {
-        toast.success(`¡${m.title} completada! +${m.xp} XP`, { icon: "🎉" });
+  const today = new Date().toDateString();
+  const completedToday = useMemo(
+    () => new Set(user.missionHistory.filter((m) => m.date === today).map((m) => m.id)),
+    [user.missionHistory, today]
+  );
+
+  const { activas, completadas, bloqueadas } = useMemo(() => {
+    const activas: Mission[] = [];
+    const completadas: Mission[] = [];
+    const bloqueadas: Mission[] = [];
+    for (const m of MISSIONS) {
+      if (m.requiredLevel && user.level < m.requiredLevel) {
+        bloqueadas.push(m);
+      } else if (completedToday.has(m.id)) {
+        completadas.push(m);
       } else {
-        toast(`Progreso: ${newProgress}%`, { icon: m.emoji });
+        activas.push(m);
       }
-      return updated;
+    }
+    return { activas, completadas, bloqueadas };
+  }, [user.level, completedToday]);
+
+  const finishMission = (m: Mission, extraNote?: string) => {
+    const result = completeMission(m.id, m.title, m.reward);
+    setActive(null);
+    toast.success(`¡${m.title} completada! +${m.reward.xp} XP`, {
+      icon: "🎉",
+      description: extraNote,
     });
+    if (result.leveledUp) {
+      setTimeout(() => {
+        toast(`¡Subiste a nivel ${result.newLevel}!`, { icon: "⭐" });
+      }, 600);
+    }
   };
 
   return (
     <MobileLayout>
       <div className="px-4 pt-6">
-        <h1 className="text-2xl font-cinzel font-bold text-foreground">Misiones</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-cinzel font-bold text-foreground">Misiones</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p>
+          </div>
+          <div className="flex items-center gap-1 rounded-full border border-soul-gold/30 bg-soul-gold/10 px-2.5 py-1">
+            <Flame className="h-3.5 w-3.5 text-soul-gold" />
+            <span className="text-xs font-bold text-soul-gold">{user.streak}d</span>
+          </div>
+        </div>
+
+        {/* Resumen recursos */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-xl border border-border bg-card p-2 text-center">
+            <p className="text-[10px] text-muted-foreground">XP</p>
+            <p className="text-sm font-bold text-soul-gold">{user.xp}</p>
+          </div>
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-2">
+            <Coins className="h-3.5 w-3.5 text-soul-gold" />
+            <span className="text-sm font-bold text-foreground">{user.coins}</span>
+          </div>
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-2">
+            <Gem className="h-3.5 w-3.5 text-primary" />
+            <span className="text-sm font-bold text-foreground">{user.gems}</span>
+          </div>
+        </div>
 
         {/* Tabs */}
-        <div className="mt-6 flex rounded-xl bg-card p-1">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-300 active:scale-95 ${
-                tab === t ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="mt-5 flex rounded-xl bg-card p-1">
+          {tabs.map((t) => {
+            const count = t === "Activas" ? activas.length : t === "Completadas" ? completadas.length : bloqueadas.length;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-300 active:scale-95 ${
+                  tab === t
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t} <span className="opacity-70">({count})</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Content */}
-        <div className="mt-4 space-y-3 animate-fade-in" key={tab}>
-          {tab === "Activas" && activeMissions.map((m, i) => (
-            <button
-              key={m.title}
-              onClick={() => handleProgress(i)}
-              className={`w-full rounded-xl border bg-card p-4 text-left transition-all duration-300 active:scale-[0.97] ${
-                m.progress >= 100 ? "border-soul-teal/50 bg-soul-teal/5" : "border-border hover:border-primary/50 hover:shadow-sm"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-3xl">{m.progress >= 100 ? "✅" : m.emoji}</span>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className={`font-semibold ${m.progress >= 100 ? "text-soul-teal line-through" : "text-foreground"}`}>{m.title}</p>
-                    <span className={`text-[10px] rounded-full px-2 py-0.5 ${
-                      m.rarity === "Raro" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
-                    }`}>{m.rarity}</span>
+        {/* Lista */}
+        <div className="mt-4 space-y-3 animate-fade-in pb-4" key={tab}>
+          {tab === "Activas" &&
+            (activas.length === 0 ? (
+              <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." />
+            ) : (
+              activas.map((m) => (
+                <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} />
+              ))
+            ))}
+
+          {tab === "Completadas" &&
+            (completadas.length === 0 ? (
+              <EmptyState text="Aún no has completado misiones hoy." />
+            ) : (
+              completadas.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4"
+                >
+                  <span className="text-2xl">✅</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground line-through opacity-80">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">{m.desc}</p>
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{m.desc}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-                      <div className={`h-full rounded-full transition-all duration-700 ${m.progress >= 100 ? "bg-soul-teal" : "bg-primary"}`} style={{ width: `${m.progress}%` }} />
+                  <span className="text-[10px] font-bold text-soul-gold">+{m.reward.xp} XP</span>
+                </div>
+              ))
+            ))}
+
+          {tab === "Bloqueadas" &&
+            (bloqueadas.length === 0 ? (
+              <EmptyState text="No hay misiones bloqueadas." />
+            ) : (
+              bloqueadas.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => toast.error(`Requiere nivel ${m.requiredLevel}`, { icon: "🔒" })}
+                  className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70 transition-all hover:opacity-90 active:scale-[0.97]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                      <p className="font-semibold text-foreground">{m.title}</p>
+                      <p className="text-xs text-muted-foreground">{m.desc}</p>
+                      <span className="mt-1 inline-block rounded-full bg-primary/20 px-2 py-0.5 text-[10px] text-primary">
+                        {m.rarity} • Requiere nivel {m.requiredLevel}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold text-soul-gold">+{m.xp} XP</span>
                   </div>
-                  {m.progress < 100 && <p className="mt-1 text-[10px] text-primary">Toca para avanzar →</p>}
-                </div>
-              </div>
-            </button>
-          ))}
-
-          {tab === "Completadas" && completedMissions.map((m) => (
-            <button
-              key={m.title}
-              onClick={() => toast(`${m.title}: +${m.xp} XP ganados`, { icon: m.emoji })}
-              className="w-full rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4 text-left transition-all hover:border-soul-teal/50 active:scale-[0.97]"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{m.emoji}</span>
-                <div>
-                  <p className="font-semibold text-foreground">{m.title}</p>
-                  <p className="text-xs text-muted-foreground">{m.desc}</p>
-                  <span className="text-[10px] text-soul-gold">+{m.xp} XP ganados</span>
-                </div>
-              </div>
-            </button>
-          ))}
-
-          {tab === "Bloqueadas" && blockedMissions.map((m) => (
-            <button
-              key={m.title}
-              onClick={() => toast.error(`Requiere ${m.req}`, { icon: "🔒" })}
-              className="w-full rounded-xl border border-border bg-card/50 p-4 opacity-70 text-left transition-all hover:opacity-90 active:scale-[0.97]"
-            >
-              <div className="flex items-center gap-3">
-                <Lock className="h-6 w-6 text-muted-foreground" />
-                <div>
-                  <p className="font-semibold text-foreground">{m.title}</p>
-                  <p className="text-xs text-muted-foreground">{m.desc}</p>
-                  <span className={`mt-1 inline-block text-[10px] rounded-full px-2 py-0.5 ${
-                    m.rarity === "Épica" ? "bg-primary/20 text-primary" : "bg-soul-gold/20 text-soul-gold"
-                  }`}>{m.rarity} • Requiere {m.req}</span>
-                </div>
-              </div>
-            </button>
-          ))}
+                </button>
+              ))
+            ))}
         </div>
       </div>
+
+      {/* Modal misión activa */}
+      {active?.type === "breathing" && (
+        <BreathingMission
+          cycles={active.id === "deep-breath" ? 8 : 4}
+          onComplete={() => finishMission(active, "Respiración completada")}
+          onClose={() => setActive(null)}
+        />
+      )}
+      {active?.type === "journal" && (
+        <JournalMission
+          onComplete={(_text, mood) => finishMission(active, `Mood: ${mood}`)}
+          onClose={() => setActive(null)}
+        />
+      )}
+      {active?.type === "timer" && (
+        <TimerMission
+          title={active.title}
+          emoji={active.emoji}
+          durationSec={active.durationSec || 30}
+          description={active.desc}
+          onComplete={() => finishMission(active)}
+          onClose={() => setActive(null)}
+        />
+      )}
+      {active?.type === "gratitude" && (
+        <GratitudeMission
+          onComplete={() => finishMission(active, "Gratitud sellada")}
+          onClose={() => setActive(null)}
+        />
+      )}
+      {active?.type === "quiz" && (
+        <QuizMission
+          onComplete={(score, total) =>
+            finishMission(active, `Aciertos: ${score}/${total}`)
+          }
+          onClose={() => setActive(null)}
+        />
+      )}
     </MobileLayout>
+  );
+}
+
+function MissionCard({ mission, onStart }: { mission: Mission; onStart: () => void }) {
+  const rarityColor =
+    mission.rarity === "Legendaria"
+      ? "bg-soul-gold/20 text-soul-gold"
+      : mission.rarity === "Épica"
+      ? "bg-primary/20 text-primary"
+      : mission.rarity === "Raro"
+      ? "bg-soul-teal/20 text-soul-teal"
+      : "bg-secondary text-muted-foreground";
+
+  return (
+    <button
+      onClick={onStart}
+      className="w-full rounded-xl border border-border bg-card p-4 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5 active:scale-[0.97]"
+    >
+      <div className="flex items-start gap-3">
+        <span className="text-3xl">{mission.emoji}</span>
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <p className="font-semibold text-foreground">{mission.title}</p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] ${rarityColor}`}>
+              {mission.rarity}
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">{mission.desc}</p>
+
+          {/* Recompensas */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {mission.reward.xp ? (
+              <span className="text-[10px] font-bold text-soul-gold">+{mission.reward.xp} XP</span>
+            ) : null}
+            {mission.reward.coins ? (
+              <span className="flex items-center gap-0.5 text-[10px] text-foreground">
+                <Coins className="h-3 w-3 text-soul-gold" />
+                {mission.reward.coins}
+              </span>
+            ) : null}
+            {mission.reward.gems ? (
+              <span className="flex items-center gap-0.5 text-[10px] text-foreground">
+                <Gem className="h-3 w-3 text-primary" />
+                {mission.reward.gems}
+              </span>
+            ) : null}
+            {mission.reward.stats && (
+              <span className="flex items-center gap-0.5 rounded-full bg-soul-teal/10 px-1.5 py-0.5 text-[9px] text-soul-teal">
+                <Sparkles className="h-2.5 w-2.5" />
+                {Object.keys(mission.reward.stats).length} stats
+              </span>
+            )}
+          </div>
+
+          <p className="mt-2 text-[10px] font-semibold text-primary">Toca para iniciar →</p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-border bg-card/30 p-6 text-center">
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
   );
 }
