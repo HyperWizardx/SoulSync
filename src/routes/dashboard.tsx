@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Heart, Brain, Zap, Shield, AlertTriangle, ChevronRight, Check } from "lucide-react";
+import { Heart, Brain, Zap, Shield, AlertTriangle, ChevronRight, Flame } from "lucide-react";
 import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,39 +9,18 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-const stats = [
-  { label: "Bienestar", value: 72, icon: Heart, color: "text-soul-teal" },
-  { label: "Resiliencia", value: 58, icon: Shield, color: "text-primary" },
-  { label: "Energía", value: 85, icon: Zap, color: "text-soul-gold" },
-  { label: "Claridad", value: 64, icon: Brain, color: "text-primary" },
-];
-
-const initialMissions = [
-  { title: "Meditación matutina", xp: 50, progress: 60, emoji: "🧘" },
-  { title: "Diario emocional", xp: 30, progress: 30, emoji: "📓" },
-  { title: "Caminata consciente", xp: 40, progress: 0, emoji: "🚶" },
-];
-
 function DashboardPage() {
-  const { user, avatarEmoji, archetypeName } = useUserStore();
-  const [missions, setMissions] = useState(initialMissions);
+  const { user, avatarEmoji } = useUserStore();
   const [expandedStat, setExpandedStat] = useState<string | null>(null);
 
-  const handleMissionProgress = (index: number) => {
-    setMissions((prev) => {
-      const updated = [...prev];
-      const m = updated[index];
-      if (m.progress >= 100) return prev;
-      const newProgress = Math.min(m.progress + 20, 100);
-      updated[index] = { ...m, progress: newProgress };
-      if (newProgress >= 100) {
-        toast.success(`¡Misión completada! +${m.xp} XP`, { icon: "🎉" });
-      } else {
-        toast(`${m.title}: ${newProgress}%`, { icon: m.emoji });
-      }
-      return updated;
-    });
-  };
+  const stats = [
+    { label: "Bienestar", value: user.stats.bienestar, icon: Heart, color: "text-soul-teal" },
+    { label: "Resiliencia", value: user.stats.resiliencia, icon: Shield, color: "text-primary" },
+    { label: "Energía", value: user.stats.energia, icon: Zap, color: "text-soul-gold" },
+    { label: "Claridad", value: user.stats.claridad, icon: Brain, color: "text-primary" },
+  ];
+
+  const recent = user.missionHistory.slice(0, 3);
 
   return (
     <MobileLayout>
