@@ -14,7 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      inventory: {
+        Row: {
+          acquired_at: string
+          id: string
+          item_name: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          item_name: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          item_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mission_completions: {
+        Row: {
+          completed_at: string
+          completed_date: string
+          id: string
+          is_ar: boolean
+          mission_id: string
+          title: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          completed_at?: string
+          completed_date?: string
+          id?: string
+          is_ar?: boolean
+          mission_id: string
+          title: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          completed_at?: string
+          completed_date?: string
+          id?: string
+          is_ar?: boolean
+          mission_id?: string
+          title?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          archetype: number | null
+          avatar: number
+          coins: number
+          created_at: string
+          gems: number
+          last_mission_date: string | null
+          level: number
+          name: string
+          streak: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          archetype?: number | null
+          avatar?: number
+          coins?: number
+          created_at?: string
+          gems?: number
+          last_mission_date?: string | null
+          level?: number
+          name?: string
+          streak?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          archetype?: number | null
+          avatar?: number
+          coins?: number
+          created_at?: string
+          gems?: number
+          last_mission_date?: string | null
+          level?: number
+          name?: string
+          streak?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      user_attributes: {
+        Row: {
+          autoconocimiento: number
+          conexion_social: number
+          creatividad: number
+          empatia: number
+          mindfulness: number
+          resiliencia: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          autoconocimiento?: number
+          conexion_social?: number
+          creatividad?: number
+          empatia?: number
+          mindfulness?: number
+          resiliencia?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          autoconocimiento?: number
+          conexion_social?: number
+          creatividad?: number
+          empatia?: number
+          mindfulness?: number
+          resiliencia?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          bienestar: number
+          claridad: number
+          energia: number
+          resiliencia: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bienestar?: number
+          claridad?: number
+          energia?: number
+          resiliencia?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bienestar?: number
+          claridad?: number
+          energia?: number
+          resiliencia?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
