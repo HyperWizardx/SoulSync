@@ -285,10 +285,18 @@ export const migrateLocalProgress = createServerFn({ method: "POST" })
   .inputValidator((d) => MigrateSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const profUpdate: Record<string, unknown> = {};
-    for (const k of ["name", "avatar", "archetype", "level", "xp", "coins", "gems", "streak"] as const) {
-      if (data[k] !== undefined) profUpdate[k] = data[k];
-    }
+    const profUpdate: {
+      name?: string; avatar?: number; archetype?: number | null;
+      level?: number; xp?: number; coins?: number; gems?: number; streak?: number;
+    } = {};
+    if (data.name !== undefined) profUpdate.name = data.name;
+    if (data.avatar !== undefined) profUpdate.avatar = data.avatar;
+    if (data.archetype !== undefined) profUpdate.archetype = data.archetype;
+    if (data.level !== undefined) profUpdate.level = data.level;
+    if (data.xp !== undefined) profUpdate.xp = data.xp;
+    if (data.coins !== undefined) profUpdate.coins = data.coins;
+    if (data.gems !== undefined) profUpdate.gems = data.gems;
+    if (data.streak !== undefined) profUpdate.streak = data.streak;
     if (Object.keys(profUpdate).length) {
       await supabase.from("profiles").update(profUpdate).eq("user_id", userId);
     }
