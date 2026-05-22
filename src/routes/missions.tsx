@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
 import { useMemo, useState } from "react";
-import { Lock, Flame, Coins, Gem, Sparkles } from "lucide-react";
+import { Lock, Flame, Coins, Gem, Sparkles, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore, type MissionReward } from "@/hooks/useUserStore";
 import { BreathingMission } from "@/components/missions/BreathingMission";
@@ -9,12 +9,15 @@ import { JournalMission } from "@/components/missions/JournalMission";
 import { TimerMission } from "@/components/missions/TimerMission";
 import { GratitudeMission } from "@/components/missions/GratitudeMission";
 import { QuizMission } from "@/components/missions/QuizMission";
+import { ARAuraMission } from "@/components/missions/ARAuraMission";
+import { AREnergyMission } from "@/components/missions/AREnergyMission";
+import { ARFocusMission } from "@/components/missions/ARFocusMission";
 
 export const Route = createFileRoute("/missions")({
   component: MissionsPage,
 });
 
-type MissionType = "breathing" | "journal" | "timer" | "gratitude" | "quiz";
+type MissionType = "breathing" | "journal" | "timer" | "gratitude" | "quiz" | "ar-aura" | "ar-energy" | "ar-focus";
 
 interface Mission {
   id: string;
@@ -24,9 +27,9 @@ interface Mission {
   emoji: string;
   rarity: "Común" | "Raro" | "Épica" | "Legendaria";
   reward: MissionReward;
-  /** Solo para timer */
   durationSec?: number;
   requiredLevel?: number;
+  isAR?: boolean;
 }
 
 const MISSIONS: Mission[] = [
@@ -37,12 +40,7 @@ const MISSIONS: Mission[] = [
     desc: "4 ciclos de respiración consciente",
     emoji: "🧘",
     rarity: "Común",
-    reward: {
-      xp: 50,
-      coins: 15,
-      stats: { bienestar: 4, energia: 3 },
-      attributes: { mindfulness: 3, resiliencia: 1 },
-    },
+    reward: { xp: 50, coins: 15, stats: { bienestar: 4, energia: 3 }, attributes: { mindfulness: 3, resiliencia: 1 } },
   },
   {
     id: "journal-1",
@@ -51,12 +49,7 @@ const MISSIONS: Mission[] = [
     desc: "Escribe cómo te sientes hoy",
     emoji: "📓",
     rarity: "Común",
-    reward: {
-      xp: 40,
-      coins: 10,
-      stats: { claridad: 5, bienestar: 2 },
-      attributes: { autoconocimiento: 4, empatia: 2 },
-    },
+    reward: { xp: 40, coins: 10, stats: { claridad: 5, bienestar: 2 }, attributes: { autoconocimiento: 4, empatia: 2 } },
   },
   {
     id: "walk-30",
@@ -66,12 +59,7 @@ const MISSIONS: Mission[] = [
     emoji: "🚶",
     rarity: "Raro",
     durationSec: 30,
-    reward: {
-      xp: 70,
-      coins: 25,
-      stats: { energia: 6, bienestar: 4 },
-      attributes: { mindfulness: 2, resiliencia: 2 },
-    },
+    reward: { xp: 70, coins: 25, stats: { energia: 6, bienestar: 4 }, attributes: { mindfulness: 2, resiliencia: 2 } },
   },
   {
     id: "gratitude-3",
@@ -80,28 +68,16 @@ const MISSIONS: Mission[] = [
     desc: "Anota tres cosas por las que estás agradecido",
     emoji: "✨",
     rarity: "Raro",
-    reward: {
-      xp: 60,
-      coins: 20,
-      gems: 1,
-      stats: { bienestar: 6, claridad: 2 },
-      attributes: { empatia: 3, autoconocimiento: 2 },
-    },
+    reward: { xp: 60, coins: 20, gems: 1, stats: { bienestar: 6, claridad: 2 }, attributes: { empatia: 3, autoconocimiento: 2 } },
   },
   {
     id: "quiz-mind",
     type: "quiz",
     title: "Quiz de sabiduría",
-    desc: "3 preguntas sobre bienestar mental",
+    desc: "3 preguntas sobre mindfulness",
     emoji: "🧠",
     rarity: "Épica",
-    reward: {
-      xp: 90,
-      coins: 30,
-      gems: 2,
-      stats: { claridad: 7 },
-      attributes: { autoconocimiento: 4, creatividad: 2 },
-    },
+    reward: { xp: 90, coins: 30, gems: 2, stats: { claridad: 7 }, attributes: { autoconocimiento: 4, creatividad: 2 } },
   },
   {
     id: "deep-breath",
@@ -111,17 +87,42 @@ const MISSIONS: Mission[] = [
     emoji: "🌬️",
     rarity: "Legendaria",
     requiredLevel: 5,
-    reward: {
-      xp: 150,
-      coins: 60,
-      gems: 3,
-      stats: { bienestar: 10, energia: 5, claridad: 4 },
-      attributes: { mindfulness: 6, resiliencia: 4 },
-    },
+    reward: { xp: 150, coins: 60, gems: 3, stats: { bienestar: 10, energia: 5, claridad: 4 }, attributes: { mindfulness: 6, resiliencia: 4 } },
+  },
+  // AR
+  {
+    id: "ar-aura",
+    type: "ar-aura",
+    title: "Aura serena (AR)",
+    desc: "Respira al ritmo del avatar en tu cámara",
+    emoji: "🌬️",
+    rarity: "Raro",
+    isAR: true,
+    reward: { xp: 80, coins: 20, stats: { bienestar: 7, energia: 3 }, attributes: { mindfulness: 4 } },
+  },
+  {
+    id: "ar-energy",
+    type: "ar-energy",
+    title: "Captura de energía (AR)",
+    desc: "Toca al avatar 10 veces para cargarlo",
+    emoji: "⚡",
+    rarity: "Épica",
+    isAR: true,
+    reward: { xp: 100, coins: 35, gems: 1, stats: { energia: 8 }, attributes: { creatividad: 3 } },
+  },
+  {
+    id: "ar-focus",
+    type: "ar-focus",
+    title: "Enfoque consciente (AR)",
+    desc: "Mantén al avatar centrado 30 segundos",
+    emoji: "🎯",
+    rarity: "Legendaria",
+    isAR: true,
+    reward: { xp: 130, coins: 40, gems: 2, stats: { claridad: 9, bienestar: 3 }, attributes: { mindfulness: 5, autoconocimiento: 3 } },
   },
 ];
 
-const tabs = ["Activas", "Completadas", "Bloqueadas"] as const;
+const tabs = ["Activas", "AR", "Completadas", "Bloqueadas"] as const;
 
 function MissionsPage() {
   const { user, completeMission } = useUserStore();
@@ -134,8 +135,9 @@ function MissionsPage() {
     [user.missionHistory, today]
   );
 
-  const { activas, completadas, bloqueadas } = useMemo(() => {
+  const { activas, ar, completadas, bloqueadas } = useMemo(() => {
     const activas: Mission[] = [];
+    const ar: Mission[] = [];
     const completadas: Mission[] = [];
     const bloqueadas: Mission[] = [];
     for (const m of MISSIONS) {
@@ -143,16 +145,18 @@ function MissionsPage() {
         bloqueadas.push(m);
       } else if (completedToday.has(m.id)) {
         completadas.push(m);
+      } else if (m.isAR) {
+        ar.push(m);
       } else {
         activas.push(m);
       }
     }
-    return { activas, completadas, bloqueadas };
+    return { activas, ar, completadas, bloqueadas };
   }, [user.level, completedToday]);
 
-  const finishMission = (m: Mission, extraNote?: string) => {
-    const result = completeMission(m.id, m.title, m.reward);
+  const finishMission = async (m: Mission, extraNote?: string) => {
     setActive(null);
+    const result = await completeMission(m.id, m.title, m.reward, m.isAR ?? false);
     toast.success(`¡${m.title} completada! +${m.reward.xp} XP`, {
       icon: "🎉",
       description: extraNote,
@@ -178,7 +182,6 @@ function MissionsPage() {
           </div>
         </div>
 
-        {/* Resumen recursos */}
         <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="rounded-xl border border-border bg-card p-2 text-center">
             <p className="text-[10px] text-muted-foreground">XP</p>
@@ -194,46 +197,47 @@ function MissionsPage() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="mt-5 flex rounded-xl bg-card p-1">
           {tabs.map((t) => {
-            const count = t === "Activas" ? activas.length : t === "Completadas" ? completadas.length : bloqueadas.length;
+            const count =
+              t === "Activas" ? activas.length :
+              t === "AR" ? ar.length :
+              t === "Completadas" ? completadas.length : bloqueadas.length;
             return (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-300 active:scale-95 ${
-                  tab === t
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 rounded-lg py-2 text-[11px] font-semibold transition-all duration-300 active:scale-95 ${
+                  tab === t ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"
                 }`}
               >
+                {t === "AR" && <Camera className="mr-0.5 inline h-3 w-3" />}
                 {t} <span className="opacity-70">({count})</span>
               </button>
             );
           })}
         </div>
 
-        {/* Lista */}
         <div className="mt-4 space-y-3 animate-fade-in pb-4" key={tab}>
-          {tab === "Activas" &&
-            (activas.length === 0 ? (
-              <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." />
-            ) : (
-              activas.map((m) => (
-                <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} />
-              ))
-            ))}
+          {tab === "Activas" && (activas.length === 0
+            ? <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." />
+            : activas.map((m) => <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} />))}
 
-          {tab === "Completadas" &&
-            (completadas.length === 0 ? (
-              <EmptyState text="Aún no has completado misiones hoy." />
-            ) : (
-              completadas.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4"
-                >
+          {tab === "AR" && (
+            <>
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+                ✨ Las misiones AR usan la cámara de tu móvil + un mini avatar 3D para experiencias inmersivas.
+              </div>
+              {ar.length === 0
+                ? <EmptyState text="Ya completaste las misiones AR de hoy." />
+                : ar.map((m) => <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} ar />)}
+            </>
+          )}
+
+          {tab === "Completadas" && (completadas.length === 0
+            ? <EmptyState text="Aún no has completado misiones hoy." />
+            : completadas.map((m) => (
+                <div key={m.id} className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4">
                   <span className="text-2xl">✅</span>
                   <div className="flex-1">
                     <p className="font-semibold text-foreground line-through opacity-80">{m.title}</p>
@@ -241,18 +245,15 @@ function MissionsPage() {
                   </div>
                   <span className="text-[10px] font-bold text-soul-gold">+{m.reward.xp} XP</span>
                 </div>
-              ))
-            ))}
+              )))}
 
-          {tab === "Bloqueadas" &&
-            (bloqueadas.length === 0 ? (
-              <EmptyState text="No hay misiones bloqueadas." />
-            ) : (
-              bloqueadas.map((m) => (
+          {tab === "Bloqueadas" && (bloqueadas.length === 0
+            ? <EmptyState text="No hay misiones bloqueadas." />
+            : bloqueadas.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => toast.error(`Requiere nivel ${m.requiredLevel}`, { icon: "🔒" })}
-                  className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70 transition-all hover:opacity-90 active:scale-[0.97]"
+                  className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70"
                 >
                   <div className="flex items-center gap-3">
                     <Lock className="h-6 w-6 text-muted-foreground" />
@@ -265,12 +266,11 @@ function MissionsPage() {
                     </div>
                   </div>
                 </button>
-              ))
-            ))}
+              )))}
         </div>
       </div>
 
-      {/* Modal misión activa */}
+      {/* Modales */}
       {active?.type === "breathing" && (
         <BreathingMission
           cycles={active.id === "deep-breath" ? 8 : 4}
@@ -279,86 +279,69 @@ function MissionsPage() {
         />
       )}
       {active?.type === "journal" && (
-        <JournalMission
-          onComplete={(_text, mood) => finishMission(active, `Mood: ${mood}`)}
-          onClose={() => setActive(null)}
-        />
+        <JournalMission onComplete={(_t, mood) => finishMission(active, `Mood: ${mood}`)} onClose={() => setActive(null)} />
       )}
       {active?.type === "timer" && (
         <TimerMission
-          title={active.title}
-          emoji={active.emoji}
-          durationSec={active.durationSec || 30}
-          description={active.desc}
-          onComplete={() => finishMission(active)}
-          onClose={() => setActive(null)}
+          title={active.title} emoji={active.emoji}
+          durationSec={active.durationSec || 30} description={active.desc}
+          onComplete={() => finishMission(active)} onClose={() => setActive(null)}
         />
       )}
       {active?.type === "gratitude" && (
-        <GratitudeMission
-          onComplete={() => finishMission(active, "Gratitud sellada")}
-          onClose={() => setActive(null)}
-        />
+        <GratitudeMission onComplete={() => finishMission(active, "Gratitud sellada")} onClose={() => setActive(null)} />
       )}
       {active?.type === "quiz" && (
-        <QuizMission
-          onComplete={(score, total) =>
-            finishMission(active, `Aciertos: ${score}/${total}`)
-          }
-          onClose={() => setActive(null)}
-        />
+        <QuizMission onComplete={(s, t) => finishMission(active, `Aciertos: ${s}/${t}`)} onClose={() => setActive(null)} />
+      )}
+      {active?.type === "ar-aura" && (
+        <ARAuraMission onComplete={() => finishMission(active, "Aura sincronizada 🌬️")} onClose={() => setActive(null)} />
+      )}
+      {active?.type === "ar-energy" && (
+        <AREnergyMission onComplete={() => finishMission(active, "Avatar cargado ⚡")} onClose={() => setActive(null)} />
+      )}
+      {active?.type === "ar-focus" && (
+        <ARFocusMission onComplete={() => finishMission(active, "Enfoque sostenido 🎯")} onClose={() => setActive(null)} />
       )}
     </MobileLayout>
   );
 }
 
-function MissionCard({ mission, onStart }: { mission: Mission; onStart: () => void }) {
+function MissionCard({ mission, onStart, ar }: { mission: Mission; onStart: () => void; ar?: boolean }) {
   const rarityColor =
-    mission.rarity === "Legendaria"
-      ? "bg-soul-gold/20 text-soul-gold"
-      : mission.rarity === "Épica"
-      ? "bg-primary/20 text-primary"
-      : mission.rarity === "Raro"
-      ? "bg-soul-teal/20 text-soul-teal"
-      : "bg-secondary text-muted-foreground";
+    mission.rarity === "Legendaria" ? "bg-soul-gold/20 text-soul-gold"
+    : mission.rarity === "Épica" ? "bg-primary/20 text-primary"
+    : mission.rarity === "Raro" ? "bg-soul-teal/20 text-soul-teal"
+    : "bg-secondary text-muted-foreground";
 
   return (
     <button
       onClick={onStart}
-      className="w-full rounded-xl border border-border bg-card p-4 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5 active:scale-[0.97]"
+      className={`w-full rounded-xl border bg-card p-4 text-left transition-all duration-300 hover:shadow-md active:scale-[0.97] ${
+        ar ? "border-primary/40 hover:border-primary" : "border-border hover:border-primary/50"
+      }`}
     >
       <div className="flex items-start gap-3">
         <span className="text-3xl">{mission.emoji}</span>
         <div className="flex-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <p className="font-semibold text-foreground">{mission.title}</p>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] ${rarityColor}`}>
-              {mission.rarity}
-            </span>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] ${rarityColor}`}>{mission.rarity}</span>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">{mission.desc}</p>
 
-          {/* Recompensas */}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {mission.reward.xp ? (
-              <span className="text-[10px] font-bold text-soul-gold">+{mission.reward.xp} XP</span>
-            ) : null}
-            {mission.reward.coins ? (
-              <span className="flex items-center gap-0.5 text-[10px] text-foreground">
-                <Coins className="h-3 w-3 text-soul-gold" />
-                {mission.reward.coins}
-              </span>
-            ) : null}
-            {mission.reward.gems ? (
-              <span className="flex items-center gap-0.5 text-[10px] text-foreground">
-                <Gem className="h-3 w-3 text-primary" />
-                {mission.reward.gems}
-              </span>
-            ) : null}
+            {mission.reward.xp ? <span className="text-[10px] font-bold text-soul-gold">+{mission.reward.xp} XP</span> : null}
+            {mission.reward.coins ? <span className="flex items-center gap-0.5 text-[10px]"><Coins className="h-3 w-3 text-soul-gold" />{mission.reward.coins}</span> : null}
+            {mission.reward.gems ? <span className="flex items-center gap-0.5 text-[10px]"><Gem className="h-3 w-3 text-primary" />{mission.reward.gems}</span> : null}
             {mission.reward.stats && (
               <span className="flex items-center gap-0.5 rounded-full bg-soul-teal/10 px-1.5 py-0.5 text-[9px] text-soul-teal">
-                <Sparkles className="h-2.5 w-2.5" />
-                {Object.keys(mission.reward.stats).length} stats
+                <Sparkles className="h-2.5 w-2.5" />{Object.keys(mission.reward.stats).length} stats
+              </span>
+            )}
+            {ar && (
+              <span className="flex items-center gap-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] text-primary">
+                <Camera className="h-2.5 w-2.5" />AR
               </span>
             )}
           </div>
