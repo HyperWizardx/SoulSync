@@ -18,20 +18,15 @@ const items = [
 ];
 
 function StorePage() {
-  const { user, spendCoins, spendGems, addToInventory } = useUserStore();
+  const { user, buyItem } = useUserStore();
 
-  const handleBuy = (item: typeof items[0]) => {
+  const handleBuy = async (item: typeof items[0]) => {
     if (user.inventory.includes(item.name)) {
       toast.info("Ya tienes este item", { icon: "📦" });
       return;
     }
-    const success = item.currency === "coins" ? spendCoins(item.price) : spendGems(item.price);
-    if (success) {
-      addToInventory(item.name);
-      toast.success(`¡Compraste ${item.name}!`, { icon: item.emoji });
-    } else {
-      toast.error("No tienes suficientes " + (item.currency === "coins" ? "monedas" : "gemas"), { icon: "😢" });
-    }
+    const ok = await buyItem(item.name, item.price, item.currency);
+    if (ok) toast.success(`¡Compraste ${item.name}!`, { icon: item.emoji });
   };
 
   return (
@@ -39,16 +34,15 @@ function StorePage() {
       <div className="px-4 pt-6">
         <h1 className="text-2xl font-cinzel font-bold text-foreground">Tienda</h1>
 
-        {/* Balance */}
         <div className="mt-4 flex gap-3">
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card p-3 transition-all hover:border-soul-gold/50">
+          <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card p-3">
             <Coins className="h-5 w-5 text-soul-gold" />
             <div>
               <p className="text-lg font-bold text-foreground">{user.coins}</p>
               <p className="text-[10px] text-muted-foreground">Monedas</p>
             </div>
           </div>
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card p-3 transition-all hover:border-primary/50">
+          <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card p-3">
             <Gem className="h-5 w-5 text-primary" />
             <div>
               <p className="text-lg font-bold text-foreground">{user.gems}</p>
@@ -57,15 +51,14 @@ function StorePage() {
           </div>
         </div>
 
-        {/* Items Grid */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           {items.map((item) => {
             const owned = user.inventory.includes(item.name);
             return (
               <div key={item.name} className={`rounded-xl border bg-card p-3 transition-all duration-300 hover:scale-[1.03] ${
                 owned ? "opacity-60 border-soul-teal/50" :
-                item.rarity === "Legendario" ? "border-soul-gold/50 hover:shadow-lg hover:shadow-soul-gold/10" :
-                item.rarity === "Épico" ? "border-primary/50 hover:shadow-lg hover:shadow-primary/10" :
+                item.rarity === "Legendario" ? "border-soul-gold/50" :
+                item.rarity === "Épico" ? "border-primary/50" :
                 item.rarity === "Raro" ? "border-soul-teal/50" : "border-border"
               }`}>
                 <div className="flex items-center justify-between">
@@ -85,7 +78,7 @@ function StorePage() {
                   className={`mt-2 w-full rounded-lg py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                     owned
                       ? "bg-soul-teal/10 text-soul-teal cursor-default"
-                      : "bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-sm"
+                      : "bg-primary/10 text-primary hover:bg-primary/20"
                   }`}
                 >
                   {owned ? "✓ Comprado" : `${item.currency === "coins" ? "🪙" : "💎"} ${item.price}`}

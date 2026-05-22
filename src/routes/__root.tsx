@@ -1,6 +1,14 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { Toaster } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
+
+interface RouterContext {
+  queryClient: QueryClient;
+}
 
 function NotFoundComponent() {
   return (
@@ -26,20 +34,18 @@ function NotFoundComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SoulSync — RPG de Salud Mental" },
-      { name: "description", content: "Tu aventura de bienestar emocional comienza aquí. Gamifica tu salud mental con IA predictiva." },
+      { name: "description", content: "Tu aventura de bienestar emocional comienza aquí. Gamifica tu salud mental con IA predictiva y misiones AR." },
       { property: "og:title", content: "SoulSync — RPG de Salud Mental" },
-      { property: "og:description", content: "Tu aventura de bienestar emocional comienza aquí. Gamifica tu salud mental con IA predictiva." },
+      { property: "og:description", content: "Tu aventura de bienestar emocional comienza aquí. Gamifica tu salud mental con IA predictiva y misiones AR." },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "SoulSync — RPG de Salud Mental" },
-      { name: "twitter:description", content: "Tu aventura de bienestar emocional comienza aquí. Gamifica tu salud mental con IA predictiva." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2577743-5794-474c-a663-c8498fc0f3ec/id-preview-4afd26e9--58508dfa-6cdc-4ff8-bd2a-d836746e82ad.lovable.app-1777040702964.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2577743-5794-474c-a663-c8498fc0f3ec/id-preview-4afd26e9--58508dfa-6cdc-4ff8-bd2a-d836746e82ad.lovable.app-1777040702964.png" },
+      { name: "twitter:description", content: "Tu aventura de bienestar emocional comienza aquí. Gamifica tu salud mental con IA predictiva y misiones AR." },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -47,6 +53,12 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" },
+    ],
+    scripts: [
+      {
+        type: "module",
+        src: "https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -69,5 +81,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  const { queryClient } = Route.useRouteContext();
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthSync />
+      <Outlet />
+      <Toaster position="top-center" richColors closeButton />
+    </QueryClientProvider>
+  );
+}
+
+function AuthSync() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      qc.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [qc]);
+  return null;
 }
