@@ -16,6 +16,7 @@ import { Route as MissionsRouteImport } from './routes/missions'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateAvatarRouteImport } from './routes/create-avatar'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlertRouteImport } from './routes/alert'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
@@ -55,6 +56,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlertRoute = AlertRouteImport.update({
   id: '/alert',
   path: '/alert',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/alert': typeof AlertRoute
+  '/auth': typeof AuthRoute
   '/community': typeof CommunityRoute
   '/create-avatar': typeof CreateAvatarRoute
   '/dashboard': typeof DashboardRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/alert': typeof AlertRoute
+  '/auth': typeof AuthRoute
   '/community': typeof CommunityRoute
   '/create-avatar': typeof CreateAvatarRoute
   '/dashboard': typeof DashboardRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/alert': typeof AlertRoute
+  '/auth': typeof AuthRoute
   '/community': typeof CommunityRoute
   '/create-avatar': typeof CreateAvatarRoute
   '/dashboard': typeof DashboardRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/alert'
+    | '/auth'
     | '/community'
     | '/create-avatar'
     | '/dashboard'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/alert'
+    | '/auth'
     | '/community'
     | '/create-avatar'
     | '/dashboard'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/alert'
+    | '/auth'
     | '/community'
     | '/create-avatar'
     | '/dashboard'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   AlertRoute: typeof AlertRoute
+  AuthRoute: typeof AuthRoute
   CommunityRoute: typeof CommunityRoute
   CreateAvatarRoute: typeof CreateAvatarRoute
   DashboardRoute: typeof DashboardRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alert': {
       id: '/alert'
       path: '/alert'
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   AlertRoute: AlertRoute,
+  AuthRoute: AuthRoute,
   CommunityRoute: CommunityRoute,
   CreateAvatarRoute: CreateAvatarRoute,
   DashboardRoute: DashboardRoute,

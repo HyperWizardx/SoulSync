@@ -74,10 +74,9 @@ export function MiniAvatar3D({
           width: "100%",
           height: "100%",
           background: "transparent",
-          // @ts-expect-error css var
-          "--poster-color": "transparent",
         }}
       />
+
     </div>
   );
 }
