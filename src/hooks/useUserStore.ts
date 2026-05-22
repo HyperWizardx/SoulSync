@@ -1,4 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getProgress,
+  updateProfile,
+  completeMissionServer,
+  buyItem,
+  migrateLocalProgress,
+} from "@/lib/progress.functions";
 
 export interface UserStats {
   bienestar: number;
@@ -45,167 +56,225 @@ const DEFAULT_USER: UserData = {
   name: "Héroe",
   avatar: 0,
   archetype: null,
-  level: 3,
-  xp: 450,
-  coins: 350,
-  gems: 12,
+  level: 1,
+  xp: 0,
+  coins: 100,
+  gems: 5,
   streak: 0,
   lastMissionDate: null,
-  completedMissions: ["Primera meditación", "Intro al diario"],
+  completedMissions: [],
   missionHistory: [],
   inventory: [],
-  stats: { bienestar: 72, resiliencia: 58, energia: 85, claridad: 64 },
+  stats: { bienestar: 50, resiliencia: 50, energia: 50, claridad: 50 },
   attributes: {
-    resiliencia: 58,
-    empatia: 72,
-    mindfulness: 45,
-    autoconocimiento: 64,
-    conexionSocial: 38,
-    creatividad: 80,
+    resiliencia: 30,
+    empatia: 30,
+    mindfulness: 30,
+    autoconocimiento: 30,
+    conexionSocial: 30,
+    creatividad: 30,
   },
 };
 
 const AVATARS = ["🧙‍♂️", "🧝‍♀️", "🐉", "🦊", "🌟", "🦉"];
 const ARCHETYPES = ["Guerrero", "Sanador", "Explorador", "Sabio"];
-const XP_PER_LEVEL = 600;
-
-const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
+const MIGRATED_KEY = "soulsync_migrated";
 
 export function useUserStore() {
-  const [user, setUser] = useState<UserData>(() => {
-    try {
-      const stored = localStorage.getItem("soulsync_user");
-      if (!stored) return DEFAULT_USER;
-      const parsed = JSON.parse(stored);
-      return {
-        ...DEFAULT_USER,
-        ...parsed,
-        stats: { ...DEFAULT_USER.stats, ...(parsed.stats || {}) },
-        attributes: { ...DEFAULT_USER.attributes, ...(parsed.attributes || {}) },
-      };
-    } catch {
-      return DEFAULT_USER;
-    }
+  const qc = useQueryClient();
+  const getProgressFn = useServerFn(getProgress);
+  const completeMissionFn = useServerFn(completeMissionServer);
+  const updateProfileFn = useServerFn(updateProfile);
+  const buyItemFn = useServerFn(buyItem);
+  const migrateFn = useServerFn(migrateLocalProgress);
+  const migratedRef = useRef(false);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["progress"],
+    queryFn: () => getProgressFn(),
+    staleTime: 10_000,
   });
 
+  // Migrate localStorage → server, only once
   useEffect(() => {
-    localStorage.setItem("soulsync_user", JSON.stringify(user));
-  }, [user]);
+    if (!data || migratedRef.current) return;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(MIGRATED_KEY)) return;
+    const raw = localStorage.getItem("soulsync_user");
+    if (!raw) {
+      localStorage.setItem(MIGRATED_KEY, "1");
+      return;
+    }
+    migratedRef.current = true;
+    try {
+      const parsed = JSON.parse(raw);
+      migrateFn({
+        data: {
+          name: parsed.name,
+          avatar: parsed.avatar,
+          archetype: parsed.archetype,
+          level: parsed.level,
+          xp: parsed.xp,
+          coins: parsed.coins,
+          gems: parsed.gems,
+          streak: parsed.streak,
+          stats: parsed.stats,
+          attributes: parsed.attributes,
+          inventory: parsed.inventory,
+        },
+      }).then(() => {
+        localStorage.setItem(MIGRATED_KEY, "1");
+        localStorage.removeItem("soulsync_user");
+        qc.invalidateQueries({ queryKey: ["progress"] });
+      }).catch(() => {});
+    } catch {
+      localStorage.setItem(MIGRATED_KEY, "1");
+    }
+  }, [data, migrateFn, qc]);
 
-  const updateUser = useCallback((updates: Partial<UserData>) => {
-    setUser((prev) => ({ ...prev, ...updates }));
-  }, []);
-
-  const addCoins = useCallback((amount: number) => {
-    setUser((prev) => ({ ...prev, coins: prev.coins + amount }));
-  }, []);
-
-  const spendCoins = useCallback((amount: number): boolean => {
-    let success = false;
-    setUser((prev) => {
-      if (prev.coins >= amount) {
-        success = true;
-        return { ...prev, coins: prev.coins - amount };
+  const user: UserData = data
+    ? {
+        name: data.profile.name,
+        avatar: data.profile.avatar,
+        archetype: data.profile.archetype,
+        level: data.profile.level,
+        xp: data.profile.xp,
+        coins: data.profile.coins,
+        gems: data.profile.gems,
+        streak: data.profile.streak,
+        lastMissionDate: data.profile.last_mission_date,
+        completedMissions: data.history.map((h) => h.title),
+        missionHistory: data.history.map((h) => ({
+          id: h.mission_id,
+          title: h.title,
+          date: new Date(h.completed_at).toDateString(),
+          xp: h.xp_earned,
+        })),
+        inventory: data.inventory,
+        stats: data.stats,
+        attributes: {
+          resiliencia: data.attributes.resiliencia,
+          empatia: data.attributes.empatia,
+          mindfulness: data.attributes.mindfulness,
+          autoconocimiento: data.attributes.autoconocimiento,
+          conexionSocial: data.attributes.conexion_social,
+          creatividad: data.attributes.creatividad,
+        },
       }
-      return prev;
-    });
-    return success;
-  }, []);
+    : DEFAULT_USER;
 
-  const spendGems = useCallback((amount: number): boolean => {
-    let success = false;
-    setUser((prev) => {
-      if (prev.gems >= amount) {
-        success = true;
-        return { ...prev, gems: prev.gems - amount };
-      }
-      return prev;
-    });
-    return success;
-  }, []);
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["progress"] });
 
-  const addToInventory = useCallback((item: string) => {
-    setUser((prev) => ({ ...prev, inventory: [...prev.inventory, item] }));
-  }, []);
+  const profileMut = useMutation({
+    mutationFn: (d: { name?: string; avatar?: number; archetype?: number | null }) =>
+      updateProfileFn({ data: d }),
+    onSuccess: invalidate,
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Error"),
+  });
 
-  /** Aplica una recompensa de misión: XP, monedas, gemas, stats y atributos.
-   *  Retorna { leveledUp, newLevel } */
-  const completeMission = useCallback(
-    (missionId: string, missionTitle: string, reward: MissionReward) => {
-      let leveledUp = false;
-      let newLevel = 0;
-      setUser((prev) => {
-        const today = new Date().toDateString();
-        const newXp = prev.xp + (reward.xp || 0);
-        let level = prev.level;
-        let xpFinal = newXp;
-        while (xpFinal >= XP_PER_LEVEL) {
-          xpFinal -= XP_PER_LEVEL;
-          level += 1;
-          leveledUp = true;
-        }
-        newLevel = level;
+  const completeMissionMut = useMutation({
+    mutationFn: (payload: {
+      missionId: string;
+      title: string;
+      isAR?: boolean;
+      xp?: number;
+      coins?: number;
+      gems?: number;
+      stats?: Partial<UserStats>;
+      attributes?: Partial<UserAttributes>;
+    }) =>
+      completeMissionFn({
+        data: {
+          missionId: payload.missionId,
+          title: payload.title,
+          isAR: payload.isAR ?? false,
+          xp: payload.xp ?? 0,
+          coins: payload.coins ?? 0,
+          gems: payload.gems ?? 0,
+          stats: payload.stats ?? {},
+          attributes: payload.attributes
+            ? {
+                resiliencia: payload.attributes.resiliencia,
+                empatia: payload.attributes.empatia,
+                mindfulness: payload.attributes.mindfulness,
+                autoconocimiento: payload.attributes.autoconocimiento,
+                conexion_social: payload.attributes.conexionSocial,
+                creatividad: payload.attributes.creatividad,
+              }
+            : {},
+        },
+      }),
+    onSuccess: invalidate,
+  });
 
-        const streak =
-          prev.lastMissionDate === today
-            ? prev.streak
-            : prev.lastMissionDate === new Date(Date.now() - 86400000).toDateString()
-            ? prev.streak + 1
-            : 1;
+  const buyMut = useMutation({
+    mutationFn: (d: { itemName: string; price: number; currency: "coins" | "gems" }) =>
+      buyItemFn({ data: d }),
+    onSuccess: invalidate,
+  });
 
-        const stats = { ...prev.stats };
-        if (reward.stats) {
-          (Object.keys(reward.stats) as (keyof UserStats)[]).forEach((k) => {
-            stats[k] = clamp(stats[k] + (reward.stats![k] || 0));
-          });
-        }
-        const attributes = { ...prev.attributes };
-        if (reward.attributes) {
-          (Object.keys(reward.attributes) as (keyof UserAttributes)[]).forEach((k) => {
-            attributes[k] = clamp(attributes[k] + (reward.attributes![k] || 0));
-          });
-        }
-
-        return {
-          ...prev,
-          xp: xpFinal,
-          level,
-          coins: prev.coins + (reward.coins || 0),
-          gems: prev.gems + (reward.gems || 0),
-          streak,
-          lastMissionDate: today,
-          stats,
-          attributes,
-          completedMissions: prev.completedMissions.includes(missionTitle)
-            ? prev.completedMissions
-            : [...prev.completedMissions, missionTitle],
-          missionHistory: [
-            { id: missionId, title: missionTitle, date: today, xp: reward.xp || 0 },
-            ...prev.missionHistory,
-          ].slice(0, 50),
-        };
-      });
-      return { leveledUp, newLevel };
+  const updateUser = useCallback(
+    (updates: Partial<Pick<UserData, "name" | "avatar" | "archetype">>) => {
+      profileMut.mutate(updates);
     },
-    []
+    [profileMut]
   );
 
-  const resetProgress = useCallback(() => {
-    setUser(DEFAULT_USER);
-  }, []);
+  const completeMission = useCallback(
+    async (
+      missionId: string,
+      missionTitle: string,
+      reward: MissionReward,
+      isAR = false
+    ) => {
+      try {
+        const res = await completeMissionMut.mutateAsync({
+          missionId,
+          title: missionTitle,
+          isAR,
+          xp: reward.xp,
+          coins: reward.coins,
+          gems: reward.gems,
+          stats: reward.stats,
+          attributes: reward.attributes,
+        });
+        return res;
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Error guardando misión");
+        return { leveledUp: false, newLevel: user.level };
+      }
+    },
+    [completeMissionMut, user.level]
+  );
+
+  const buyItemAction = useCallback(
+    async (itemName: string, price: number, currency: "coins" | "gems") => {
+      try {
+        await buyMut.mutateAsync({ itemName, price, currency });
+        return true;
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "No se pudo comprar");
+        return false;
+      }
+    },
+    [buyMut]
+  );
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    qc.clear();
+  }, [qc]);
 
   const avatarEmoji = AVATARS[user.avatar] || "🧙‍♂️";
   const archetypeName = user.archetype !== null ? ARCHETYPES[user.archetype] : "Novato";
 
   return {
     user,
+    isLoading,
     updateUser,
-    addCoins,
-    spendCoins,
-    spendGems,
-    addToInventory,
     completeMission,
-    resetProgress,
+    buyItem: buyItemAction,
+    signOut,
     avatarEmoji,
     archetypeName,
   };
