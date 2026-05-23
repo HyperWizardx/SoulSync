@@ -98,7 +98,6 @@ function ProfilePage() {
             >
               🌙 Tema
             </button>
-            </button>
             <button
               onClick={handleSignOut}
               className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-destructive hover:bg-destructive/10 transition-all active:scale-95"
