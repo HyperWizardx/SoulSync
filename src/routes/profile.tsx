@@ -98,10 +98,6 @@ function ProfilePage() {
             >
               🌙 Tema
             </button>
-          </div>
-        )}
-
-              🌙 Tema
             </button>
             <button
               onClick={handleSignOut}
