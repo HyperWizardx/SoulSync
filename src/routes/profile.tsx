@@ -1,9 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check } from "lucide-react";
+import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut } from "lucide-react";
 import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
+import { MiniAvatar3D } from "@/components/MiniAvatar3D";
+import { getArchetypeStyle } from "@/lib/archetype";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -17,11 +19,19 @@ const achievements = [
 ];
 
 function ProfilePage() {
-  const { user, updateUser, avatarEmoji, archetypeName } = useUserStore();
+  const { user, updateUser, avatarEmoji, archetypeName, signOut } = useUserStore();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user.name);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedAttr, setExpandedAttr] = useState<string | null>(null);
+  const archStyle = getArchetypeStyle(user.archetype);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Sesión cerrada");
+    navigate({ to: "/auth", search: { mode: "login" } });
+  };
 
   const attributes = [
     { name: "Resiliencia", value: user.attributes.resiliencia },
@@ -88,17 +98,24 @@ function ProfilePage() {
             >
               🌙 Tema
             </button>
+            <button
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-destructive hover:bg-destructive/10 transition-all active:scale-95"
+            >
+              <LogOut className="h-4 w-4" /> Cerrar sesión
+            </button>
           </div>
         )}
 
         {/* Avatar Card */}
         <div className="mt-4 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 to-card p-6">
           <div className="relative">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-card text-5xl ring-4 ring-primary/30 animate-float">
-              {avatarEmoji}
-            </div>
-            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <MiniAvatar3D size={140} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-lg">
               {user.level}
+            </span>
+            <span className="absolute -top-1 -left-1 flex h-7 w-7 items-center justify-center rounded-full bg-card text-base ring-2 ring-primary/30">
+              {archStyle.emoji}
             </span>
           </div>
 

@@ -38,7 +38,7 @@ export function ARAuraMission({ onComplete, onClose }: Props) {
     <ARMissionHost title="Aura serena" onClose={onClose}>
       {() => (
         <>
-          <AvatarOverlay scale={phase.scale} glow="hsl(180 70% 60%)" />
+          <AvatarOverlay scale={phase.scale} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">
               Ciclo {Math.min(cycle + 1, CYCLES)} / {CYCLES}

@@ -4,13 +4,16 @@ import { Heart, Brain, Zap, Shield, AlertTriangle, ChevronRight, Flame } from "l
 import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
+import { MiniAvatar3D } from "@/components/MiniAvatar3D";
+import { getArchetypeStyle } from "@/lib/archetype";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { user, avatarEmoji } = useUserStore();
+  const { user } = useUserStore();
+  const archStyle = getArchetypeStyle(user.archetype);
   const [expandedStat, setExpandedStat] = useState<string | null>(null);
 
   const stats = [
@@ -29,15 +32,24 @@ function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Bienvenido de vuelta</p>
-            <h1 className="text-xl font-cinzel font-bold text-foreground">{user.name} ⚔️</h1>
+            <h1 className="text-xl font-cinzel font-bold text-foreground">{user.name} {archStyle.emoji}</h1>
           </div>
-          <Link to="/profile" className="flex h-10 w-10 items-center justify-center rounded-full bg-card text-2xl ring-2 ring-primary/30 transition-all hover:ring-primary hover:scale-110 active:scale-95">
-            {avatarEmoji}
+          <Link
+            to="/profile"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-card ring-2 ring-primary/30 transition-all hover:ring-primary hover:scale-110 active:scale-95"
+          >
+            <MiniAvatar3D size={44} glowColor={archStyle.glow} exposure={archStyle.exposure} />
           </Link>
         </div>
 
+        {/* Hero Avatar 3D */}
+        <div className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 via-card to-card p-4">
+          <MiniAvatar3D size={180} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+          <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{archStyle.name}</p>
+        </div>
+
         {/* World Preview */}
-        <Link to="/world" className="mt-6 block overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-soul-teal/10 p-4 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.98]">
+        <Link to="/world" className="mt-4 block overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-soul-teal/10 p-4 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.98]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Tu Mundo Emocional</p>
@@ -45,7 +57,6 @@ function DashboardPage() {
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
           </div>
-          <div className="mt-3 flex justify-center text-5xl animate-float">🏔️</div>
         </Link>
 
         {/* Stats Grid */}

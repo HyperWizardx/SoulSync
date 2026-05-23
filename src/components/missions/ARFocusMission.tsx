@@ -36,7 +36,7 @@ export function ARFocusMission({ onComplete, onClose }: Props) {
                 focused ? "border-soul-teal/80" : "border-destructive/80"
               }`}
             />
-            <AvatarOverlay scale={1 + progress * 0.2} glow="hsl(160 80% 55%)" />
+            <AvatarOverlay scale={1 + progress * 0.2} />
           </div>
 
           <div className="pointer-events-auto mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">

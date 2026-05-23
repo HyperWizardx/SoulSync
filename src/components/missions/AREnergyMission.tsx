@@ -36,7 +36,7 @@ export function AREnergyMission({ onComplete, onClose }: Props) {
             onClick={handleTap}
             className="pointer-events-auto flex flex-1 items-center justify-center"
           >
-            <AvatarOverlay scale={scale} glow={`hsl(${280 - charge * 80} 80% ${55 + charge * 10}%)`} />
+            <AvatarOverlay scale={scale} />
           </button>
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">Carga</p>
