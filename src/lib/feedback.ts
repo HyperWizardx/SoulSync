@@ -10,7 +10,7 @@ export function emitFeedback(e: FeedbackEvent) {
   listeners.forEach((l) => l(e));
 }
 
-export function onFeedback(l: Listener) {
+export function onFeedback(l: Listener): () => void {
   listeners.add(l);
-  return () => listeners.delete(l);
+  return () => { listeners.delete(l); };
 }
