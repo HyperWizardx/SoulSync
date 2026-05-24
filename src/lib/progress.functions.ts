@@ -17,31 +17,22 @@ export type ProgressPayload = {
     gems: number;
     streak: number;
     last_mission_date: string | null;
+    onboarded: boolean;
+    daily_goal: number;
+    theme: string;
+    text_size: string;
   };
-  stats: {
-    bienestar: number;
-    resiliencia: number;
-    energia: number;
-    claridad: number;
-  };
+  stats: { bienestar: number; resiliencia: number; energia: number; claridad: number };
   attributes: {
-    resiliencia: number;
-    empatia: number;
-    mindfulness: number;
-    autoconocimiento: number;
-    conexion_social: number;
-    creatividad: number;
+    resiliencia: number; empatia: number; mindfulness: number;
+    autoconocimiento: number; conexion_social: number; creatividad: number;
   };
   history: Array<{
-    id: string;
-    mission_id: string;
-    title: string;
-    xp_earned: number;
-    is_ar: boolean;
-    completed_at: string;
-    completed_date: string;
+    id: string; mission_id: string; title: string; xp_earned: number;
+    is_ar: boolean; completed_at: string; completed_date: string;
   }>;
   inventory: string[];
+  achievements: string[];
 };
 
 export const getProgress = createServerFn({ method: "GET" })
