@@ -368,7 +368,12 @@ export const updateSettings = createServerFn({ method: "POST" })
   .inputValidator((d) => SettingsSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const update: Record<string, unknown> = {};
+    const update: {
+      theme?: string;
+      text_size?: string;
+      daily_goal?: number;
+      onboarded?: boolean;
+    } = {};
     if (data.theme !== undefined) update.theme = data.theme;
     if (data.textSize !== undefined) update.text_size = data.textSize;
     if (data.dailyGoal !== undefined) update.daily_goal = data.dailyGoal;
