@@ -9,7 +9,10 @@ import {
   completeMissionServer,
   buyItem,
   migrateLocalProgress,
+  updateSettings,
+  getWeeklyStats,
 } from "@/lib/progress.functions";
+import { emitFeedback } from "@/lib/feedback";
 
 export interface UserStats {
   bienestar: number;
@@ -35,6 +38,13 @@ export interface MissionReward {
   attributes?: Partial<UserAttributes>;
 }
 
+export interface UserSettings {
+  theme: "dark" | "light";
+  textSize: "normal" | "large" | "xl";
+  dailyGoal: number;
+  onboarded: boolean;
+}
+
 export interface UserData {
   name: string;
   avatar: number;
@@ -50,6 +60,8 @@ export interface UserData {
   inventory: string[];
   stats: UserStats;
   attributes: UserAttributes;
+  achievements: string[];
+  settings: UserSettings;
 }
 
 const DEFAULT_USER: UserData = {
@@ -74,6 +86,8 @@ const DEFAULT_USER: UserData = {
     conexionSocial: 30,
     creatividad: 30,
   },
+  achievements: [],
+  settings: { theme: "dark", textSize: "normal", dailyGoal: 3, onboarded: false },
 };
 
 const AVATARS = ["🧙‍♂️", "🧝‍♀️", "🐉", "🦊", "🌟", "🦉"];
@@ -87,6 +101,7 @@ export function useUserStore() {
   const updateProfileFn = useServerFn(updateProfile);
   const buyItemFn = useServerFn(buyItem);
   const migrateFn = useServerFn(migrateLocalProgress);
+  const updateSettingsFn = useServerFn(updateSettings);
   const migratedRef = useRef(false);
 
   const { data, isLoading } = useQuery({
@@ -122,11 +137,13 @@ export function useUserStore() {
           attributes: parsed.attributes,
           inventory: parsed.inventory,
         },
-      }).then(() => {
-        localStorage.setItem(MIGRATED_KEY, "1");
-        localStorage.removeItem("soulsync_user");
-        qc.invalidateQueries({ queryKey: ["progress"] });
-      }).catch(() => {});
+      })
+        .then(() => {
+          localStorage.setItem(MIGRATED_KEY, "1");
+          localStorage.removeItem("soulsync_user");
+          qc.invalidateQueries({ queryKey: ["progress"] });
+        })
+        .catch(() => {});
     } catch {
       localStorage.setItem(MIGRATED_KEY, "1");
     }
@@ -159,6 +176,13 @@ export function useUserStore() {
           autoconocimiento: data.attributes.autoconocimiento,
           conexionSocial: data.attributes.conexion_social,
           creatividad: data.attributes.creatividad,
+        },
+        achievements: data.achievements ?? [],
+        settings: {
+          theme: (data.profile.theme as "dark" | "light") ?? "dark",
+          textSize: (data.profile.text_size as "normal" | "large" | "xl") ?? "normal",
+          dailyGoal: data.profile.daily_goal ?? 3,
+          onboarded: data.profile.onboarded ?? false,
         },
       }
     : DEFAULT_USER;
@@ -213,6 +237,19 @@ export function useUserStore() {
     onSuccess: invalidate,
   });
 
+  const settingsMut = useMutation({
+    mutationFn: (d: Partial<UserSettings>) =>
+      updateSettingsFn({
+        data: {
+          theme: d.theme,
+          textSize: d.textSize,
+          dailyGoal: d.dailyGoal,
+          onboarded: d.onboarded,
+        },
+      }),
+    onSuccess: invalidate,
+  });
+
   const updateUser = useCallback(
     (updates: Partial<Pick<UserData, "name" | "avatar" | "archetype">>) => {
       profileMut.mutate(updates);
@@ -238,10 +275,16 @@ export function useUserStore() {
           stats: reward.stats,
           attributes: reward.attributes,
         });
+        if (res.leveledUp) {
+          emitFeedback({ type: "levelup", level: res.newLevel });
+        }
+        for (const code of res.unlockedAchievements ?? []) {
+          emitFeedback({ type: "achievement", code });
+        }
         return res;
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Error guardando misión");
-        return { leveledUp: false, newLevel: user.level };
+        return { leveledUp: false, newLevel: user.level, unlockedAchievements: [] as string[] };
       }
     },
     [completeMissionMut, user.level]
@@ -260,6 +303,11 @@ export function useUserStore() {
     [buyMut]
   );
 
+  const updateUserSettings = useCallback(
+    (updates: Partial<UserSettings>) => settingsMut.mutate(updates),
+    [settingsMut]
+  );
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     qc.clear();
@@ -272,10 +320,20 @@ export function useUserStore() {
     user,
     isLoading,
     updateUser,
+    updateSettings: updateUserSettings,
     completeMission,
     buyItem: buyItemAction,
     signOut,
     avatarEmoji,
     archetypeName,
   };
+}
+
+export function useWeeklyStats() {
+  const fn = useServerFn(getWeeklyStats);
+  return useQuery({
+    queryKey: ["weekly-stats"],
+    queryFn: () => fn(),
+    staleTime: 60_000,
+  });
 }
