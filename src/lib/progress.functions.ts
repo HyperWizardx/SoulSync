@@ -355,3 +355,52 @@ export const migrateLocalProgress = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+const SettingsSchema = z.object({
+  theme: z.enum(["dark", "light"]).optional(),
+  textSize: z.enum(["normal", "large", "xl"]).optional(),
+  dailyGoal: z.number().int().min(1).max(20).optional(),
+  onboarded: z.boolean().optional(),
+});
+
+export const updateSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => SettingsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const update: Record<string, unknown> = {};
+    if (data.theme !== undefined) update.theme = data.theme;
+    if (data.textSize !== undefined) update.text_size = data.textSize;
+    if (data.dailyGoal !== undefined) update.daily_goal = data.dailyGoal;
+    if (data.onboarded !== undefined) update.onboarded = data.onboarded;
+    if (Object.keys(update).length === 0) return { ok: true };
+    const { error } = await supabase.from("profiles").update(update).eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getWeeklyStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const since = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from("mission_completions")
+      .select("completed_date, xp_earned, is_ar")
+      .eq("user_id", userId)
+      .gte("completed_date", since);
+    if (error) throw new Error(error.message);
+    const buckets: Record<string, { xp: number; count: number; ar: number }> = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(Date.now() - (6 - i) * 86400000).toISOString().slice(0, 10);
+      buckets[d] = { xp: 0, count: 0, ar: 0 };
+    }
+    for (const row of data ?? []) {
+      const b = buckets[row.completed_date];
+      if (!b) continue;
+      b.xp += row.xp_earned;
+      b.count += 1;
+      if (row.is_ar) b.ar += 1;
+    }
+    return Object.entries(buckets).map(([date, v]) => ({ date, ...v }));
+  });
