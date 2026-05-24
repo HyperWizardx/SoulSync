@@ -226,7 +226,40 @@ export const completeMissionServer = createServerFn({ method: "POST" })
     const err = u1.error ?? u2.error ?? u3.error ?? u4.error;
     if (err) throw new Error(err.message);
 
-    return { leveledUp, newLevel: level };
+    // --- Logros ---
+    const dailyGoal = (prof as { daily_goal?: number }).daily_goal ?? 3;
+    const [missionCountRes, arCountRes, todayCountRes, alreadyRes] = await Promise.all([
+      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("is_ar", true),
+      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("completed_date", today),
+      supabase.from("achievements").select("code").eq("user_id", userId),
+    ]);
+    const totalMissions = missionCountRes.count ?? 0;
+    const arMissions = arCountRes.count ?? 0;
+    const todayMissions = todayCountRes.count ?? 0;
+    const owned = new Set((alreadyRes.data ?? []).map((r) => r.code));
+
+    const candidates: string[] = [];
+    if (totalMissions >= 1) candidates.push("first_step");
+    if (streak >= 3) candidates.push("streak_3");
+    if (streak >= 7) candidates.push("streak_7");
+    if (streak >= 30) candidates.push("streak_30");
+    if (totalMissions >= 10) candidates.push("missions_10");
+    if (totalMissions >= 50) candidates.push("missions_50");
+    if (data.isAR && arMissions >= 1) candidates.push("ar_first");
+    if (arMissions >= 5) candidates.push("ar_5");
+    if (level >= 5) candidates.push("level_5");
+    if (level >= 10) candidates.push("level_10");
+    if (todayMissions >= dailyGoal) candidates.push("daily_goal");
+
+    const toUnlock = candidates.filter((c) => !owned.has(c));
+    if (toUnlock.length > 0) {
+      await supabase.from("achievements").insert(
+        toUnlock.map((code) => ({ user_id: userId, code }))
+      );
+    }
+
+    return { leveledUp, newLevel: level, unlockedAchievements: toUnlock };
   });
 
 const BuySchema = z.object({
