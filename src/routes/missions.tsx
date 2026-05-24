@@ -156,16 +156,12 @@ function MissionsPage() {
 
   const finishMission = async (m: Mission, extraNote?: string) => {
     setActive(null);
-    const result = await completeMission(m.id, m.title, m.reward, m.isAR ?? false);
+    await completeMission(m.id, m.title, m.reward, m.isAR ?? false);
     toast.success(`¡${m.title} completada! +${m.reward.xp} XP`, {
       icon: "🎉",
       description: extraNote,
     });
-    if (result.leveledUp) {
-      setTimeout(() => {
-        toast(`¡Subiste a nivel ${result.newLevel}!`, { icon: "⭐" });
-      }, 600);
-    }
+    // Level-up + logros se muestran globalmente vía FeedbackHost
   };
 
   return (

@@ -17,10 +17,11 @@ export function BottomNav() {
           <Link
             key={item.to}
             to={item.to}
-            className="flex flex-col items-center gap-0.5 px-3 py-1 text-muted-foreground transition-colors"
-            activeProps={{ className: "flex flex-col items-center gap-0.5 px-3 py-1 text-primary transition-colors" }}
+            aria-label={item.label}
+            className="flex min-h-11 min-w-11 flex-col items-center gap-0.5 px-3 py-1 text-muted-foreground transition-colors"
+            activeProps={{ className: "flex min-h-11 min-w-11 flex-col items-center gap-0.5 px-3 py-1 text-primary transition-colors" }}
           >
-            <item.icon className="h-5 w-5" />
+            <item.icon className="h-5 w-5" aria-hidden="true" />
             <span className="text-[10px] font-medium">{item.label}</span>
           </Link>
         ))}
