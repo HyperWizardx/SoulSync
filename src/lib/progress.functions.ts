@@ -39,7 +39,7 @@ export const getProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ProgressPayload> => {
     const { supabase, userId } = context;
-    const [pRes, sRes, aRes, hRes, iRes] = await Promise.all([
+    const [pRes, sRes, aRes, hRes, iRes, achRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
@@ -50,6 +50,7 @@ export const getProgress = createServerFn({ method: "GET" })
         .order("completed_at", { ascending: false })
         .limit(50),
       supabase.from("inventory").select("item_name").eq("user_id", userId),
+      supabase.from("achievements").select("code").eq("user_id", userId),
     ]);
 
     // Self-heal: if signup trigger missed (e.g. legacy users), create rows.
@@ -62,6 +63,7 @@ export const getProgress = createServerFn({ method: "GET" })
     const profile = pRes.data ?? {
       user_id: userId, name: "Héroe", avatar: 0, archetype: null,
       level: 1, xp: 0, coins: 100, gems: 5, streak: 0, last_mission_date: null,
+      onboarded: false, daily_goal: 3, theme: "dark", text_size: "normal",
     };
     const stats = sRes.data ?? { bienestar: 50, resiliencia: 50, energia: 50, claridad: 50 };
     const attrs = aRes.data ?? {
@@ -81,6 +83,10 @@ export const getProgress = createServerFn({ method: "GET" })
         gems: profile.gems,
         streak: profile.streak,
         last_mission_date: profile.last_mission_date,
+        onboarded: profile.onboarded ?? false,
+        daily_goal: profile.daily_goal ?? 3,
+        theme: profile.theme ?? "dark",
+        text_size: profile.text_size ?? "normal",
       },
       stats: {
         bienestar: stats.bienestar,
@@ -102,6 +108,7 @@ export const getProgress = createServerFn({ method: "GET" })
         completed_at: h.completed_at, completed_date: h.completed_date,
       })),
       inventory: (iRes.data ?? []).map((r) => r.item_name),
+      achievements: (achRes.data ?? []).map((r) => r.code),
     };
   });
 
