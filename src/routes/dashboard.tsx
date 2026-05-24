@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { MiniAvatar3D } from "@/components/MiniAvatar3D";
 import { getArchetypeStyle } from "@/lib/archetype";
+import { DailyGoalCard } from "@/components/DailyGoalCard";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,

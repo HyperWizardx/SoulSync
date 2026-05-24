@@ -17,38 +17,29 @@ export type ProgressPayload = {
     gems: number;
     streak: number;
     last_mission_date: string | null;
+    onboarded: boolean;
+    daily_goal: number;
+    theme: string;
+    text_size: string;
   };
-  stats: {
-    bienestar: number;
-    resiliencia: number;
-    energia: number;
-    claridad: number;
-  };
+  stats: { bienestar: number; resiliencia: number; energia: number; claridad: number };
   attributes: {
-    resiliencia: number;
-    empatia: number;
-    mindfulness: number;
-    autoconocimiento: number;
-    conexion_social: number;
-    creatividad: number;
+    resiliencia: number; empatia: number; mindfulness: number;
+    autoconocimiento: number; conexion_social: number; creatividad: number;
   };
   history: Array<{
-    id: string;
-    mission_id: string;
-    title: string;
-    xp_earned: number;
-    is_ar: boolean;
-    completed_at: string;
-    completed_date: string;
+    id: string; mission_id: string; title: string; xp_earned: number;
+    is_ar: boolean; completed_at: string; completed_date: string;
   }>;
   inventory: string[];
+  achievements: string[];
 };
 
 export const getProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ProgressPayload> => {
     const { supabase, userId } = context;
-    const [pRes, sRes, aRes, hRes, iRes] = await Promise.all([
+    const [pRes, sRes, aRes, hRes, iRes, achRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
@@ -59,6 +50,7 @@ export const getProgress = createServerFn({ method: "GET" })
         .order("completed_at", { ascending: false })
         .limit(50),
       supabase.from("inventory").select("item_name").eq("user_id", userId),
+      supabase.from("achievements").select("code").eq("user_id", userId),
     ]);
 
     // Self-heal: if signup trigger missed (e.g. legacy users), create rows.
@@ -71,6 +63,7 @@ export const getProgress = createServerFn({ method: "GET" })
     const profile = pRes.data ?? {
       user_id: userId, name: "Héroe", avatar: 0, archetype: null,
       level: 1, xp: 0, coins: 100, gems: 5, streak: 0, last_mission_date: null,
+      onboarded: false, daily_goal: 3, theme: "dark", text_size: "normal",
     };
     const stats = sRes.data ?? { bienestar: 50, resiliencia: 50, energia: 50, claridad: 50 };
     const attrs = aRes.data ?? {
@@ -90,6 +83,10 @@ export const getProgress = createServerFn({ method: "GET" })
         gems: profile.gems,
         streak: profile.streak,
         last_mission_date: profile.last_mission_date,
+        onboarded: profile.onboarded ?? false,
+        daily_goal: profile.daily_goal ?? 3,
+        theme: profile.theme ?? "dark",
+        text_size: profile.text_size ?? "normal",
       },
       stats: {
         bienestar: stats.bienestar,
@@ -111,6 +108,7 @@ export const getProgress = createServerFn({ method: "GET" })
         completed_at: h.completed_at, completed_date: h.completed_date,
       })),
       inventory: (iRes.data ?? []).map((r) => r.item_name),
+      achievements: (achRes.data ?? []).map((r) => r.code),
     };
   });
 
@@ -228,7 +226,40 @@ export const completeMissionServer = createServerFn({ method: "POST" })
     const err = u1.error ?? u2.error ?? u3.error ?? u4.error;
     if (err) throw new Error(err.message);
 
-    return { leveledUp, newLevel: level };
+    // --- Logros ---
+    const dailyGoal = (prof as { daily_goal?: number }).daily_goal ?? 3;
+    const [missionCountRes, arCountRes, todayCountRes, alreadyRes] = await Promise.all([
+      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("is_ar", true),
+      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("completed_date", today),
+      supabase.from("achievements").select("code").eq("user_id", userId),
+    ]);
+    const totalMissions = missionCountRes.count ?? 0;
+    const arMissions = arCountRes.count ?? 0;
+    const todayMissions = todayCountRes.count ?? 0;
+    const owned = new Set((alreadyRes.data ?? []).map((r) => r.code));
+
+    const candidates: string[] = [];
+    if (totalMissions >= 1) candidates.push("first_step");
+    if (streak >= 3) candidates.push("streak_3");
+    if (streak >= 7) candidates.push("streak_7");
+    if (streak >= 30) candidates.push("streak_30");
+    if (totalMissions >= 10) candidates.push("missions_10");
+    if (totalMissions >= 50) candidates.push("missions_50");
+    if (data.isAR && arMissions >= 1) candidates.push("ar_first");
+    if (arMissions >= 5) candidates.push("ar_5");
+    if (level >= 5) candidates.push("level_5");
+    if (level >= 10) candidates.push("level_10");
+    if (todayMissions >= dailyGoal) candidates.push("daily_goal");
+
+    const toUnlock = candidates.filter((c) => !owned.has(c));
+    if (toUnlock.length > 0) {
+      await supabase.from("achievements").insert(
+        toUnlock.map((code) => ({ user_id: userId, code }))
+      );
+    }
+
+    return { leveledUp, newLevel: level, unlockedAchievements: toUnlock };
   });
 
 const BuySchema = z.object({
@@ -323,4 +354,58 @@ export const migrateLocalProgress = createServerFn({ method: "POST" })
       );
     }
     return { ok: true };
+  });
+
+const SettingsSchema = z.object({
+  theme: z.enum(["dark", "light"]).optional(),
+  textSize: z.enum(["normal", "large", "xl"]).optional(),
+  dailyGoal: z.number().int().min(1).max(20).optional(),
+  onboarded: z.boolean().optional(),
+});
+
+export const updateSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => SettingsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const update: {
+      theme?: string;
+      text_size?: string;
+      daily_goal?: number;
+      onboarded?: boolean;
+    } = {};
+    if (data.theme !== undefined) update.theme = data.theme;
+    if (data.textSize !== undefined) update.text_size = data.textSize;
+    if (data.dailyGoal !== undefined) update.daily_goal = data.dailyGoal;
+    if (data.onboarded !== undefined) update.onboarded = data.onboarded;
+    if (Object.keys(update).length === 0) return { ok: true };
+    const { error } = await supabase.from("profiles").update(update).eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getWeeklyStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const since = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from("mission_completions")
+      .select("completed_date, xp_earned, is_ar")
+      .eq("user_id", userId)
+      .gte("completed_date", since);
+    if (error) throw new Error(error.message);
+    const buckets: Record<string, { xp: number; count: number; ar: number }> = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(Date.now() - (6 - i) * 86400000).toISOString().slice(0, 10);
+      buckets[d] = { xp: 0, count: 0, ar: 0 };
+    }
+    for (const row of data ?? []) {
+      const b = buckets[row.completed_date];
+      if (!b) continue;
+      b.xp += row.xp_earned;
+      b.count += 1;
+      if (row.is_ar) b.ar += 1;
+    }
+    return Object.entries(buckets).map(([date, v]) => ({ date, ...v }));
   });

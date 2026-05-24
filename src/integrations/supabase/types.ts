@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          code: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           acquired_at: string
@@ -74,11 +95,15 @@ export type Database = {
           avatar: number
           coins: number
           created_at: string
+          daily_goal: number
           gems: number
           last_mission_date: string | null
           level: number
           name: string
+          onboarded: boolean
           streak: number
+          text_size: string
+          theme: string
           updated_at: string
           user_id: string
           xp: number
@@ -88,11 +113,15 @@ export type Database = {
           avatar?: number
           coins?: number
           created_at?: string
+          daily_goal?: number
           gems?: number
           last_mission_date?: string | null
           level?: number
           name?: string
+          onboarded?: boolean
           streak?: number
+          text_size?: string
+          theme?: string
           updated_at?: string
           user_id: string
           xp?: number
@@ -102,11 +131,15 @@ export type Database = {
           avatar?: number
           coins?: number
           created_at?: string
+          daily_goal?: number
           gems?: number
           last_mission_date?: string | null
           level?: number
           name?: string
+          onboarded?: boolean
           streak?: number
+          text_size?: string
+          theme?: string
           updated_at?: string
           user_id?: string
           xp?: number
