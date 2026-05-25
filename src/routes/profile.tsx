@@ -1,31 +1,28 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut } from "lucide-react";
+import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon } from "lucide-react";
 import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MiniAvatar3D } from "@/components/MiniAvatar3D";
 import { getArchetypeStyle } from "@/lib/archetype";
+import { WeeklyChart } from "@/components/WeeklyChart";
+import { ACHIEVEMENTS } from "@/lib/achievements";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
 
-const achievements = [
-  { emoji: "🏅", name: "Primera misión" },
-  { emoji: "🔥", name: "3 días seguidos" },
-  { emoji: "📓", name: "Primer diario" },
-  { emoji: "🧘", name: "10 meditaciones" },
-];
-
 function ProfilePage() {
-  const { user, updateUser, avatarEmoji, archetypeName, signOut } = useUserStore();
+  const { user, updateUser, updateSettings, archetypeName, signOut } = useUserStore();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user.name);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedAttr, setExpandedAttr] = useState<string | null>(null);
   const archStyle = getArchetypeStyle(user.archetype);
+
+  const unlocked = new Set(user.achievements);
 
   const handleSignOut = async () => {
     await signOut();
@@ -45,25 +42,28 @@ function ProfilePage() {
   const handleSaveName = () => {
     if (editName.trim()) {
       updateUser({ name: editName.trim() });
-      toast.success("Nombre actualizado: " + editName.trim(), { icon: "✨" });
+      toast.success("Nombre actualizado", { icon: "✨" });
     }
     setEditing(false);
   };
 
   const xpPercent = (user.xp / 600) * 100;
+  const textSizes: Array<{ v: "normal" | "large" | "xl"; label: string }> = [
+    { v: "normal", label: "A" },
+    { v: "large", label: "A+" },
+    { v: "xl", label: "A++" },
+  ];
 
   return (
     <MobileLayout>
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-6 pb-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-cinzel font-bold text-foreground">Perfil</h1>
           <button
-            onClick={() => {
-              setShowSettings(!showSettings);
-              if (!showSettings) toast("Configuración", { icon: "⚙️" });
-            }}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-card hover:text-foreground transition-all active:scale-90"
+            onClick={() => setShowSettings(!showSettings)}
+            aria-label="Configuración"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-card hover:text-foreground transition-all active:scale-90 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <Settings className={`h-5 w-5 transition-transform duration-300 ${showSettings ? "rotate-90" : ""}`} />
           </button>
@@ -71,36 +71,76 @@ function ProfilePage() {
 
         {/* Settings Panel */}
         {showSettings && (
-          <div className="mt-3 rounded-xl border border-border bg-card p-4 animate-fade-in space-y-3">
+          <div className="mt-3 rounded-xl border border-border bg-card p-4 animate-fade-in space-y-4">
             <p className="text-sm font-semibold text-foreground">Configuración</p>
+
+            {/* Tema */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Tema</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => updateSettings({ theme: "dark" })}
+                  aria-label="Tema oscuro"
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-sm transition-all min-h-[44px] ${
+                    user.settings.theme === "dark" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  <Moon className="h-4 w-4" /> Oscuro
+                </button>
+                <button
+                  onClick={() => updateSettings({ theme: "light" })}
+                  aria-label="Tema claro"
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-sm transition-all min-h-[44px] ${
+                    user.settings.theme === "light" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  <Sun className="h-4 w-4" /> Claro
+                </button>
+              </div>
+            </div>
+
+            {/* Tamaño texto */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><Type className="h-3 w-3" /> Tamaño de texto</p>
+              <div className="flex gap-2">
+                {textSizes.map((t) => (
+                  <button
+                    key={t.v}
+                    onClick={() => updateSettings({ textSize: t.v })}
+                    aria-label={`Tamaño de texto ${t.label}`}
+                    className={`flex-1 rounded-lg py-2 text-sm transition-all min-h-[44px] ${
+                      user.settings.textSize === t.v ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Meta diaria */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><TargetIcon className="h-3 w-3" /> Meta diaria: {user.settings.dailyGoal} misiones</p>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={user.settings.dailyGoal}
+                onChange={(e) => updateSettings({ dailyGoal: Number(e.target.value) })}
+                aria-label="Meta diaria de misiones"
+                className="w-full accent-primary"
+              />
+            </div>
+
             <button
-              onClick={() => {
-                setEditing(true);
-                setShowSettings(false);
-              }}
-              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-foreground hover:bg-secondary transition-all active:scale-95"
+              onClick={() => { setEditing(true); setShowSettings(false); }}
+              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-foreground hover:bg-secondary transition-all active:scale-95 min-h-[44px]"
             >
               <Edit2 className="h-4 w-4" /> Cambiar nombre
             </button>
             <button
-              onClick={() => {
-                toast.info("Notificaciones activadas", { icon: "🔔" });
-              }}
-              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-foreground hover:bg-secondary transition-all active:scale-95"
-            >
-              🔔 Notificaciones
-            </button>
-            <button
-              onClick={() => {
-                toast.info("Tema oscuro activo", { icon: "🌙" });
-              }}
-              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-foreground hover:bg-secondary transition-all active:scale-95"
-            >
-              🌙 Tema
-            </button>
-            <button
               onClick={handleSignOut}
-              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-destructive hover:bg-destructive/10 transition-all active:scale-95"
+              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm text-destructive hover:bg-destructive/10 transition-all active:scale-95 min-h-[44px]"
             >
               <LogOut className="h-4 w-4" /> Cerrar sesión
             </button>
@@ -130,10 +170,10 @@ function ProfilePage() {
                 autoFocus
                 onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
               />
-              <button onClick={handleSaveName} className="rounded-full bg-soul-teal p-1 text-background active:scale-90 transition-transform">
+              <button onClick={handleSaveName} aria-label="Guardar" className="rounded-full bg-soul-teal p-2 text-background active:scale-90 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <Check className="h-4 w-4" />
               </button>
-              <button onClick={() => setEditing(false)} className="rounded-full bg-destructive p-1 text-destructive-foreground active:scale-90 transition-transform">
+              <button onClick={() => setEditing(false)} aria-label="Cancelar" className="rounded-full bg-destructive p-2 text-destructive-foreground active:scale-90 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -156,22 +196,29 @@ function ProfilePage() {
           </div>
         </div>
 
+        {/* Evolución semanal */}
+        <div className="mt-6">
+          <h2 className="font-cinzel font-semibold text-foreground mb-3">Evolución semanal</h2>
+          <WeeklyChart />
+        </div>
+
         {/* Quick Links */}
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <Link to="/store" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95">
+        <div className="mt-6 grid grid-cols-3 gap-3">
+          <Link to="/store" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
             <ShoppingBag className="h-5 w-5 text-soul-gold" />
             <span className="text-[10px] text-muted-foreground">Tienda</span>
           </Link>
-          <Link to="/community" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95">
+          <Link to="/community" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
             <Users className="h-5 w-5 text-soul-teal" />
             <span className="text-[10px] text-muted-foreground">Comunidad</span>
           </Link>
           <button
-            onClick={() => toast("4 logros desbloqueados", { icon: "🏆" })}
-            className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95"
+            onClick={() => toast(`${unlocked.size} de ${ACHIEVEMENTS.length} logros`, { icon: "🏆" })}
+            aria-label="Logros"
+            className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]"
           >
             <Trophy className="h-5 w-5 text-primary" />
-            <span className="text-[10px] text-muted-foreground">Logros</span>
+            <span className="text-[10px] text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length}</span>
           </button>
         </div>
 
@@ -205,19 +252,25 @@ function ProfilePage() {
         </div>
 
         {/* Achievements */}
-        <div className="mt-6 mb-4">
+        <div className="mt-6">
           <h2 className="font-cinzel font-semibold text-foreground">Logros</h2>
-          <div className="mt-3 flex gap-3 overflow-x-auto pb-2">
-            {achievements.map((a) => (
-              <button
-                key={a.name}
-                onClick={() => toast(`Logro: ${a.name}`, { icon: a.emoji })}
-                className="flex min-w-[80px] flex-col items-center rounded-xl border border-border bg-card p-3 transition-all hover:border-primary/50 hover:scale-105 active:scale-95"
-              >
-                <span className="text-2xl">{a.emoji}</span>
-                <span className="mt-1 text-center text-[10px] text-muted-foreground">{a.name}</span>
-              </button>
-            ))}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {ACHIEVEMENTS.map((a) => {
+              const isUnlocked = unlocked.has(a.code);
+              return (
+                <button
+                  key={a.code}
+                  onClick={() => toast(a.name, { icon: a.emoji, description: a.description })}
+                  aria-label={a.name}
+                  className={`flex flex-col items-center rounded-xl border p-3 transition-all hover:scale-105 active:scale-95 min-h-[44px] ${
+                    isUnlocked ? "border-soul-gold/40 bg-soul-gold/5" : "border-border bg-card opacity-50 grayscale"
+                  }`}
+                >
+                  <span className="text-2xl">{a.emoji}</span>
+                  <span className="mt-1 text-center text-[9px] text-muted-foreground leading-tight">{a.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
