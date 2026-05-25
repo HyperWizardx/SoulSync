@@ -49,6 +49,11 @@ function DashboardPage() {
           <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{archStyle.name}</p>
         </div>
 
+        {/* Meta diaria */}
+        <div className="mt-4">
+          <DailyGoalCard />
+        </div>
+
         {/* World Preview */}
         <Link to="/world" className="mt-4 block overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-soul-teal/10 p-4 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.98]">
           <div className="flex items-center justify-between">

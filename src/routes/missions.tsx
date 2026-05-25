@@ -12,12 +12,15 @@ import { QuizMission } from "@/components/missions/QuizMission";
 import { ARAuraMission } from "@/components/missions/ARAuraMission";
 import { AREnergyMission } from "@/components/missions/AREnergyMission";
 import { ARFocusMission } from "@/components/missions/ARFocusMission";
+import { MeditationMission } from "@/components/missions/MeditationMission";
+import { DailyChallengeMission } from "@/components/missions/DailyChallengeMission";
+import { ARWalkMission } from "@/components/missions/ARWalkMission";
 
 export const Route = createFileRoute("/missions")({
   component: MissionsPage,
 });
 
-type MissionType = "breathing" | "journal" | "timer" | "gratitude" | "quiz" | "ar-aura" | "ar-energy" | "ar-focus";
+type MissionType = "breathing" | "journal" | "timer" | "gratitude" | "quiz" | "ar-aura" | "ar-energy" | "ar-focus" | "meditation" | "daily-challenge" | "ar-walk";
 
 interface Mission {
   id: string;
@@ -119,6 +122,36 @@ const MISSIONS: Mission[] = [
     rarity: "Legendaria",
     isAR: true,
     reward: { xp: 130, coins: 40, gems: 2, stats: { claridad: 9, bienestar: 3 }, attributes: { mindfulness: 5, autoconocimiento: 3 } },
+  },
+  // Nuevas
+  {
+    id: "meditation-2m",
+    type: "meditation",
+    title: "Meditación guiada",
+    desc: "2 minutos con voz guía y respiración",
+    emoji: "🧘‍♀️",
+    rarity: "Épica",
+    durationSec: 120,
+    reward: { xp: 110, coins: 35, gems: 1, stats: { bienestar: 8, claridad: 6 }, attributes: { mindfulness: 5, autoconocimiento: 3 } },
+  },
+  {
+    id: "daily-challenge",
+    type: "daily-challenge",
+    title: "Reto del día",
+    desc: "Una micro-misión sorpresa cada día",
+    emoji: "🎁",
+    rarity: "Raro",
+    reward: { xp: 65, coins: 20, stats: { bienestar: 4, energia: 2 }, attributes: { creatividad: 3, conexionSocial: 2 } },
+  },
+  {
+    id: "ar-walk",
+    type: "ar-walk",
+    title: "Caminata consciente AR",
+    desc: "Camina 30 pasos. Tu avatar crece contigo.",
+    emoji: "🚶‍♂️",
+    rarity: "Épica",
+    isAR: true,
+    reward: { xp: 120, coins: 40, gems: 1, stats: { energia: 8, bienestar: 4 }, attributes: { mindfulness: 4, resiliencia: 3 } },
   },
 ];
 
@@ -298,6 +331,26 @@ function MissionsPage() {
       )}
       {active?.type === "ar-focus" && (
         <ARFocusMission onComplete={() => finishMission(active, "Enfoque sostenido 🎯")} onClose={() => setActive(null)} />
+      )}
+      {active?.type === "meditation" && (
+        <MeditationMission
+          durationSec={active.durationSec || 120}
+          onComplete={() => finishMission(active, "Meditación completada 🧘")}
+          onClose={() => setActive(null)}
+        />
+      )}
+      {active?.type === "daily-challenge" && (
+        <DailyChallengeMission
+          onComplete={(title) => finishMission(active, title)}
+          onClose={() => setActive(null)}
+        />
+      )}
+      {active?.type === "ar-walk" && (
+        <ARWalkMission
+          goal={30}
+          onComplete={() => finishMission(active, "Caminata completada 🚶")}
+          onClose={() => setActive(null)}
+        />
       )}
     </MobileLayout>
   );
