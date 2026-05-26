@@ -3,9 +3,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { FeedbackHost } from "@/components/FeedbackHost";
-import { SettingsApplier } from "@/components/SettingsApplier";
-import { OnboardingTour } from "@/components/OnboardingTour";
+import { AuthedShell } from "@/components/AuthedShell";
 
 import appCss from "../styles.css?url";
 
@@ -88,10 +86,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
-      <SettingsApplier />
       <Outlet />
-      <OnboardingTour />
-      <FeedbackHost />
+      <AuthedShell />
       <Toaster position="top-center" richColors closeButton />
     </QueryClientProvider>
   );
