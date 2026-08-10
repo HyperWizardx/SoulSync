@@ -1,0 +1,164 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://tuhzopvajlosukhqdnrz.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "soulsync",
+      "version": "0.1.0",
+      "title": "SoulSync"
+    },
+    "tools": [
+      {
+        "name": "get_progress",
+        "title": "Get progress",
+        "description": "Get the signed-in SoulSync player's profile: level, XP, coins, gems, streak, wellbeing stats and RPG attributes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_mission_history",
+        "title": "List mission history",
+        "description": "List the signed-in player's recently completed SoulSync missions, newest first, with XP earned and whether it was an AR mission.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "How many completions to return (1-50). Defaults to 10."
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "complete_mission",
+        "title": "Complete a mission",
+        "description": "Record a completed SoulSync wellbeing mission for the signed-in player: awards XP, coins, gems, updates level, streak and wellbeing stats.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "missionId": {
+              "type": "string",
+              "description": "Stable identifier for the mission, e.g. 'gratitude'."
+            },
+            "title": {
+              "type": "string",
+              "description": "Human-readable mission title shown in the history."
+            },
+            "xp": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "XP awarded (0-500)."
+            },
+            "coins": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "Coins awarded (0-500)."
+            },
+            "gems": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "Gems awarded (0-50)."
+            },
+            "isAR": {
+              "type": "boolean",
+              "description": "Whether this was an AR mission."
+            },
+            "stats": {
+              "type": "object",
+              "properties": {
+                "bienestar": {
+                  "type": "number"
+                },
+                "resiliencia": {
+                  "type": "number"
+                },
+                "energia": {
+                  "type": "number"
+                },
+                "claridad": {
+                  "type": "number"
+                }
+              },
+              "description": "Deltas applied to the four wellbeing stats (each clamped to 0-100)."
+            }
+          },
+          "required": [
+            "missionId",
+            "title"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_profile",
+        "title": "Update player profile",
+        "description": "Update the signed-in SoulSync player's display name, avatar index or archetype (0 Guerrero, 1 Sanador, 2 Explorador, 3 Sabio).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Display name, 1-40 characters."
+            },
+            "avatar": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "Avatar index, 0-5."
+            },
+            "archetype": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "Archetype index: 0 Guerrero, 1 Sanador, 2 Explorador, 3 Sabio."
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
