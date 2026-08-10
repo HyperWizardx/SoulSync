@@ -1,87 +1,117 @@
-## Mejoras pensadas para el usuario
+# Módulo "Predicción de bienestar" (señal preventiva, no diagnóstico)
 
-Cuatro frentes en equilibrio entre impacto visual y funcionalidad.
+Objetivo: añadir a SoulSync un módulo de detección temprana exploratoria, explicable y ML-ready, sin tocar gamificación, misiones, avatar ni navegación existentes.
 
-### 1. Onboarding y primera experiencia
-- **Tour guiado** al primer login: 4 pasos con tooltips sobre Dashboard, Misiones, AR y Perfil. Se marca como visto en `profiles.onboarded` (nueva columna) para persistir entre dispositivos.
-- **Bienvenida personalizada por arquetipo**: tras elegir clase, pantalla de bienvenida con frase temática (Guerrero: "Tu fuerza despierta…", Sanador: "La calma te guía…", etc.) y misión sugerida acorde.
-- **Estado vacío mejorado** en Dashboard y Misiones: ilustraciones con CTA claro en lugar de texto plano.
+## 1. Estado actual (verificado)
 
-### 2. Feedback y recompensas
-- **Modal de subida de nivel** con animación (confeti + escala del avatar 3D + sonido opcional) en lugar del simple toast actual.
-- **Sistema de logros/badges**: nueva tabla `achievements` (ej. "Primera racha de 7 días", "10 misiones AR", "Maestro de la respiración"). Notificación al desbloquear.
-- **Animación de recompensa** al completar misión: +XP/+monedas flotando hacia el header con números animados.
-- **Haptics** (`navigator.vibrate`) en interacciones clave en móvil.
+- Datos reales disponibles hoy: `profiles` (nivel, xp, racha, meta diaria, last_mission_date), `user_stats` (bienestar, resiliencia, energía, claridad), `user_attributes`, `mission_completions` (con fecha), `achievements`, `inventory`.
+- No existe hoy ninguna tabla de check-ins emocionales ni de escalas validadas. El mood de la pantalla IA es solo estado local.
+- `src/routes/ai.tsx` es 100% mock (biométricas y log de IA inventados). Se reemplaza su contenido por el módulo real; lo simulado se retira o se marca explícitamente como demo.
+- Backend: server functions TanStack + Supabase con RLS por `auth.uid()`. No se añaden servicios nuevos.
 
-### 3. Accesibilidad y usabilidad
-- **Toggle tema claro/oscuro** en Perfil, persistido en `localStorage` y `prefers-color-scheme` por defecto.
-- **Tamaño de texto** ajustable (Normal / Grande / Muy grande) aplicado vía CSS root variable.
-- **Mejor contraste**: revisar `text-muted-foreground` sobre fondos translúcidos y asegurar AA.
-- **aria-labels** en todos los botones-ícono (BottomNav, cerrar modales, X en AR).
-- **Tap targets** mínimos de 44px en navegación móvil.
-- **Focus visible** consistente en links y botones.
+## 2. Arquitectura
 
-### 4. Personalización y progreso
-- **Gráfico de evolución semanal** en Perfil: línea con XP ganado los últimos 7 días (usando Recharts ya disponible) leyendo de `mission_completions`.
-- **Meta diaria** configurable (ej. 3 misiones/día) con barra de progreso en Dashboard y check al cumplirla.
-- **Racha visible y motivadora**: tarjeta destacada con próxima recompensa por mantener la racha (a los 3/7/14/30 días).
-- **Resumen del día** al abrir la app: "Hoy completaste X misiones, +Y XP".
+```text
+check-ins + telemetría de misiones + stats
+        │
+        ▼
+features.ts        extracción + normalización (featureVersion)
+        │
+        ▼
+inference.ts       interfaz WellbeingModel { predict(features) }
+        │  └─ baselineLogistic.ts  (prototipo transparente, modelVersion "baseline-logistic-v1")
+        ▼
+explain.ts         contribuciones por feature → top factores
+        │
+        ▼
+wellbeing.functions.ts  (server fn autenticada) → persiste en wellbeing_predictions
+        │
+        ▼
+UI: /insights (pantalla) + card compacta en dashboard
+```
 
-### 5. Misiones — pulir y ampliar
-**Pulir las 8 existentes:**
-- Instrucciones más claras al iniciar (modal previo con objetivo + recompensa esperada).
-- Transiciones suaves entre pasos (Quiz, Journal).
-- Botón "Pausar" en Breathing y Timer.
-- Feedback visual al completar (animación, no solo toast).
+Separación estricta: cálculo puro y testeable en `src/lib/wellbeing/*` (sin Supabase, sin React); acceso a datos y persistencia solo en la server function.
 
-**Añadir 3 nuevas misiones:**
-- **Meditación guiada** (5 min con audio TTS de instrucciones).
-- **Reto diario aleatorio**: una micro-misión rotativa cada día (ej. "Sonríe a un desconocido", "Escribe 1 cosa nueva sobre ti").
-- **Caminata consciente AR**: contador de pasos (usa `DeviceMotion`) + avatar que crece a medida que caminas.
+Sustituir el baseline por un modelo entrenado será cambiar una implementación de `WellbeingModel` y subir `modelVersion`; features y UI no cambian.
 
-### Cambios técnicos
+## 3. Datos nuevos (migración)
 
-**Base de datos** (nueva migración):
-- `profiles.onboarded` (boolean), `profiles.daily_goal` (int, default 3), `profiles.theme` (text), `profiles.text_size` (text).
-- Tabla `achievements`: `id`, `user_id`, `code`, `unlocked_at`. RLS por usuario.
-- Función `check_achievements()` que se llama desde `completeMissionServer` para detectar y otorgar logros.
+- `wellbeing_checkins`: `user_id`, `mood` (1–5), `stress` (1–5), `sleep_hours` (numérico, opcional), `energy` (1–5), `social` (1–5), `note` opcional (texto libre corto, opcional y desactivable), `created_at`, `checkin_date`. RLS: solo el dueño lee/escribe. Único por usuario y día.
+- `wellbeing_scales`: resultados de escalas validadas solo si el investigador las habilita: `scale_code`, `raw_score`, `answered_at`. Se deja la tabla creada pero sin ítems clínicos precargados (no se inventan instrumentos ni puntos de corte).
+- `wellbeing_predictions`: `user_id`, `model_version`, `feature_version`, `score` (0–1), `risk_level` (`bajo|moderado|alto`), `features` (jsonb agregado, solo agregados numéricos), `explanation` (jsonb: factores y peso), `generated_at`, `consent_version`.
+- `research_consent`: `user_id`, `consent_version`, `accepted_at`, `revoked_at`, `wearables_opt_in` (bool). Sin consentimiento activo no se calcula ni se guarda ninguna predicción.
+- Todas con GRANT a `authenticated` + `service_role`, RLS por `auth.uid()`, sin acceso `anon`. No se guardan textos libres dentro de `features` ni de `explanation`.
 
-**Server functions** (`progress.functions.ts`):
-- `updateSettings({ theme, textSize, dailyGoal, onboarded })`.
-- `getWeeklyStats()` agrupa XP por día últimos 7 días.
-- `completeMissionServer` extendido: devuelve `unlockedAchievements[]`.
+## 4. Baseline (prototipo, etiquetado como tal)
 
-**Frontend nuevo:**
-- `src/components/OnboardingTour.tsx`
-- `src/components/LevelUpModal.tsx` (con confetti via `canvas-confetti`)
-- `src/components/AchievementToast.tsx`
-- `src/components/FloatingReward.tsx`
-- `src/components/WeeklyChart.tsx`
-- `src/components/DailyGoalCard.tsx`
-- `src/lib/achievements.ts` (catálogo de logros)
-- `src/lib/haptics.ts`
-- `src/hooks/useTheme.ts`, `src/hooks/useTextSize.ts`
-- `src/components/missions/MeditationMission.tsx`
-- `src/components/missions/DailyChallengeMission.tsx`
-- `src/components/missions/ARWalkMission.tsx`
+Score logístico con pesos fijados por criterio, no entrenados:
 
-**Modificaciones:**
-- `__root.tsx`: aplica tema y tamaño de texto, monta tour.
-- `dashboard.tsx`: meta diaria, resumen del día, racha mejorada.
-- `profile.tsx`: toggle tema, tamaño texto, gráfico semanal, lista logros.
-- `missions.tsx`: instrucciones previas, nuevas misiones.
-- `useUserStore.ts`: integra settings y achievements.
-- `BottomNav.tsx` y modales AR: aria-labels.
+`z = b0 + Σ wi · xi`, `score = 1/(1+e^-z)`
 
-**Dependencia nueva:** `canvas-confetti` (ligera, ~5kb).
+Features (`featureVersion: "fv1"`), todas normalizadas a 0–1 y con flag de disponibilidad:
+- `moodTrend7`: media móvil 7 días de mood y su pendiente vs 7 días previos.
+- `stressLevel7`: media de estrés autorreportado.
+- `sleepDeficit`: solo si hay horas de sueño reportadas o wearable.
+- `engagementDrop`: caída de misiones completadas 7d vs 14d previos.
+- `missionAdherence`: cumplimiento de meta diaria.
+- `socialInteraction`: autorreporte de conexión social.
+- `streakBreak`: ruptura de racha reciente.
+- `scaleScore`: normalizado, solo si existe registro real en `wellbeing_scales`.
 
-### Orden de implementación
-1. Migración DB (onboarded, daily_goal, theme, text_size, achievements).
-2. Server functions + catálogo de logros.
-3. Onboarding tour + bienvenida por arquetipo.
-4. Modal level-up con confetti + achievement toasts + floating rewards.
-5. Tema/tamaño texto + aria-labels + tap targets.
-6. Meta diaria + gráfico semanal + racha.
-7. Pulido misiones existentes + 3 nuevas misiones.
+Reglas de integridad:
+- Cada feature ausente se marca `available:false` y se excluye del score con renormalización de pesos; se reporta `coverage`.
+- Si `coverage < 0.5` o hay menos de 3 check-ins en 14 días → estado `insuficiente`, sin nivel de riesgo.
+- Umbrales: `<0.35` Bajo, `0.35–0.65` Moderado, `>0.65` Alto. Documentados como heurísticos y calibrables.
 
-¿Apruebas el plan o quieres recortar/priorizar algún bloque?
+Explicación: contribución = `wi · xi` normalizada; se devuelven los 3 factores principales al alza y a la baja con texto no clínico.
+
+## 5. Flujo de predicción
+
+1. Usuario acepta consentimiento informado (pantalla dedicada, versionada, revocable con borrado de predicciones).
+2. Check-in diario breve (mood, estrés, sueño opcional, energía, social) desde dashboard o `/insights`.
+3. Server fn `computeWellbeingPrediction` autenticada: lee 30 días de check-ins + telemetría → extrae features → infiere → explica → guarda fila en `wellbeing_predictions`.
+4. `/insights` muestra: nivel, probabilidad con lenguaje probabilístico, factores contribuyentes, tendencia histórica (Recharts, ya instalado), recomendaciones de autocuidado no clínicas ligadas a misiones existentes, y aviso permanente: señal preventiva, no diagnóstico.
+5. Riesgo Alto: banner de seguridad con recomendación de contactar bienestar universitario / apoyo profesional y línea de ayuda que el usuario/tesista configure (no se inventan números). Sin tratamiento ni indicación clínica.
+
+## 6. Archivos
+
+Nuevos:
+- `src/lib/wellbeing/types.ts`, `features.ts`, `baselineLogistic.ts`, `inference.ts`, `explain.ts`, `copy.ts` (textos y disclaimers), `index.ts`
+- `src/lib/wellbeing/__tests__/features.test.ts`, `baselineLogistic.test.ts`
+- `src/lib/wellbeing.functions.ts` (server fns: consentimiento, check-in, predicción, histórico)
+- `src/components/wellbeing/CheckinCard.tsx`, `RiskGauge.tsx`, `FactorList.tsx`, `SafetyBanner.tsx`, `ConsentDialog.tsx`, `InsightsCard.tsx`
+- `src/routes/insights.tsx`
+- `src/routes/consent.tsx` (información del estudio y consentimiento)
+
+Modificados:
+- `src/routes/ai.tsx`: sustituye los datos biométricos falsos por el módulo real; wearables quedan como sección "no conectado".
+- `src/routes/dashboard.tsx`: añade check-in del día + `InsightsCard`.
+- `src/components/BottomNav.tsx`: la entrada IA apunta al módulo predictivo.
+- `src/hooks/useUserStore.ts`: sin cambios de lógica de juego; solo expone estado de consentimiento si hace falta.
+- `package.json`: añadir `vitest` (dev) si no existe runner.
+
+## 7. Pruebas
+
+- Normalización de cada feature: límites, valores fuera de rango, nulos.
+- Renormalización de pesos con features ausentes; `coverage` correcto.
+- Casos límite: 0 check-ins, 1 check-in, datos constantes, caída brusca de engagement, todo óptimo, todo adverso.
+- Monotonía: aumentar estrés o bajar mood nunca reduce el score.
+- Umbrales exactos en las fronteras 0.35 y 0.65.
+- Explicación: suma de contribuciones consistente y determinismo (mismo input → mismo output).
+- Estado `insuficiente` no produce `risk_level`.
+
+## 8. Riesgos y limitaciones (a documentar en la app y en la tesis)
+
+- Sin dataset etiquetado no hay validación clínica: pesos por criterio, no aprendidos; sin sensibilidad/especificidad conocidas.
+- Riesgo de falsos positivos/negativos; el módulo no sustituye evaluación profesional.
+- Autorreporte sesgado y muestra pequeña (30–50) no generalizable.
+- Datos sensibles: minimización, consentimiento versionado, revocación con borrado, sin PII en logs.
+- Wearables: solo si el usuario los conecta; hoy queda como interfaz preparada, no simulada.
+
+## 9. Seguridad
+
+- Nada de secretos en el repo; todo cálculo sensible en server functions con `requireSupabaseAuth`.
+- Sin `console.log` de check-ins, notas ni features.
+- RLS por usuario en todas las tablas nuevas, sin acceso `anon`.
+
+¿Apruebas este plan o quieres ajustar umbrales, features o el alcance de las escalas validadas?
