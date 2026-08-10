@@ -8,6 +8,7 @@ import { StarField } from "@/components/StarField";
 
 const searchSchema = z.object({
   mode: z.enum(["login", "signup"]).optional().default("login"),
+  next: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -15,14 +16,26 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Only same-origin relative paths are accepted as post-login destinations. */
+function safeNext(next?: string) {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
-  const { mode } = Route.useSearch();
+  const { mode, next } = Route.useSearch();
   const [tab, setTab] = useState<"login" | "signup">(mode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const dest = safeNext(next);
+  const goNext = () => {
+    if (dest) window.location.href = dest;
+    else navigate({ to: "/dashboard" });
+  };
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +47,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}${dest ?? "/dashboard"}`,
             data: { name: name.trim() || email.split("@")[0] },
           },
         });
@@ -45,7 +58,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("¡Bienvenido de vuelta!");
-        navigate({ to: "/dashboard" });
+        goNext();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error de autenticación");
@@ -59,18 +72,19 @@ function AuthPage() {
     setLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/dashboard`,
+        redirect_uri: `${window.location.origin}${dest ?? "/dashboard"}`,
       });
       if (result.error) throw result.error;
       if (!result.redirected) {
         toast.success("¡Bienvenido!");
-        navigate({ to: "/dashboard" });
+        goNext();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo iniciar sesión con Google");
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 py-10">
