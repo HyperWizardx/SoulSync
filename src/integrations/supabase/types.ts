@@ -146,6 +146,39 @@ export type Database = {
         }
         Relationships: []
       }
+      research_consent: {
+        Row: {
+          accepted_at: string
+          consent_version: string
+          created_at: string
+          id: string
+          revoked_at: string | null
+          updated_at: string
+          user_id: string
+          wearables_opt_in: boolean
+        }
+        Insert: {
+          accepted_at?: string
+          consent_version: string
+          created_at?: string
+          id?: string
+          revoked_at?: string | null
+          updated_at?: string
+          user_id: string
+          wearables_opt_in?: boolean
+        }
+        Update: {
+          accepted_at?: string
+          consent_version?: string
+          created_at?: string
+          id?: string
+          revoked_at?: string | null
+          updated_at?: string
+          user_id?: string
+          wearables_opt_in?: boolean
+        }
+        Relationships: []
+      }
       user_attributes: {
         Row: {
           autoconocimiento: number
@@ -202,6 +235,120 @@ export type Database = {
           energia?: number
           resiliencia?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellbeing_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          energy: number
+          id: string
+          mood: number
+          note: string | null
+          sleep_hours: number | null
+          social: number
+          stress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checkin_date?: string
+          created_at?: string
+          energy: number
+          id?: string
+          mood: number
+          note?: string | null
+          sleep_hours?: number | null
+          social: number
+          stress: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          energy?: number
+          id?: string
+          mood?: number
+          note?: string | null
+          sleep_hours?: number | null
+          social?: number
+          stress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellbeing_predictions: {
+        Row: {
+          consent_version: string
+          coverage: number
+          explanation: Json
+          feature_version: string
+          features: Json
+          generated_at: string
+          id: string
+          model_version: string
+          risk_level: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          consent_version: string
+          coverage?: number
+          explanation?: Json
+          feature_version: string
+          features?: Json
+          generated_at?: string
+          id?: string
+          model_version: string
+          risk_level: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          consent_version?: string
+          coverage?: number
+          explanation?: Json
+          feature_version?: string
+          features?: Json
+          generated_at?: string
+          id?: string
+          model_version?: string
+          risk_level?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellbeing_scales: {
+        Row: {
+          answered_at: string
+          created_at: string
+          id: string
+          max_score: number
+          raw_score: number
+          scale_code: string
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string
+          created_at?: string
+          id?: string
+          max_score: number
+          raw_score: number
+          scale_code: string
+          user_id: string
+        }
+        Update: {
+          answered_at?: string
+          created_at?: string
+          id?: string
+          max_score?: number
+          raw_score?: number
+          scale_code?: string
           user_id?: string
         }
         Relationships: []
