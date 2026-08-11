@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { MiniAvatar3D } from "@/components/MiniAvatar3D";
 import { getArchetypeStyle } from "@/lib/archetype";
 import { DailyGoalCard } from "@/components/DailyGoalCard";
+import { WellbeingPreview } from "@/components/wellbeing/WellbeingPreview";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -52,6 +53,11 @@ function DashboardPage() {
         {/* Meta diaria */}
         <div className="mt-4">
           <DailyGoalCard />
+        </div>
+
+        {/* Señal preventiva de bienestar */}
+        <div className="mt-4">
+          <WellbeingPreview />
         </div>
 
         {/* World Preview */}

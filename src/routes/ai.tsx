@@ -1,92 +1,98 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Brain, AlertTriangle, ShieldCheck } from "lucide-react";
-import { useMemo } from "react";
-import { useUserStore } from "@/hooks/useUserStore";
-import { predictWellbeing, predictionCopy } from "@/lib/wellbeing";
+import { Brain, RefreshCw } from "lucide-react";
+import { useWellbeing } from "@/hooks/useWellbeing";
+import { ConsentCard } from "@/components/wellbeing/ConsentCard";
+import { CheckinCard } from "@/components/wellbeing/CheckinCard";
+import { RiskCard } from "@/components/wellbeing/RiskCard";
 
-export const Route = createFileRoute("/ai")({ component: AIPage });
+export const Route = createFileRoute("/ai")({
+  head: () => ({
+    meta: [
+      { title: "Predicción de bienestar | SoulSync" },
+      {
+        name: "description",
+        content:
+          "Señal preventiva exploratoria de bienestar emocional a partir de tus check-ins y patrones de uso. No es un diagnóstico.",
+      },
+      { property: "og:title", content: "Predicción de bienestar | SoulSync" },
+      {
+        property: "og:description",
+        content: "Insights preventivos explicables basados en tus check-ins diarios y tu actividad en SoulSync.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: AIPage,
+});
 
 function AIPage() {
-  const { user } = useUserStore();
-  const prediction = useMemo(() => predictWellbeing({
-    bienestar: user.stats.bienestar,
-    resiliencia: user.stats.resiliencia,
-    energia: user.stats.energia,
-    claridad: user.stats.claridad,
-    conexionSocial: user.attributes.conexionSocial,
-    streak: user.streak,
-    dailyGoal: user.settings.dailyGoal,
-    recentMissionCount: user.missionHistory.length,
-    previousMissionCount: Math.max(1, user.missionHistory.length),
-  }), [user]);
-  const copy = predictionCopy(prediction);
-  const percent = Math.round(prediction.score * 100);
-  const high = prediction.riskLevel === "alto";
-  const moderate = prediction.riskLevel === "moderado";
+  const { data, isLoading, checkin, consent, refetch, isFetching } = useWellbeing();
 
   return (
     <MobileLayout>
-      <div className="px-4 pt-6 pb-6">
-        <div className="flex items-center gap-3">
-          <Brain className="h-7 w-7 text-primary" />
+      <div className="px-4 pt-6">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-cinzel font-bold text-foreground">IA Predictiva</h1>
-            <p className="text-sm text-muted-foreground">Señales preventivas de bienestar</p>
+            <h1 className="text-2xl font-cinzel font-bold text-foreground">Predicción de bienestar</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Señal preventiva, no un diagnóstico</p>
           </div>
+          <button
+            onClick={() => refetch()}
+            aria-label="Recalcular señal preventiva"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
+          </button>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-border bg-card p-5">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Resultado experimental</p>
-          <div className="mt-2 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">{copy.title}</h2>
-            {high || moderate ? <AlertTriangle className="h-6 w-6 text-soul-gold" /> : <ShieldCheck className="h-6 w-6 text-soul-teal" />}
+        {isLoading || !data ? (
+          <div className="mt-6 space-y-3" aria-busy="true">
+            <div className="h-28 animate-pulse rounded-2xl bg-card" />
+            <div className="h-44 animate-pulse rounded-2xl bg-card" />
           </div>
-          {prediction.riskLevel !== "insuficiente" && (
-            <>
-              <div className="mt-5 text-5xl font-bold text-foreground">{percent}%</div>
-              <p className="mt-1 text-xs text-muted-foreground">señal estimada; no es una probabilidad diagnóstica</p>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-secondary">
-                <div className={`h-full ${high ? "bg-destructive" : moderate ? "bg-soul-gold" : "bg-soul-teal"}`} style={{ width: `${percent}%` }} />
-              </div>
-            </>
-          )}
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">{copy.description}</p>
-        </div>
+        ) : (
+          <div className="mt-6 space-y-4">
+            <ConsentCard
+              accepted={data.consent.accepted}
+              acceptedAt={data.consent.acceptedAt}
+              wearablesOptIn={data.consent.wearablesOptIn}
+              pending={consent.isPending}
+              onChange={(accepted, wearablesOptIn) => consent.mutate({ accepted, wearablesOptIn })}
+            />
 
-        <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
-          <p className="text-sm font-semibold text-foreground">Modelo transparente</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {prediction.modelVersion} · {prediction.featureVersion}. Baseline experimental, no entrenado con un dataset clínico y no destinado a diagnosticar trastornos psicológicos.
-          </p>
-        </div>
+            {data.consent.accepted && (
+              <>
+                <CheckinCard
+                  today={data.todayCheckin}
+                  pending={checkin.isPending}
+                  onSubmit={(v) => checkin.mutate(v)}
+                />
 
-        {prediction.features.length > 0 && (
-          <section className="mt-6">
-            <h2 className="font-cinzel font-semibold text-foreground">Factores que influyen</h2>
-            <div className="mt-3 space-y-2">
-              {prediction.features.slice(0, 4).map((feature) => (
-                <div key={feature.key} className="rounded-xl border border-border bg-card p-3">
-                  <div className="flex justify-between gap-3 text-sm">
-                    <span className="text-foreground">{feature.label}</span>
-                    <span className="font-semibold text-primary">{Math.round(feature.contribution * 100)}%</span>
+                {data.prediction ? (
+                  <RiskCard prediction={data.prediction} />
+                ) : (
+                  <div className="rounded-2xl border border-border bg-card p-4">
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-primary" aria-hidden="true" />
+                      <p className="text-sm text-muted-foreground">
+                        Registra tu día unas veces más para generar tu primera señal.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+                )}
 
-        {high && (
-          <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-            <p className="text-sm font-semibold text-foreground">Considera buscar apoyo profesional</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">Si presentas malestar persistente o intenso, contacta al servicio de bienestar universitario o a un profesional de salud mental.</p>
+                <Link
+                  to="/missions"
+                  className="flex min-h-11 items-center justify-center rounded-xl border border-primary/40 bg-primary/5 text-sm font-semibold text-primary transition-transform active:scale-[0.98]"
+                >
+                  Ir a misiones de autocuidado →
+                </Link>
+              </>
+            )}
           </div>
         )}
-
-        <p className="mt-5 text-center text-[10px] leading-4 text-muted-foreground">
-          Cobertura de datos: {Math.round(prediction.coverage * 100)}%. SoulSync es una herramienta preventiva e investigativa, no una herramienta de diagnóstico.
-        </p>
       </div>
     </MobileLayout>
   );
