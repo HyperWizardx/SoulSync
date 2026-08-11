@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { CONSENT_VERSION } from "./types";
 import type { CheckinRecord, PredictionInput, WellbeingPrediction } from "./types";
 import { extractFeatures, serializeFeatures } from "./features";
@@ -141,8 +141,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         score: prediction.score,
         risk_level: prediction.riskLevel,
         coverage: prediction.coverage,
-        features: serializeFeatures(featureSet),
-        explanation: prediction.explanation,
+        features: serializeFeatures(featureSet) as unknown as Json,
+        explanation: prediction.explanation as unknown as Json,
         consent_version: CONSENT_VERSION,
         generated_at: prediction.generatedAt,
       });
