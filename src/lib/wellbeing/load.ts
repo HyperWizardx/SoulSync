@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { CONSENT_VERSION } from "./types";
 import type { CheckinRecord, PredictionInput, WellbeingPrediction } from "./types";
 import { extractFeatures, serializeFeatures } from "./features";
@@ -21,8 +22,7 @@ export type WellbeingPayload = {
 
 export const todayISO = () => new Date().toISOString().slice(0, 10);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Db = SupabaseClient<any, "public", any>;
+type Db = SupabaseClient<Database>;
 
 export async function assertConsent(supabase: Db, userId: string) {
   const { data } = await supabase
