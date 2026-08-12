@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { addTimelineEvent } from "@/lib/wellbeing/load";
 
 const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 const XP_PER_LEVEL = 600;
@@ -141,6 +142,10 @@ const MissionRewardSchema = z.object({
     energia: z.number().int().min(-20).max(20).optional(),
     claridad: z.number().int().min(-20).max(20).optional(),
   }).default({}),
+  category: z
+    .enum(["autocuidado", "reflexion", "movimiento", "social", "cognitivo", "ar"])
+    .default("autocuidado"),
+  durationSeconds: z.number().int().min(0).max(86_400).default(0),
   attributes: z.object({
     resiliencia: z.number().int().min(-20).max(20).optional(),
     empatia: z.number().int().min(-20).max(20).optional(),
@@ -225,6 +230,33 @@ export const completeMissionServer = createServerFn({ method: "POST" })
     ]);
     const err = u1.error ?? u2.error ?? u3.error ?? u4.error;
     if (err) throw new Error(err.message);
+
+    // Evento de tarea + historia unificada: la actividad alimenta la serie
+    // temporal que usa el módulo predictivo y el estado del Mundo.
+    await supabase.from("task_events").insert({
+      user_id: userId,
+      mission_id: data.missionId,
+      title: data.title,
+      category: data.isAR ? "ar" : data.category,
+      status: "completed",
+      duration_seconds: data.durationSeconds,
+      is_ar: data.isAR,
+      occurred_date: today,
+    });
+    await addTimelineEvent(supabase, userId, {
+      kind: "task_completed",
+      title: `Tarea completada: ${data.title}`,
+      detail: `+${data.xp} XP · categoría ${data.isAR ? "ar" : data.category}`,
+      payload: { missionId: data.missionId, xp: data.xp, isAR: data.isAR },
+    });
+    if (leveledUp) {
+      await addTimelineEvent(supabase, userId, {
+        kind: "milestone",
+        title: `Subiste a nivel ${level}`,
+        detail: "Hito de gamificación alcanzado",
+        payload: { level },
+      });
+    }
 
     // --- Logros ---
     const dailyGoal = (prof as { daily_goal?: number }).daily_goal ?? 3;

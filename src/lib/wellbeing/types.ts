@@ -8,7 +8,7 @@
  * (no fueron aprendidos de un dataset etiquetado).
  */
 
-export const FEATURE_VERSION = "fv1";
+export const FEATURE_VERSION = "fv2";
 export const CONSENT_VERSION = "consent-2026-08-v1";
 
 export type RiskLevel = "bajo" | "moderado" | "alto" | "insuficiente";
@@ -47,12 +47,36 @@ export interface TelemetryInput {
   lastMissionDate?: string | null;
 }
 
+/** Estado del ciclo de vida de una tarea/misión diaria. */
+export type TaskStatus = "assigned" | "started" | "completed" | "skipped";
+
+/** Categoría funcional de la tarea (se usa para detectar huecos de autocuidado). */
+export type TaskCategory =
+  | "autocuidado"
+  | "reflexion"
+  | "movimiento"
+  | "social"
+  | "cognitivo"
+  | "ar";
+
+/** Evento de tarea: unidad mínima que conecta gamificación y señal de bienestar. */
+export interface TaskEventRecord {
+  /** ISO date `YYYY-MM-DD` */
+  date: string;
+  missionId: string;
+  status: TaskStatus;
+  category: TaskCategory;
+  durationSeconds: number;
+}
+
 export interface PredictionInput {
   /** Fecha de referencia `YYYY-MM-DD` (normalmente hoy) */
   today: string;
   checkins: CheckinRecord[];
   telemetry: TelemetryInput;
   scales?: ScaleRecord[];
+  /** Eventos de tareas diarias de los últimos 14 días */
+  taskEvents?: TaskEventRecord[];
 }
 
 export type FeatureKey =
@@ -64,7 +88,9 @@ export type FeatureKey =
   | "lowAdherence"
   | "socialWithdrawal"
   | "streakBreak"
-  | "scaleDistress";
+  | "scaleDistress"
+  | "taskSkipRate"
+  | "selfcareGap";
 
 /** Valor de feature normalizado 0–1 donde 1 = mayor señal de riesgo. */
 export interface FeatureValue {
@@ -74,12 +100,22 @@ export interface FeatureValue {
   available: boolean;
 }
 
+/** Dirección esperada del bienestar en el próximo periodo. */
+export type TrendDirection = "mejorando" | "estable" | "empeorando" | "indeterminada";
+
 export interface FeatureSet {
   featureVersion: string;
   features: Record<FeatureKey, FeatureValue>;
   /** Número de check-ins usados en la ventana de 14 días */
   checkinCount14: number;
+  /**
+   * Índice compuesto de bienestar 0–1 (1 = mejor) de los últimos 7 días y de
+   * los 7 anteriores. Combina autorreporte y cumplimiento real de tareas.
+   */
+  wellbeingIndex7: number | null;
+  wellbeingIndexPrev7: number | null;
 }
+
 
 export interface FactorExplanation {
   key: FeatureKey;
@@ -102,6 +138,10 @@ export interface WellbeingPrediction {
   coverage: number;
   explanation: FactorExplanation[];
   generatedAt: string;
+  /** Tendencia esperada del bienestar para el próximo periodo (7 días). */
+  trend: TrendDirection;
+  /** Delta del índice compuesto entre la semana actual y la anterior (−1 a 1). */
+  trendDelta: number;
   /** Motivo cuando `riskLevel === "insuficiente"` */
   insufficientReason?: string;
 }

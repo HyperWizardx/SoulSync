@@ -3,7 +3,8 @@ import { MobileLayout } from "@/components/MobileLayout";
 import { useMemo, useState } from "react";
 import { Lock, Flame, Coins, Gem, Sparkles, Camera } from "lucide-react";
 import { toast } from "sonner";
-import { useUserStore, type MissionReward } from "@/hooks/useUserStore";
+import { useUserStore, type MissionReward, type TaskCategoryName } from "@/hooks/useUserStore";
+import { useWellbeing } from "@/hooks/useWellbeing";
 import { BreathingMission } from "@/components/missions/BreathingMission";
 import { JournalMission } from "@/components/missions/JournalMission";
 import { TimerMission } from "@/components/missions/TimerMission";
@@ -155,10 +156,27 @@ const MISSIONS: Mission[] = [
   },
 ];
 
+/** Categoría funcional de cada tipo de tarea (alimenta la señal de bienestar). */
+const MISSION_CATEGORY: Record<MissionType, TaskCategoryName> = {
+  breathing: "autocuidado",
+  journal: "reflexion",
+  timer: "movimiento",
+  gratitude: "reflexion",
+  quiz: "cognitivo",
+  meditation: "autocuidado",
+  "daily-challenge": "autocuidado",
+  "ar-aura": "ar",
+  "ar-energy": "ar",
+  "ar-focus": "ar",
+  "ar-walk": "movimiento",
+};
+
 const tabs = ["Activas", "AR", "Completadas", "Bloqueadas"] as const;
 
 function MissionsPage() {
   const { user, completeMission } = useUserStore();
+  const { logTask } = useWellbeing();
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<typeof tabs[number]>("Activas");
   const [active, setActive] = useState<Mission | null>(null);
 
@@ -187,9 +205,23 @@ function MissionsPage() {
     return { activas, ar, completadas, bloqueadas };
   }, [user.level, completedToday]);
 
+  const skipMission = (m: Mission) => {
+    setSkipped((prev) => new Set(prev).add(m.id));
+    logTask.mutate({
+      missionId: m.id,
+      title: m.title,
+      status: "skipped",
+      category: MISSION_CATEGORY[m.type],
+      isAR: m.isAR ?? false,
+    });
+    toast("Tarea omitida hoy", { icon: "⏭️", description: "Queda registrada en tu timeline." });
+  };
+
   const finishMission = async (m: Mission, extraNote?: string) => {
     setActive(null);
-    await completeMission(m.id, m.title, m.reward, m.isAR ?? false);
+    await completeMission(m.id, m.title, m.reward, m.isAR ?? false, {
+      category: MISSION_CATEGORY[m.type],
+    });
     toast.success(`¡${m.title} completada! +${m.reward.xp} XP`, {
       icon: "🎉",
       description: extraNote,
@@ -250,7 +282,15 @@ function MissionsPage() {
         <div className="mt-4 space-y-3 animate-fade-in pb-4" key={tab}>
           {tab === "Activas" && (activas.length === 0
             ? <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." />
-            : activas.map((m) => <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} />))}
+            : activas.map((m) => (
+                <MissionCard
+                  key={m.id}
+                  mission={m}
+                  onStart={() => setActive(m)}
+                  onSkip={skipped.has(m.id) ? undefined : () => skipMission(m)}
+                  skipped={skipped.has(m.id)}
+                />
+              )))}
 
           {tab === "AR" && (
             <>
@@ -356,7 +396,19 @@ function MissionsPage() {
   );
 }
 
-function MissionCard({ mission, onStart, ar }: { mission: Mission; onStart: () => void; ar?: boolean }) {
+function MissionCard({
+  mission,
+  onStart,
+  ar,
+  onSkip,
+  skipped,
+}: {
+  mission: Mission;
+  onStart: () => void;
+  ar?: boolean;
+  onSkip?: () => void;
+  skipped?: boolean;
+}) {
   const rarityColor =
     mission.rarity === "Legendaria" ? "bg-soul-gold/20 text-soul-gold"
     : mission.rarity === "Épica" ? "bg-primary/20 text-primary"
@@ -364,6 +416,7 @@ function MissionCard({ mission, onStart, ar }: { mission: Mission; onStart: () =
     : "bg-secondary text-muted-foreground";
 
   return (
+    <div className="relative">
     <button
       onClick={onStart}
       className={`w-full rounded-xl border bg-card p-4 text-left transition-all duration-300 hover:shadow-md active:scale-[0.97] ${
@@ -399,6 +452,21 @@ function MissionCard({ mission, onStart, ar }: { mission: Mission; onStart: () =
         </div>
       </div>
     </button>
+    {onSkip && (
+      <button
+        onClick={onSkip}
+        aria-label={`Omitir ${mission.title} hoy`}
+        className="absolute bottom-3 right-3 min-h-8 rounded-full border border-border px-3 text-[10px] font-semibold text-muted-foreground transition-colors hover:border-destructive/50 hover:text-destructive"
+      >
+        Omitir hoy
+      </button>
+    )}
+    {skipped && (
+      <span className="absolute bottom-3 right-3 rounded-full bg-secondary px-3 py-1 text-[10px] text-muted-foreground">
+        Omitida
+      </span>
+    )}
+    </div>
   );
 }
 

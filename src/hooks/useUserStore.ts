@@ -30,6 +30,14 @@ export interface UserAttributes {
   creatividad: number;
 }
 
+export type TaskCategoryName =
+  | "autocuidado"
+  | "reflexion"
+  | "movimiento"
+  | "social"
+  | "cognitivo"
+  | "ar";
+
 export interface MissionReward {
   xp?: number;
   coins?: number;
@@ -201,6 +209,8 @@ export function useUserStore() {
       missionId: string;
       title: string;
       isAR?: boolean;
+      category?: TaskCategoryName;
+      durationSeconds?: number;
       xp?: number;
       coins?: number;
       gems?: number;
@@ -212,6 +222,8 @@ export function useUserStore() {
           missionId: payload.missionId,
           title: payload.title,
           isAR: payload.isAR ?? false,
+          category: payload.category ?? "autocuidado",
+          durationSeconds: payload.durationSeconds ?? 0,
           xp: payload.xp ?? 0,
           coins: payload.coins ?? 0,
           gems: payload.gems ?? 0,
@@ -228,7 +240,10 @@ export function useUserStore() {
             : {},
         },
       }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["wellbeing"] });
+    },
   });
 
   const buyMut = useMutation({
@@ -262,13 +277,16 @@ export function useUserStore() {
       missionId: string,
       missionTitle: string,
       reward: MissionReward,
-      isAR = false
+      isAR = false,
+      options?: { category?: TaskCategoryName; durationSeconds?: number }
     ) => {
       try {
         const res = await completeMissionMut.mutateAsync({
           missionId,
           title: missionTitle,
           isAR,
+          category: options?.category,
+          durationSeconds: options?.durationSeconds,
           xp: reward.xp,
           coins: reward.coins,
           gems: reward.gems,
