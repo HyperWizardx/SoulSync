@@ -5,6 +5,8 @@ import { useWellbeing } from "@/hooks/useWellbeing";
 import { ConsentCard } from "@/components/wellbeing/ConsentCard";
 import { CheckinCard } from "@/components/wellbeing/CheckinCard";
 import { RiskCard } from "@/components/wellbeing/RiskCard";
+import { TimelineFeed } from "@/components/wellbeing/TimelineFeed";
+import { TREND_COPY } from "@/lib/wellbeing/trend";
 
 export const Route = createFileRoute("/ai")({
   head: () => ({
@@ -70,6 +72,38 @@ function AIPage() {
                   onSubmit={(v) => checkin.mutate(v)}
                 />
 
+                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
+                  <section className="rounded-2xl border border-border bg-card p-4">
+                    <h2 className="font-cinzel font-semibold text-foreground">
+                      {TREND_COPY[data.prediction.trend].label}
+                    </h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {TREND_COPY[data.prediction.trend].body}
+                    </p>
+                    <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-xl bg-secondary/50 p-2">
+                        <dt className="text-[10px] text-muted-foreground">Ventana</dt>
+                        <dd className="text-xs font-semibold text-foreground">7 vs 7 días</dd>
+                      </div>
+                      <div className="rounded-xl bg-secondary/50 p-2">
+                        <dt className="text-[10px] text-muted-foreground">Cambio</dt>
+                        <dd className="text-xs font-semibold text-foreground">
+                          {(data.prediction.trendDelta * 100).toFixed(0)} pts
+                        </dd>
+                      </div>
+                      <div className="rounded-xl bg-secondary/50 p-2">
+                        <dt className="text-[10px] text-muted-foreground">Tareas</dt>
+                        <dd className="text-xs font-semibold text-foreground">
+                          {data.world ? `${data.world.tasksToday}/${data.world.dailyGoal}` : "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p className="mt-3 text-[10px] text-muted-foreground">
+                      Esta estimación es preventiva y no constituye un diagnóstico médico o psicológico.
+                    </p>
+                  </section>
+                )}
+
                 {data.prediction ? (
                   <RiskCard prediction={data.prediction} />
                 ) : (
@@ -82,6 +116,17 @@ function AIPage() {
                     </div>
                   </div>
                 )}
+
+                <section>
+                  <h2 className="font-cinzel font-semibold text-foreground">Historia reciente</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tus tareas y check-ins coinciden en el tiempo con los cambios de señal.
+                  </p>
+                  <TimelineFeed entries={data.timeline} limit={5} className="mt-3" />
+                  <Link to="/world" className="mt-2 inline-block text-xs font-semibold text-primary">
+                    Ver timeline completo en Mi Mundo →
+                  </Link>
+                </section>
 
                 <Link
                   to="/missions"
