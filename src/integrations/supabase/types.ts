@@ -179,6 +179,81 @@ export type Database = {
         }
         Relationships: []
       }
+      task_events: {
+        Row: {
+          category: string
+          created_at: string
+          duration_seconds: number
+          id: string
+          is_ar: boolean
+          mission_id: string
+          occurred_at: string
+          occurred_date: string
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          is_ar?: boolean
+          mission_id: string
+          occurred_at?: string
+          occurred_date?: string
+          status: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          is_ar?: boolean
+          mission_id?: string
+          occurred_at?: string
+          occurred_date?: string
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      timeline_events: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          kind: string
+          occurred_at: string
+          payload: Json
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind: string
+          occurred_at?: string
+          payload?: Json
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind?: string
+          occurred_at?: string
+          payload?: Json
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_attributes: {
         Row: {
           autoconocimiento: number
@@ -293,6 +368,8 @@ export type Database = {
           model_version: string
           risk_level: string
           score: number | null
+          trend: string
+          trend_delta: number
           user_id: string
         }
         Insert: {
@@ -306,6 +383,8 @@ export type Database = {
           model_version: string
           risk_level: string
           score?: number | null
+          trend?: string
+          trend_delta?: number
           user_id: string
         }
         Update: {
@@ -319,6 +398,8 @@ export type Database = {
           model_version?: string
           risk_level?: string
           score?: number | null
+          trend?: string
+          trend_delta?: number
           user_id?: string
         }
         Relationships: []
@@ -350,6 +431,42 @@ export type Database = {
           raw_score?: number
           scale_code?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      world_state: {
+        Row: {
+          created_at: string
+          harmony: number
+          recomputed_at: string
+          season: string
+          tasks_today: number
+          updated_at: string
+          user_id: string
+          vitality: number
+          zones_unlocked: number
+        }
+        Insert: {
+          created_at?: string
+          harmony?: number
+          recomputed_at?: string
+          season?: string
+          tasks_today?: number
+          updated_at?: string
+          user_id: string
+          vitality?: number
+          zones_unlocked?: number
+        }
+        Update: {
+          created_at?: string
+          harmony?: number
+          recomputed_at?: string
+          season?: string
+          tasks_today?: number
+          updated_at?: string
+          user_id?: string
+          vitality?: number
+          zones_unlocked?: number
         }
         Relationships: []
       }

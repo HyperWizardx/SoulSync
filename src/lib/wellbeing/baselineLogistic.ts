@@ -1,7 +1,8 @@
 import { explainContributions } from "./explain";
+import { computeTrend } from "./trend";
 import type { FeatureKey, FeatureSet, WellbeingModel, WellbeingPrediction, RiskLevel } from "./types";
 
-export const BASELINE_MODEL_VERSION = "baseline-logistic-v1";
+export const BASELINE_MODEL_VERSION = "baseline-logistic-v2";
 
 /**
  * Pesos definidos por CRITERIO (revisión conceptual de la propuesta de tesis),
@@ -10,15 +11,17 @@ export const BASELINE_MODEL_VERSION = "baseline-logistic-v1";
  * manteniendo la interfaz `WellbeingModel`.
  */
 export const BASELINE_WEIGHTS: Record<FeatureKey, number> = {
-  moodLow: 0.20,
-  moodDecline: 0.12,
-  stressHigh: 0.20,
-  sleepDeficit: 0.12,
-  socialWithdrawal: 0.10,
-  scaleDistress: 0.10,
-  engagementDrop: 0.07,
+  moodLow: 0.18,
+  moodDecline: 0.11,
+  stressHigh: 0.17,
+  sleepDeficit: 0.10,
+  socialWithdrawal: 0.09,
+  scaleDistress: 0.09,
+  engagementDrop: 0.06,
   lowAdherence: 0.05,
-  streakBreak: 0.04,
+  streakBreak: 0.03,
+  taskSkipRate: 0.07,
+  selfcareGap: 0.05,
 };
 
 /** Pendiente e intercepto del enlace logístico: índice 0.5 → probabilidad 0.5. */
@@ -52,11 +55,15 @@ export const baselineLogisticModel: WellbeingModel = {
       .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
     const coverage = totalWeight === 0 ? 0 : Number((availableWeight / totalWeight).toFixed(4));
 
+    const { trend, trendDelta } = computeTrend(featureSet);
+
     const base = {
       modelVersion: BASELINE_MODEL_VERSION,
       featureVersion: featureSet.featureVersion,
       coverage,
       generatedAt,
+      trend,
+      trendDelta,
     };
 
     if (featureSet.checkinCount14 < MIN_CHECKINS) {

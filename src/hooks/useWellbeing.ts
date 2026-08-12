@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { getWellbeing, saveCheckin, setResearchConsent } from "@/lib/wellbeing.functions";
+import { getWellbeing, logTaskEvent, saveCheckin, setResearchConsent } from "@/lib/wellbeing.functions";
 import type { WellbeingPayload } from "@/lib/wellbeing.functions";
 
 export function useWellbeing() {
@@ -9,6 +9,7 @@ export function useWellbeing() {
   const fetchWellbeing = useServerFn(getWellbeing);
   const checkinFn = useServerFn(saveCheckin);
   const consentFn = useServerFn(setResearchConsent);
+  const taskEventFn = useServerFn(logTaskEvent);
 
   const query = useQuery<WellbeingPayload>({
     queryKey: ["wellbeing"],
@@ -42,5 +43,27 @@ export function useWellbeing() {
     onError: () => toast.error("No se pudo actualizar tu consentimiento"),
   });
 
-  return { ...query, checkin, consent };
+  const logTask = useMutation({
+    mutationFn: (data: {
+      missionId: string;
+      title: string;
+      status: "assigned" | "started" | "completed" | "skipped";
+      category?: "autocuidado" | "reflexion" | "movimiento" | "social" | "cognitivo" | "ar";
+      durationSeconds?: number;
+      isAR?: boolean;
+    }) =>
+      taskEventFn({
+        data: {
+          missionId: data.missionId,
+          title: data.title,
+          status: data.status,
+          category: data.category ?? "autocuidado",
+          durationSeconds: data.durationSeconds ?? 0,
+          isAR: data.isAR ?? false,
+        },
+      }),
+    onSuccess: (data) => setPayload(data),
+  });
+
+  return { ...query, checkin, consent, logTask };
 }

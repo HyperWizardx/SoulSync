@@ -130,8 +130,56 @@ export function extractFeatures(input: PredictionInput): FeatureSet {
     ? available("scaleDistress", clamp01(recentScale.raw / recentScale.max))
     : unavailable("scaleDistress");
 
-  return { featureVersion: FEATURE_VERSION, features, checkinCount14: last14.length };
+  // --- Tareas diarias: omisión y hueco de autocuidado ---
+  const events = (input.taskEvents ?? []).filter((e) => inWindow(e.date, today, 14, 0));
+  const events7 = events.filter((e) => inWindow(e.date, today, 7, 0));
+  const completed7 = events7.filter((e) => e.status === "completed").length;
+  const skipped7 = events7.filter((e) => e.status === "skipped").length;
+  const decided7 = completed7 + skipped7;
+  features.taskSkipRate =
+    decided7 === 0 ? unavailable("taskSkipRate") : available("taskSkipRate", skipped7 / decided7);
+
+  if (events.length === 0) {
+    features.selfcareGap = unavailable("selfcareGap");
+  } else {
+    const selfcareDays = new Set(
+      events7
+        .filter((e) => e.status === "completed" && SELFCARE_CATEGORIES.has(e.category))
+        .map((e) => e.date),
+    );
+    features.selfcareGap = available("selfcareGap", (7 - Math.min(7, selfcareDays.size)) / 7);
+  }
+
+  // --- Índice compuesto de bienestar por ventana (autorreporte + cumplimiento) ---
+  const windowIndex = (window: typeof last7, missions: number): number | null => {
+    if (window.length === 0) return null;
+    const selfReport =
+      mean(
+        window.map(
+          (c) =>
+            (invert(c.mood) + directOk(5 - c.stress + 1) + invert(c.energy) + invert(c.social)) / 4,
+        ),
+      ) ?? 0;
+    const adherence = clamp01(missions / (goal * 7));
+    return clamp01(0.7 * selfReport + 0.3 * adherence);
+  };
+
+  return {
+    featureVersion: FEATURE_VERSION,
+    features,
+    checkinCount14: last14.length,
+    wellbeingIndex7: windowIndex(last7, missions7),
+    wellbeingIndexPrev7: windowIndex(prev7, missionsPrev7),
+  };
 }
+
+/** Categorías que cuentan como práctica de autocuidado sostenida. */
+export const SELFCARE_CATEGORIES = new Set(["autocuidado", "reflexion", "movimiento"]);
+
+/** 1–5 → 0–1 donde 5 es mejor. */
+const invert = (v: number) => clamp01((clamp(v, 1, 5) - 1) / 4);
+/** Ya recibe el valor invertido de estrés (1–5, 5 = poco estrés). */
+const directOk = (v: number) => clamp01((clamp(v, 1, 5) - 1) / 4);
 
 /** Serializa el featureSet para persistencia (solo números, sin texto libre). */
 export function serializeFeatures(featureSet: FeatureSet): Record<string, number | null> {
@@ -140,5 +188,9 @@ export function serializeFeatures(featureSet: FeatureSet): Record<string, number
     out[f.key] = f.available ? Number((f.value ?? 0).toFixed(4)) : null;
   }
   out["checkinCount14"] = featureSet.checkinCount14;
+  out["wellbeingIndex7"] =
+    featureSet.wellbeingIndex7 === null ? null : Number(featureSet.wellbeingIndex7.toFixed(4));
+  out["wellbeingIndexPrev7"] =
+    featureSet.wellbeingIndexPrev7 === null ? null : Number(featureSet.wellbeingIndexPrev7.toFixed(4));
   return out;
 }

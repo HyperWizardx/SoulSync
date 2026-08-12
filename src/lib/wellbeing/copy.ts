@@ -10,6 +10,8 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   socialWithdrawal: "Menor conexión social percibida",
   streakBreak: "Días sin actividad",
   scaleDistress: "Resultado de escala de bienestar",
+  taskSkipRate: "Tareas diarias omitidas",
+  selfcareGap: "Días sin práctica de autocuidado",
 };
 
 export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
@@ -22,6 +24,8 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   socialWithdrawal: "Reportaste sentirte menos conectado con otras personas.",
   streakBreak: "Han pasado varios días desde tu última actividad en la app.",
   scaleDistress: "Proviene de una escala de bienestar que respondiste dentro de la app.",
+  taskSkipRate: "Esta semana omitiste una parte de las tareas que iniciaste o tenías asignadas.",
+  selfcareGap: "Hubo varios días sin completar tareas de autocuidado, reflexión o movimiento.",
 };
 
 export const RISK_COPY: Record<RiskLevel, { title: string; body: string; tone: string }> = {
@@ -67,4 +71,6 @@ export const RECOMMENDATIONS: Record<FeatureKey, string> = {
   socialWithdrawal: "Prueba la Caminata consciente y escribe a una persona con quien no hablas hace tiempo.",
   streakBreak: "Retomar cuenta: una sola misión hoy reinicia tu ritmo.",
   scaleDistress: "Conversa tus resultados con Bienestar Universitario; ellos pueden orientarte mejor que la app.",
+  taskSkipRate: "Elige una sola tarea corta hoy: completar una es mejor señal que planear cinco.",
+  selfcareGap: "Reserva 3 minutos para respiración o gratitud; son las tareas que más sostienen tu ritmo.",
 };
