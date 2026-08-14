@@ -3,13 +3,13 @@ import { useState } from "react";
 import { StarField } from "@/components/StarField";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useUserStore } from "@/hooks/useUserStore";
+import { AvatarIcon, AVATAR_META } from "@/components/avatars/AvatarArt";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/create-avatar")({
   component: CreateAvatarPage,
 });
 
-const avatars = ["🧙‍♂️", "🧝‍♀️", "🐉", "🦊", "🌟", "🦉"];
 const archetypes = [
   { name: "Guerrero", desc: "Fuerza y resiliencia", emoji: "⚔️" },
   { name: "Sanador", desc: "Empatía y cuidado", emoji: "💚" },
@@ -40,7 +40,7 @@ function CreateAvatarPage() {
 
   const handleNext = () => {
     if (step === 0) {
-      toast("Avatar seleccionado: " + avatars[selectedAvatar], { icon: "✨" });
+      toast("Avatar seleccionado: " + AVATAR_META[selectedAvatar].name, { icon: "✨" });
     }
     if (step === 1 && !name.trim()) {
       toast.warning("Escribe tu nombre de héroe", { icon: "📝" });
@@ -73,20 +73,28 @@ function CreateAvatarPage() {
           <div className="animate-fade-in">
             <h2 className="text-2xl font-cinzel font-bold text-foreground">Elige tu Avatar</h2>
             <p className="mt-1 text-sm text-muted-foreground">Tu compañero en esta aventura</p>
-            <div className="mt-8 grid grid-cols-3 gap-4">
-              {avatars.map((a, i) => (
+
+            {/* Vista previa grande del avatar seleccionado */}
+            <div className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 via-card to-card py-6">
+              <AvatarIcon key={selectedAvatar} index={selectedAvatar} size={128} selected glow />
+              <p className="mt-3 font-cinzel text-lg font-bold text-foreground">{AVATAR_META[selectedAvatar].name}</p>
+              <p className="text-xs text-muted-foreground">{AVATAR_META[selectedAvatar].title}</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              {AVATAR_META.map((a, i) => (
                 <button
-                  key={i}
-                  onClick={() => {
-                    setSelectedAvatar(i);
-                  }}
-                  className={`flex h-24 items-center justify-center rounded-2xl border-2 text-4xl transition-all duration-300 active:scale-90 ${
+                  key={a.id}
+                  onClick={() => setSelectedAvatar(i)}
+                  aria-label={`Elegir avatar ${a.name}`}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 py-3 transition-all duration-300 active:scale-90 ${
                     selectedAvatar === i
-                      ? "border-primary bg-primary/10 shadow-lg shadow-primary/20 scale-110 animate-pulse"
+                      ? "border-primary bg-primary/10 shadow-lg shadow-primary/20 scale-105"
                       : "border-border bg-card hover:border-primary/50 hover:scale-105 hover:bg-card/80"
                   }`}
                 >
-                  {a}
+                  <AvatarIcon index={i} size={52} />
+                  <span className="text-[11px] font-medium text-foreground">{a.name}</span>
                 </button>
               ))}
             </div>
@@ -110,7 +118,7 @@ function CreateAvatarPage() {
               <div className={`mt-4 flex items-center gap-3 rounded-xl bg-card p-4 border transition-all duration-500 ${
                 name ? "border-primary/50 shadow-md shadow-primary/10" : "border-border"
               }`}>
-                <span className="text-4xl animate-float">{avatars[selectedAvatar]}</span>
+                <AvatarIcon index={selectedAvatar} size={56} className="animate-float" />
                 <div>
                   <p className="font-semibold text-foreground text-lg">{name || "Héroe"}</p>
                   <p className="text-xs text-muted-foreground">Nivel 1 • Novato</p>

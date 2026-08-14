@@ -13,6 +13,7 @@ import {
   getWeeklyStats,
 } from "@/lib/progress.functions";
 import { emitFeedback } from "@/lib/feedback";
+import { AVATAR_META } from "@/components/avatars/AvatarArt";
 
 export interface UserStats {
   bienestar: number;
@@ -98,7 +99,6 @@ const DEFAULT_USER: UserData = {
   settings: { theme: "dark", textSize: "normal", dailyGoal: 3, onboarded: false },
 };
 
-const AVATARS = ["🧙‍♂️", "🧝‍♀️", "🐉", "🦊", "🌟", "🦉"];
 const ARCHETYPES = ["Guerrero", "Sanador", "Explorador", "Sabio"];
 const MIGRATED_KEY = "soulsync_migrated";
 
@@ -331,7 +331,7 @@ export function useUserStore() {
     qc.clear();
   }, [qc]);
 
-  const avatarEmoji = AVATARS[user.avatar] || "🧙‍♂️";
+  const avatarMeta = AVATAR_META[user.avatar] ?? AVATAR_META[0];
   const archetypeName = user.archetype !== null ? ARCHETYPES[user.archetype] : "Novato";
 
   return {
@@ -342,7 +342,7 @@ export function useUserStore() {
     completeMission,
     buyItem: buyItemAction,
     signOut,
-    avatarEmoji,
+    avatarMeta,
     archetypeName,
   };
 }

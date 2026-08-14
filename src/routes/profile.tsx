@@ -5,6 +5,7 @@ import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MiniAvatar3D } from "@/components/MiniAvatar3D";
+import { AvatarIcon } from "@/components/avatars/AvatarArt";
 import { getArchetypeStyle } from "@/lib/archetype";
 import { WeeklyChart } from "@/components/WeeklyChart";
 import { ACHIEVEMENTS } from "@/lib/achievements";
@@ -154,8 +155,8 @@ function ProfilePage() {
             <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-lg">
               {user.level}
             </span>
-            <span className="absolute -top-1 -left-1 flex h-7 w-7 items-center justify-center rounded-full bg-card text-base ring-2 ring-primary/30">
-              {archStyle.emoji}
+            <span className="absolute -top-1 -left-1 rounded-full ring-4 ring-card">
+              <AvatarIcon index={user.avatar} size={34} />
             </span>
           </div>
 

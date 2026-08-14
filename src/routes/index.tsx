@@ -3,6 +3,7 @@ import { StarField } from "@/components/StarField";
 import { Shield, Brain, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarIcon, AVATAR_META } from "@/components/avatars/AvatarArt";
 
 export const Route = createFileRoute("/")({
   component: SplashPage,
@@ -45,12 +46,31 @@ function SplashPage() {
       <p className="relative z-10 mt-2 text-center text-sm text-muted-foreground">
         Tu aventura de bienestar emocional
       </p>
+      <p className="relative z-10 mt-1 max-w-[280px] text-center text-xs text-muted-foreground/80">
+        Misiones, insignias y un compañero mágico que crece contigo
+      </p>
+
+      {/* Vitrina de compañeros */}
+      <div className="relative z-10 mt-6 flex items-end gap-3">
+        {AVATAR_META.map((a, i) => (
+          <div
+            key={a.id}
+            className="animate-float"
+            style={{ animationDelay: `${i * 0.4}s` }}
+          >
+            <AvatarIcon index={i} size={i === 2 || i === 3 ? 52 : 40} />
+          </div>
+        ))}
+      </div>
+      <p className="relative z-10 mt-2 text-[11px] uppercase tracking-wider text-muted-foreground/70">
+        Elige a tu compañero de aventura
+      </p>
 
       {!checking && (
         <>
           <button
             onClick={() => navigate({ to: "/auth", search: { mode: "signup" } })}
-            className="relative z-10 mt-10 w-full max-w-[280px] rounded-xl bg-primary px-6 py-3.5 text-center font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95"
+            className="relative z-10 mt-6 w-full max-w-[280px] rounded-xl bg-primary px-6 py-3.5 text-center font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95"
           >
             ⚔️ Comenzar Aventura
           </button>
@@ -63,7 +83,7 @@ function SplashPage() {
         </>
       )}
 
-      <div className="relative z-10 mt-12 flex gap-6 text-muted-foreground">
+      <div className="relative z-10 mt-8 flex gap-6 text-muted-foreground">
         <div className="flex flex-col items-center gap-1">
           <Shield className="h-5 w-5 text-soul-teal" />
           <span className="text-[10px]">Seguro</span>

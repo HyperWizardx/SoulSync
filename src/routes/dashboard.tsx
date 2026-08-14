@@ -5,6 +5,7 @@ import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MiniAvatar3D } from "@/components/MiniAvatar3D";
+import { AvatarIcon } from "@/components/avatars/AvatarArt";
 import { getArchetypeStyle } from "@/lib/archetype";
 import { DailyGoalCard } from "@/components/DailyGoalCard";
 import { WellbeingPreview } from "@/components/wellbeing/WellbeingPreview";
@@ -38,15 +39,20 @@ function DashboardPage() {
           </div>
           <Link
             to="/profile"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-card ring-2 ring-primary/30 transition-all hover:ring-primary hover:scale-110 active:scale-95"
+            className="flex h-12 w-12 items-center justify-center rounded-full ring-2 ring-primary/30 transition-all hover:ring-primary hover:scale-110 active:scale-95"
           >
-            <MiniAvatar3D size={44} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+            <AvatarIcon index={user.avatar} size={44} />
           </Link>
         </div>
 
         {/* Hero Avatar 3D */}
         <div className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 via-card to-card p-4">
-          <MiniAvatar3D size={180} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+          <div className="relative">
+            <MiniAvatar3D size={180} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+            <span className="absolute -bottom-1 -right-1 rounded-full ring-4 ring-card">
+              <AvatarIcon index={user.avatar} size={40} />
+            </span>
+          </div>
           <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{archStyle.name}</p>
         </div>
 

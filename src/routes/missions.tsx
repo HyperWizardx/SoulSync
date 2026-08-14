@@ -5,6 +5,7 @@ import { Lock, Flame, Coins, Gem, Sparkles, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore, type MissionReward, type TaskCategoryName } from "@/hooks/useUserStore";
 import { useWellbeing } from "@/hooks/useWellbeing";
+import { AvatarIcon } from "@/components/avatars/AvatarArt";
 import { BreathingMission } from "@/components/missions/BreathingMission";
 import { JournalMission } from "@/components/missions/JournalMission";
 import { TimerMission } from "@/components/missions/TimerMission";
@@ -233,9 +234,12 @@ function MissionsPage() {
     <MobileLayout>
       <div className="px-4 pt-6">
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-cinzel font-bold text-foreground">Misiones</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p>
+          <div className="flex items-center gap-3">
+            <AvatarIcon index={user.avatar} size={40} />
+            <div>
+              <h1 className="text-2xl font-cinzel font-bold text-foreground">Misiones</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p>
+            </div>
           </div>
           <div className="flex items-center gap-1 rounded-full border border-soul-gold/30 bg-soul-gold/10 px-2.5 py-1">
             <Flame className="h-3.5 w-3.5 text-soul-gold" />
