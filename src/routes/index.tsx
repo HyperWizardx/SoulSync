@@ -3,7 +3,6 @@ import { StarField } from "@/components/StarField";
 import { Shield, Brain, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AvatarIcon, AVATAR_META } from "@/components/avatars/AvatarArt";
 
 export const Route = createFileRoute("/")({
   component: SplashPage,
@@ -43,34 +42,19 @@ function SplashPage() {
       <h1 className="relative z-10 text-4xl font-cinzel font-bold tracking-wider text-foreground">
         SoulSync
       </h1>
-      <p className="relative z-10 mt-2 text-center text-sm text-muted-foreground">
+      <div className="relative z-10 mt-3 h-[2px] w-16 rounded-full bg-gradient-to-r from-transparent via-soul-gold to-transparent" />
+      <p className="relative z-10 mt-3 text-center text-sm text-muted-foreground">
         Tu aventura de bienestar emocional
       </p>
       <p className="relative z-10 mt-1 max-w-[280px] text-center text-xs text-muted-foreground/80">
-        Misiones, insignias y un compañero mágico que crece contigo
-      </p>
-
-      {/* Vitrina de compañeros */}
-      <div className="relative z-10 mt-6 flex items-end gap-3">
-        {AVATAR_META.map((a, i) => (
-          <div
-            key={a.id}
-            className="animate-float"
-            style={{ animationDelay: `${i * 0.4}s` }}
-          >
-            <AvatarIcon index={i} size={i === 2 || i === 3 ? 52 : 40} />
-          </div>
-        ))}
-      </div>
-      <p className="relative z-10 mt-2 text-[11px] uppercase tracking-wider text-muted-foreground/70">
-        Elige a tu compañero de aventura
+        Misiones, insignias y un compañero que crece contigo
       </p>
 
       {!checking && (
         <>
           <button
             onClick={() => navigate({ to: "/auth", search: { mode: "signup" } })}
-            className="relative z-10 mt-6 w-full max-w-[280px] rounded-xl bg-primary px-6 py-3.5 text-center font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95"
+            className="relative z-10 mt-10 w-full max-w-[280px] rounded-xl bg-primary px-6 py-3.5 text-center font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95"
           >
             ⚔️ Comenzar Aventura
           </button>
@@ -83,18 +67,18 @@ function SplashPage() {
         </>
       )}
 
-      <div className="relative z-10 mt-8 flex gap-6 text-muted-foreground">
-        <div className="flex flex-col items-center gap-1">
-          <Shield className="h-5 w-5 text-soul-teal" />
-          <span className="text-[10px]">Seguro</span>
+      <div className="relative z-10 mt-10 flex gap-3 text-muted-foreground">
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur-sm">
+          <Shield className="h-3.5 w-3.5 text-soul-teal" />
+          <span className="text-[10px] font-medium">Seguro</span>
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <Brain className="h-5 w-5 text-primary" />
-          <span className="text-[10px]">IA Ética</span>
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur-sm">
+          <Brain className="h-3.5 w-3.5 text-primary" />
+          <span className="text-[10px] font-medium">IA Ética</span>
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <Heart className="h-5 w-5 text-soul-gold" />
-          <span className="text-[10px]">Evidencia</span>
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur-sm">
+          <Heart className="h-3.5 w-3.5 text-soul-gold" />
+          <span className="text-[10px] font-medium">Evidencia</span>
         </div>
       </div>
     </div>

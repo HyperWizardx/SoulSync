@@ -4,8 +4,8 @@ import { Heart, Brain, Zap, Shield, AlertTriangle, ChevronRight, Flame } from "l
 import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
-import { MiniAvatar3D } from "@/components/MiniAvatar3D";
 import { AvatarIcon } from "@/components/avatars/AvatarArt";
+import { AvatarHero, computeMood } from "@/components/avatars/AvatarHero";
 import { getArchetypeStyle } from "@/lib/archetype";
 import { DailyGoalCard } from "@/components/DailyGoalCard";
 import { WellbeingPreview } from "@/components/wellbeing/WellbeingPreview";
@@ -45,15 +45,9 @@ function DashboardPage() {
           </Link>
         </div>
 
-        {/* Hero Avatar 3D */}
+        {/* Hero Avatar interactivo */}
         <div className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 via-card to-card p-4">
-          <div className="relative">
-            <MiniAvatar3D size={180} glowColor={archStyle.glow} exposure={archStyle.exposure} />
-            <span className="absolute -bottom-1 -right-1 rounded-full ring-4 ring-card">
-              <AvatarIcon index={user.avatar} size={40} />
-            </span>
-          </div>
-          <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{archStyle.name}</p>
+          <AvatarHero index={user.avatar} mood={computeMood(user.stats)} size={176} />
         </div>
 
         {/* Meta diaria */}

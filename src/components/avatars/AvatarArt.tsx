@@ -194,16 +194,41 @@ function Buho({ gid }: { gid: string }) {
 
 const RENDERERS = [Mago, Elfa, Dragon, Zorro, Estrella, Buho];
 
+export type AvatarMood = "radiant" | "balanced" | "tired";
+
+function MoodFX({ mood }: { mood: AvatarMood }) {
+  if (mood === "radiant") {
+    return (
+      <>
+        <path d="M15 20 L16.4 23.6 L20 25 L16.4 26.4 L15 30 L13.6 26.4 L10 25 L13.6 23.6 Z" fill="#fff7cc" opacity="0.95" className="animate-pulse" />
+        <path d="M84 68 L85 70.6 L87.6 71.6 L85 72.6 L84 75.2 L83 72.6 L80.4 71.6 L83 70.6 Z" fill="#fff7cc" opacity="0.9" className="animate-pulse" />
+        <circle cx="83" cy="24" r="2" fill="#fff7cc" opacity="0.85" />
+      </>
+    );
+  }
+  if (mood === "tired") {
+    return (
+      <>
+        <circle cx="50" cy="50" r="48" fill="#0b0715" opacity="0.22" />
+        <text x="80" y="24" fontSize="9" fill="#cfc9e0" opacity="0.85" fontFamily="sans-serif">z</text>
+        <text x="86" y="17" fontSize="6.5" fill="#cfc9e0" opacity="0.75" fontFamily="sans-serif">z</text>
+      </>
+    );
+  }
+  return null;
+}
+
 interface AvatarIconProps {
   index: number;
   size?: number;
   selected?: boolean;
   glow?: boolean;
+  mood?: AvatarMood;
   className?: string;
 }
 
 /** Ilustración de avatar (badge circular) para un índice 0-5. */
-export function AvatarIcon({ index, size = 64, selected = false, glow = false, className = "" }: AvatarIconProps) {
+export function AvatarIcon({ index, size = 64, selected = false, glow = false, mood = "balanced", className = "" }: AvatarIconProps) {
   const gid = useId();
   const safeIndex = ((index % RENDERERS.length) + RENDERERS.length) % RENDERERS.length;
   const Renderer = RENDERERS[safeIndex] ?? Mago;
@@ -216,12 +241,13 @@ export function AvatarIcon({ index, size = 64, selected = false, glow = false, c
     >
       {glow && (
         <div
-          className="absolute inset-0 rounded-full blur-xl opacity-60 animate-pulse"
+          className={`absolute inset-0 rounded-full blur-xl ${mood === "tired" ? "opacity-25" : "opacity-60 animate-pulse"}`}
           style={{ background: meta.ring }}
         />
       )}
       <svg viewBox="0 0 100 100" width={size} height={size} className="relative">
         <Renderer gid={`avatar-${safeIndex}-${gid}`} />
+        <MoodFX mood={mood} />
       </svg>
     </div>
   );
