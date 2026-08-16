@@ -186,23 +186,25 @@ export function useUserStore() {
         gems: data.profile.gems,
         streak: data.profile.streak,
         lastMissionDate: data.profile.last_mission_date,
-        completedMissions: data.history.map((h) => h.title),
-        missionHistory: data.history.map((h) => ({
+        completedMissions: (data.history ?? []).map((h) => h.title),
+        missionHistory: (data.history ?? []).map((h) => ({
           id: h.mission_id,
           title: h.title,
           date: new Date(h.completed_at).toDateString(),
           xp: h.xp_earned,
         })),
-        inventory: data.inventory,
-        stats: data.stats,
-        attributes: {
-          resiliencia: data.attributes.resiliencia,
-          empatia: data.attributes.empatia,
-          mindfulness: data.attributes.mindfulness,
-          autoconocimiento: data.attributes.autoconocimiento,
-          conexionSocial: data.attributes.conexion_social,
-          creatividad: data.attributes.creatividad,
-        },
+        inventory: data.inventory ?? [],
+        stats: data.stats ?? DEFAULT_USER.stats,
+        attributes: data.attributes
+          ? {
+              resiliencia: data.attributes.resiliencia,
+              empatia: data.attributes.empatia,
+              mindfulness: data.attributes.mindfulness,
+              autoconocimiento: data.attributes.autoconocimiento,
+              conexionSocial: data.attributes.conexion_social,
+              creatividad: data.attributes.creatividad,
+            }
+          : DEFAULT_USER.attributes,
         achievements: data.achievements ?? [],
         settings: {
           theme: (data.profile.theme as "dark" | "light") ?? "dark",
