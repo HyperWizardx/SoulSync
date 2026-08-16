@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONSENT_VERSION } from "@/lib/wellbeing/types";
-import { addTimelineEvent, assertConsent, loadWellbeing, todayISO } from "@/lib/wellbeing/load";
+import { addTimelineEvent, assertConsent, hasActiveConsent, loadWellbeing, todayISO } from "@/lib/wellbeing/load";
 import type { WellbeingPayload } from "@/lib/wellbeing/load";
 
 export type { WellbeingPayload, ConsentState, TimelineEntry } from "@/lib/wellbeing/load";
@@ -109,24 +109,28 @@ export const logTaskEvent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<WellbeingPayload> => {
     const { supabase, userId } = context;
 
-    await supabase.from("task_events").insert({
-      user_id: userId,
-      mission_id: data.missionId,
-      title: data.title,
-      category: data.category,
-      status: data.status,
-      duration_seconds: data.durationSeconds,
-      is_ar: data.isAR,
-      occurred_date: todayISO(),
-    });
-
-    if (data.status === "skipped") {
-      await addTimelineEvent(supabase, userId, {
-        kind: "task_skipped",
-        title: `Tarea omitida: ${data.title}`,
-        detail: `Categoría: ${data.category}`,
-        payload: { missionId: data.missionId, category: data.category },
+    // Igual que en completeMissionServer: sin consentimiento no se graba
+    // telemetría del módulo de bienestar (la app sigue funcionando normal).
+    if (await hasActiveConsent(supabase, userId)) {
+      await supabase.from("task_events").insert({
+        user_id: userId,
+        mission_id: data.missionId,
+        title: data.title,
+        category: data.category,
+        status: data.status,
+        duration_seconds: data.durationSeconds,
+        is_ar: data.isAR,
+        occurred_date: todayISO(),
       });
+
+      if (data.status === "skipped") {
+        await addTimelineEvent(supabase, userId, {
+          kind: "task_skipped",
+          title: `Tarea omitida: ${data.title}`,
+          detail: `Categoría: ${data.category}`,
+          payload: { missionId: data.missionId, category: data.category },
+        });
+      }
     }
 
     return loadWellbeing(supabase, userId);

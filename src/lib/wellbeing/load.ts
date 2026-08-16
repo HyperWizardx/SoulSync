@@ -56,6 +56,22 @@ export async function assertConsent(supabase: Db, userId: string) {
   }
 }
 
+/**
+ * Igual que assertConsent pero sin lanzar: para rutas donde la telemetría
+ * es un efecto secundario opcional (p. ej. completar/omitir una misión) y
+ * no debe romper el flujo principal si el usuario no ha consentido.
+ */
+export async function hasActiveConsent(supabase: Db, userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("research_consent")
+    .select("consent_version, revoked_at")
+    .eq("user_id", userId)
+    .order("accepted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return Boolean(data && !data.revoked_at && data.consent_version === CONSENT_VERSION);
+}
+
 /** Registro en la historia unificada. No almacena texto libre del usuario. */
 export async function addTimelineEvent(
   supabase: Db,

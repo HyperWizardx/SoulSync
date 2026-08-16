@@ -215,7 +215,7 @@ function MissionsPage() {
       category: MISSION_CATEGORY[m.type],
       isAR: m.isAR ?? false,
     });
-    toast("Tarea omitida hoy", { icon: "⏭️", description: "Queda registrada en tu timeline." });
+    toast("Tarea omitida hoy", { icon: "⏭️" });
   };
 
   const finishMission = async (m: Mission, extraNote?: string) => {
