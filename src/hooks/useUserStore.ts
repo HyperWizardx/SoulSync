@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -112,10 +112,28 @@ export function useUserStore() {
   const updateSettingsFn = useServerFn(updateSettings);
   const migratedRef = useRef(false);
 
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setHasSession(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setHasSession(!!session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
   const { data, isLoading } = useQuery({
     queryKey: ["progress"],
     queryFn: () => getProgressFn(),
     staleTime: 10_000,
+    enabled: hasSession,
+    retry: false,
   });
 
   // Migrate localStorage → server, only once
@@ -157,7 +175,7 @@ export function useUserStore() {
     }
   }, [data, migrateFn, qc]);
 
-  const user: UserData = data
+  const user: UserData = data?.profile
     ? {
         name: data.profile.name,
         avatar: data.profile.avatar,
@@ -168,23 +186,25 @@ export function useUserStore() {
         gems: data.profile.gems,
         streak: data.profile.streak,
         lastMissionDate: data.profile.last_mission_date,
-        completedMissions: data.history.map((h) => h.title),
-        missionHistory: data.history.map((h) => ({
+        completedMissions: (data.history ?? []).map((h) => h.title),
+        missionHistory: (data.history ?? []).map((h) => ({
           id: h.mission_id,
           title: h.title,
           date: new Date(h.completed_at).toDateString(),
           xp: h.xp_earned,
         })),
-        inventory: data.inventory,
-        stats: data.stats,
-        attributes: {
-          resiliencia: data.attributes.resiliencia,
-          empatia: data.attributes.empatia,
-          mindfulness: data.attributes.mindfulness,
-          autoconocimiento: data.attributes.autoconocimiento,
-          conexionSocial: data.attributes.conexion_social,
-          creatividad: data.attributes.creatividad,
-        },
+        inventory: data.inventory ?? [],
+        stats: data.stats ?? DEFAULT_USER.stats,
+        attributes: data.attributes
+          ? {
+              resiliencia: data.attributes.resiliencia,
+              empatia: data.attributes.empatia,
+              mindfulness: data.attributes.mindfulness,
+              autoconocimiento: data.attributes.autoconocimiento,
+              conexionSocial: data.attributes.conexion_social,
+              creatividad: data.attributes.creatividad,
+            }
+          : DEFAULT_USER.attributes,
         achievements: data.achievements ?? [],
         settings: {
           theme: (data.profile.theme as "dark" | "light") ?? "dark",
