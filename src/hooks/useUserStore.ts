@@ -112,10 +112,28 @@ export function useUserStore() {
   const updateSettingsFn = useServerFn(updateSettings);
   const migratedRef = useRef(false);
 
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setHasSession(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setHasSession(!!session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
   const { data, isLoading } = useQuery({
     queryKey: ["progress"],
     queryFn: () => getProgressFn(),
     staleTime: 10_000,
+    enabled: hasSession,
+    retry: false,
   });
 
   // Migrate localStorage → server, only once
