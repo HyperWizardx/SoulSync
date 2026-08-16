@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SettingsApplier } from "@/components/SettingsApplier";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { FeedbackHost } from "@/components/FeedbackHost";
 
@@ -31,6 +32,7 @@ export function AuthedShell() {
   return (
     <>
       <SettingsApplier />
+      <OnboardingGate />
       <OnboardingTour />
       <FeedbackHost />
     </>
