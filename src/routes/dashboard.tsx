@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Heart, Brain, Zap, Shield, AlertTriangle, ChevronRight, Flame } from "lucide-react";
+import { Heart, Brain, Zap, Shield, ChevronRight, Flame } from "lucide-react";
 import { useUserStore } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -105,18 +105,6 @@ function DashboardPage() {
             </button>
           ))}
         </div>
-
-        {/* AI Alert */}
-        <Link to="/alert" className="mt-6 flex items-center gap-3 rounded-xl border border-soul-gold/30 bg-soul-gold/5 p-3 transition-all hover:bg-soul-gold/10 hover:border-soul-gold/50 active:scale-[0.98]">
-          <div className="animate-pulse">
-            <AlertTriangle className="h-5 w-5 text-soul-gold" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">Alerta IA</p>
-            <p className="text-xs text-muted-foreground">Tu nivel de estrés ha subido un 15%</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
 
         {/* Streak + Recursos */}
         <div className="mt-6 grid grid-cols-3 gap-2">
