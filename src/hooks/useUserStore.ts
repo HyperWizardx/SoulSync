@@ -175,7 +175,7 @@ export function useUserStore() {
     }
   }, [data, migrateFn, qc]);
 
-  const user: UserData = data
+  const user: UserData = data?.profile
     ? {
         name: data.profile.name,
         avatar: data.profile.avatar,
