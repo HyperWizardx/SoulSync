@@ -357,6 +357,7 @@ export function useUserStore() {
   return {
     user,
     isLoading,
+    hasSession,
     updateUser,
     updateSettings: updateUserSettings,
     completeMission,
