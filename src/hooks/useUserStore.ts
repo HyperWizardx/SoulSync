@@ -11,6 +11,7 @@ import {
   migrateLocalProgress,
   updateSettings,
   getWeeklyStats,
+  type ProgressPayload,
 } from "@/lib/progress.functions";
 import { emitFeedback } from "@/lib/feedback";
 import { AVATAR_META } from "@/components/avatars/AvatarArt";
@@ -220,7 +221,18 @@ export function useUserStore() {
   const profileMut = useMutation({
     mutationFn: (d: { name?: string; avatar?: number; archetype?: number | null }) =>
       updateProfileFn({ data: d }),
-    onSuccess: invalidate,
+    onSuccess: (_result, variables) => {
+      // Aplica los cambios al cache de inmediato (no solo invalidate, que
+      // solo agenda un refetch en background). Esto es crítico: create-avatar
+      // navega a /dashboard justo después de este await, y OnboardingGate lee
+      // el mismo cache — si archetype no está ya actualizado aquí, el gate ve
+      // el valor viejo (null) y rebota de vuelta a /create-avatar aunque el
+      // guardado en el servidor haya sido exitoso.
+      qc.setQueryData<ProgressPayload | undefined>(["progress"], (old) =>
+        old ? { ...old, profile: { ...old.profile, ...variables } } : old
+      );
+      invalidate();
+    },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Error"),
   });
 
@@ -287,7 +299,7 @@ export function useUserStore() {
 
   const updateUser = useCallback(
     (updates: Partial<Pick<UserData, "name" | "avatar" | "archetype">>) => {
-      profileMut.mutate(updates);
+      return profileMut.mutateAsync(updates);
     },
     [profileMut]
   );

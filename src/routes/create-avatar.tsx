@@ -22,20 +22,29 @@ function CreateAvatarPage() {
   const [selectedAvatar, setSelectedAvatar] = useState(0);
   const [name, setName] = useState("");
   const [archetype, setArchetype] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
   const { updateUser } = useUserStore();
   const navigate = useNavigate();
 
-  const handleFinish = () => {
-    updateUser({
-      name: name || "Héroe",
-      avatar: selectedAvatar,
-      archetype,
-    });
-    toast.success(`¡Bienvenido, ${name || "Héroe"}! Tu aventura comienza.`, {
-      icon: "⚔️",
-      duration: 3000,
-    });
-    navigate({ to: "/dashboard" });
+  const handleFinish = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await updateUser({
+        name: name || "Héroe",
+        avatar: selectedAvatar,
+        archetype,
+      });
+      toast.success(`¡Bienvenido, ${name || "Héroe"}! Tu aventura comienza.`, {
+        icon: "⚔️",
+        duration: 3000,
+      });
+      navigate({ to: "/dashboard" });
+    } catch {
+      // El error ya se muestra vía el toast.error del propio hook
+      // (profileMut.onError); simplemente no navegamos si falló el guardado.
+      setSaving(false);
+    }
   };
 
   const handleNext = () => {
@@ -178,10 +187,10 @@ function CreateAvatarPage() {
         ) : (
           <button
             onClick={handleFinish}
-            disabled={archetype === null}
+            disabled={archetype === null || saving}
             className="flex items-center gap-1 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ¡Comenzar! ⚔️
+            {saving ? "Guardando..." : "¡Comenzar! ⚔️"}
           </button>
         )}
       </div>
