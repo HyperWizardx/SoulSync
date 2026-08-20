@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { StarField } from "@/components/StarField";
 import { Shield, Brain, Heart } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useAuthSession } from "@/components/AuthSessionProvider";
 
 export const Route = createFileRoute("/")({
   component: SplashPage,
@@ -10,17 +10,15 @@ export const Route = createFileRoute("/")({
 
 function SplashPage() {
   const navigate = useNavigate();
-  const [checking, setChecking] = useState(true);
+  const { hasSession, isCheckingSession } = useAuthSession();
 
   useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      if (data.session) navigate({ to: "/dashboard" });
-      else setChecking(false);
-    });
-    return () => { mounted = false; };
-  }, [navigate]);
+    if (!isCheckingSession && hasSession) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [isCheckingSession, hasSession, navigate]);
+
+  const checking = isCheckingSession || hasSession;
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/progress.functions";
 import { emitFeedback } from "@/lib/feedback";
 import { AVATAR_META } from "@/components/avatars/AvatarArt";
+import { useAuthSession } from "@/components/AuthSessionProvider";
 
 export interface UserStats {
   bienestar: number;
@@ -113,21 +114,7 @@ export function useUserStore() {
   const updateSettingsFn = useServerFn(updateSettings);
   const migratedRef = useRef(false);
 
-  const [hasSession, setHasSession] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setHasSession(!!data.session);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setHasSession(!!session);
-    });
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
+  const { hasSession } = useAuthSession();
 
   const { data, isLoading } = useQuery({
     queryKey: ["progress"],

@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { SettingsApplier } from "@/components/SettingsApplier";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { FeedbackHost } from "@/components/FeedbackHost";
+import { useAuthSession } from "@/components/AuthSessionProvider";
 
 /**
  * Solo monta los componentes que dependen de datos del usuario (y por tanto
@@ -12,21 +11,7 @@ import { FeedbackHost } from "@/components/FeedbackHost";
  * que rompen la app antes de iniciar sesión.
  */
 export function AuthedShell() {
-  const [hasSession, setHasSession] = useState<boolean>(false);
-
-  useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setHasSession(!!data.session);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setHasSession(!!session);
-    });
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
+  const { hasSession } = useAuthSession();
 
   if (!hasSession) return null;
   return (

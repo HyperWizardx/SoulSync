@@ -1,9 +1,8 @@
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { AuthedShell } from "@/components/AuthedShell";
+import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 
 import appCss from "../styles.css?url";
 
@@ -87,21 +86,11 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthSync />
-      <Outlet />
-      <AuthedShell />
-      <Toaster position="top-center" richColors closeButton />
+      <AuthSessionProvider>
+        <Outlet />
+        <AuthedShell />
+        <Toaster position="top-center" richColors closeButton />
+      </AuthSessionProvider>
     </QueryClientProvider>
   );
-}
-
-function AuthSync() {
-  const qc = useQueryClient();
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      qc.invalidateQueries();
-    });
-    return () => subscription.unsubscribe();
-  }, [qc]);
-  return null;
 }
