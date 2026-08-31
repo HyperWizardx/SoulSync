@@ -93,7 +93,7 @@ export function deriveUserMetrics(input: MetricsInput): Record<MetricKey, Metric
   const hasMissions = missions7.length > 0;
   const hasCheckins = checkins7.length > 0;
 
-  const missionsLabel = `${missions7.length} misión${missions7.length === 1 ? "" : "es"} esta semana`;
+  const missionsLabel = `${missions7.length} ${missions7.length === 1 ? "misión" : "misiones"} esta semana`;
   const checkinLabel = `${checkins7.length} check-in${checkins7.length === 1 ? "" : "s"} esta semana`;
   const both = `${missionsLabel} · ${checkinLabel}`;
 
@@ -137,7 +137,7 @@ export function deriveUserMetrics(input: MetricsInput): Record<MetricKey, Metric
         ? `${checkinLabel} · ${movimiento} de movimiento`
         : hasCheckins
           ? checkinLabel
-          : `${movimiento} misión${movimiento === 1 ? "" : "es"} de movimiento`,
+          : `${movimiento} ${movimiento === 1 ? "misión" : "misiones"} de movimiento`,
     ),
     claridad: build(
       "claridad",
@@ -147,7 +147,7 @@ export function deriveUserMetrics(input: MetricsInput): Record<MetricKey, Metric
         { value: mood === null ? null : norm5(mood), weight: 0.2 },
       ],
       hasMissions
-        ? `${reflexivas} misión${reflexivas === 1 ? "" : "es"} de reflexión · ${checkinLabel}`
+        ? `${reflexivas} ${reflexivas === 1 ? "misión" : "misiones"} de reflexión · ${checkinLabel}`
         : checkinLabel,
     ),
   };
