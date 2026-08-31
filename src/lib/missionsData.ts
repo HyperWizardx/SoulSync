@@ -38,7 +38,7 @@ export const MISSIONS: Mission[] = [
   { id: "ar-focus", type: "ar-focus", title: "Enfoque consciente (AR)", desc: "Mantén al avatar centrado 30 segundos", emoji: "🎯", rarity: "Legendaria", isAR: true, reward: { xp: 130, coins: 40, gems: 2, stats: { claridad: 9, bienestar: 3 }, attributes: { mindfulness: 5, autoconocimiento: 3 } } },
   { id: "meditation-2m", type: "meditation", title: "Meditación guiada", desc: "2 minutos con voz guía y respiración", emoji: "🧘‍♀️", rarity: "Épica", durationSec: 120, reward: { xp: 110, coins: 35, gems: 1, stats: { bienestar: 8, claridad: 6 }, attributes: { mindfulness: 5, autoconocimiento: 3 } } },
   { id: "daily-challenge", type: "daily-challenge", title: "Reto del día", desc: "Una micro-misión sorpresa cada día", emoji: "🎁", rarity: "Raro", reward: { xp: 65, coins: 20, stats: { bienestar: 4, energia: 2 }, attributes: { creatividad: 3, conexionSocial: 2 } } },
-  { id: "ar-walk", type: "ar-walk", title: "Caminata consciente AR", desc: "Camina 30 pasos. Tu avatar crece contigo.", emoji: "🚶‍♂️", rarity: "Épica", isAR: true, reward: { xp: 120, coins: 40, gems: 1, stats: { energia: 8, bienestar: 4 }, attributes: { mindfulness: 4, resiliencia: 3 } },
+  { id: "ar-walk", type: "ar-walk", title: "Caminata consciente AR", desc: "Camina 30 pasos. Tu avatar crece contigo.", emoji: "🚶‍♂️", rarity: "Épica", isAR: true, reward: { xp: 120, coins: 40, gems: 1, stats: { energia: 8, bienestar: 4 }, attributes: { mindfulness: 4, resiliencia: 3 } } },
 ];
 
 export const MISSION_CATEGORY: Record<MissionType, TaskCategoryName> = {
