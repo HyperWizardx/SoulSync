@@ -7,147 +7,21 @@
  * validado clínicamente. Los pesos del baseline se fijaron por criterio
  * (no fueron aprendidos de un dataset etiquetado).
  */
-
-export const FEATURE_VERSION = "fv2";
+export const FEATURE_VERSION = "fv3";
 export const CONSENT_VERSION = "consent-2026-08-v1";
-
 export type RiskLevel = "bajo" | "moderado" | "alto" | "insuficiente";
-
-/** Un check-in diario autorreportado (escalas 1–5). */
-export interface CheckinRecord {
-  /** ISO date `YYYY-MM-DD` */
-  date: string;
-  /** 1 = muy mal, 5 = muy bien */
-  mood: number;
-  /** 1 = nada de estrés, 5 = estrés muy alto */
-  stress: number;
-  /** 1 = sin energía, 5 = con mucha energía */
-  energy: number;
-  /** 1 = aislado, 5 = muy conectado socialmente */
-  social: number;
-  /** Horas de sueño reportadas, si el usuario las registró */
-  sleepHours?: number | null;
-}
-
-/** Resultado de una escala de bienestar validada, si el investigador la habilitó. */
-export interface ScaleRecord {
-  code: string;
-  raw: number;
-  max: number;
-  /** ISO date `YYYY-MM-DD` */
-  answeredAt: string;
-}
-
-/** Telemetría de uso de la app (no contiene datos sensibles). */
-export interface TelemetryInput {
-  /** Misiones completadas por fecha `YYYY-MM-DD` */
-  missionsByDate: Record<string, number>;
-  dailyGoal: number;
-  /** ISO date `YYYY-MM-DD` de la última misión completada */
-  lastMissionDate?: string | null;
-}
-
-/** Estado del ciclo de vida de una tarea/misión diaria. */
+export interface CheckinRecord { date: string; mood: number; stress: number; energy: number; social: number; sleepHours?: number | null; }
+export interface ScaleRecord { code: string; raw: number; max: number; answeredAt: string; }
+export interface TelemetryInput { missionsByDate: Record<string, number>; dailyGoal: number; lastMissionDate?: string | null; }
 export type TaskStatus = "assigned" | "started" | "completed" | "skipped";
-
-/** Categoría funcional de la tarea (se usa para detectar huecos de autocuidado). */
-export type TaskCategory =
-  | "autocuidado"
-  | "reflexion"
-  | "movimiento"
-  | "social"
-  | "cognitivo"
-  | "ar";
-
-/** Evento de tarea: unidad mínima que conecta gamificación y señal de bienestar. */
-export interface TaskEventRecord {
-  /** ISO date `YYYY-MM-DD` */
-  date: string;
-  missionId: string;
-  status: TaskStatus;
-  category: TaskCategory;
-  durationSeconds: number;
-}
-
-export interface PredictionInput {
-  /** Fecha de referencia `YYYY-MM-DD` (normalmente hoy) */
-  today: string;
-  checkins: CheckinRecord[];
-  telemetry: TelemetryInput;
-  scales?: ScaleRecord[];
-  /** Eventos de tareas diarias de los últimos 14 días */
-  taskEvents?: TaskEventRecord[];
-}
-
-export type FeatureKey =
-  | "moodLow"
-  | "moodDecline"
-  | "stressHigh"
-  | "sleepDeficit"
-  | "engagementDrop"
-  | "lowAdherence"
-  | "socialWithdrawal"
-  | "streakBreak"
-  | "scaleDistress"
-  | "taskSkipRate"
-  | "selfcareGap";
-
-/** Valor de feature normalizado 0–1 donde 1 = mayor señal de riesgo. */
-export interface FeatureValue {
-  key: FeatureKey;
-  /** 0–1, orientado a riesgo. `null` cuando no hay datos. */
-  value: number | null;
-  available: boolean;
-}
-
-/** Dirección esperada del bienestar en el próximo periodo. */
+export type TaskCategory = "autocuidado" | "reflexion" | "movimiento" | "social" | "cognitivo" | "ar";
+export interface TaskEventRecord { date: string; missionId: string; status: TaskStatus; category: TaskCategory; durationSeconds: number; }
+export interface UserStatsInput { bienestar: number; resiliencia: number; energia: number; claridad: number; }
+export interface PredictionInput { today: string; checkins: CheckinRecord[]; telemetry: TelemetryInput; scales?: ScaleRecord[]; taskEvents?: TaskEventRecord[]; stats?: UserStatsInput; }
+export type FeatureKey = "moodLow" | "moodDecline" | "stressHigh" | "sleepDeficit" | "engagementDrop" | "lowAdherence" | "socialWithdrawal" | "streakBreak" | "scaleDistress" | "taskSkipRate" | "selfcareGap" | "statBienestarBajo" | "statResilienciaBaja" | "statEnergiaBaja" | "statClaridadBaja";
+export interface FeatureValue { key: FeatureKey; value: number | null; available: boolean; }
 export type TrendDirection = "mejorando" | "estable" | "empeorando" | "indeterminada";
-
-export interface FeatureSet {
-  featureVersion: string;
-  features: Record<FeatureKey, FeatureValue>;
-  /** Número de check-ins usados en la ventana de 14 días */
-  checkinCount14: number;
-  /**
-   * Índice compuesto de bienestar 0–1 (1 = mejor) de los últimos 7 días y de
-   * los 7 anteriores. Combina autorreporte y cumplimiento real de tareas.
-   */
-  wellbeingIndex7: number | null;
-  wellbeingIndexPrev7: number | null;
-}
-
-
-export interface FactorExplanation {
-  key: FeatureKey;
-  label: string;
-  /** Contribución relativa al score (0–1 sobre el total de peso disponible) */
-  contribution: number;
-  /** Valor normalizado de la feature */
-  value: number;
-  direction: "riesgo" | "protector";
-  description: string;
-}
-
-export interface WellbeingPrediction {
-  modelVersion: string;
-  featureVersion: string;
-  /** Probabilidad exploratoria 0–1. `null` cuando los datos son insuficientes. */
-  score: number | null;
-  riskLevel: RiskLevel;
-  /** Proporción del peso total del modelo cubierta por features disponibles (0–1) */
-  coverage: number;
-  explanation: FactorExplanation[];
-  generatedAt: string;
-  /** Tendencia esperada del bienestar para el próximo periodo (7 días). */
-  trend: TrendDirection;
-  /** Delta del índice compuesto entre la semana actual y la anterior (−1 a 1). */
-  trendDelta: number;
-  /** Motivo cuando `riskLevel === "insuficiente"` */
-  insufficientReason?: string;
-}
-
-/** Interfaz de inferencia: sustituible por un modelo entrenado con datos reales. */
-export interface WellbeingModel {
-  modelVersion: string;
-  predict(featureSet: FeatureSet): WellbeingPrediction;
-}
+export interface FeatureSet { featureVersion: string; features: Record<FeatureKey, FeatureValue>; checkinCount14: number; wellbeingIndex7: number | null; wellbeingIndexPrev7: number | null; }
+export interface FactorExplanation { key: FeatureKey; label: string; contribution: number; value: number; direction: "riesgo" | "protector"; description: string; }
+export interface WellbeingPrediction { modelVersion: string; featureVersion: string; score: number | null; riskLevel: RiskLevel; coverage: number; explanation: FactorExplanation[]; generatedAt: string; trend: TrendDirection; trendDelta: number; insufficientReason?: string; }
+export interface WellbeingModel { modelVersion: string; predict(featureSet: FeatureSet): WellbeingPrediction; }
