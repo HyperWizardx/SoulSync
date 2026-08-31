@@ -42,22 +42,20 @@ function categoryOf(missionId: string): TaskCategoryName | null {
   return mission ? MISSION_CATEGORY[mission.type] : null;
 }
 
-interface Weighted {
-  value: number;
+interface Part {
+  /** null cuando la señal no está disponible */
+  value: number | null;
   weight: number;
 }
 
-function combine(parts: (Weighted | null)[]): { value: number | null; coverage: number } {
-  const available = parts.filter((p): p is Weighted => p !== null);
-  const totalWeight = parts.reduce((acc, p, i) => acc + (p ? p.weight : WEIGHT_FALLBACK[i] ?? 0), 0);
+function combine(parts: Part[]): { value: number | null; coverage: number } {
+  const totalWeight = parts.reduce((acc, p) => acc + p.weight, 0);
+  const available = parts.filter((p): p is Part & { value: number } => p.value !== null);
   const availableWeight = available.reduce((acc, p) => acc + p.weight, 0);
-  if (available.length === 0 || availableWeight === 0) return { value: null, coverage: 0 };
+  if (availableWeight === 0) return { value: null, coverage: 0 };
   const value = available.reduce((acc, p) => acc + p.value * p.weight, 0) / availableWeight;
   return { value: pct(value), coverage: clamp01(totalWeight === 0 ? 1 : availableWeight / totalWeight) };
 }
-
-// Los pesos faltantes se ignoran; el arreglo se rellena en cada llamada.
-const WEIGHT_FALLBACK: number[] = [];
 
 /**
  * Deriva las cuatro métricas del dashboard exclusivamente de la actividad real
@@ -99,11 +97,7 @@ export function deriveUserMetrics(input: MetricsInput): Record<MetricKey, Metric
   const checkinLabel = `${checkins7.length} check-in${checkins7.length === 1 ? "" : "s"} esta semana`;
   const both = `${missionsLabel} · ${checkinLabel}`;
 
-  const build = (
-    key: MetricKey,
-    parts: (Weighted | null)[],
-    source: string,
-  ): MetricResult => {
+  const build = (key: MetricKey, parts: Part[], source: string): MetricResult => {
     const { value, coverage } = combine(parts);
     return { key, value, coverage, source: value === null ? "Sin datos aún" : source };
   };
@@ -116,28 +110,28 @@ export function deriveUserMetrics(input: MetricsInput): Record<MetricKey, Metric
     bienestar: build(
       "bienestar",
       [
-        mood === null ? null : { value: norm5(mood), weight: 0.5 },
-        stress === null ? null : { value: 1 - norm5(stress), weight: 0.2 },
-        adherence7 === null ? null : { value: adherence7, weight: 0.2 },
-        hasMissions ? { value: clamp01(autocuidado / 3), weight: 0.1 } : null,
+        { value: mood === null ? null : norm5(mood), weight: 0.5 },
+        { value: stress === null ? null : 1 - norm5(stress), weight: 0.2 },
+        { value: adherence7 === null ? null : adherence7, weight: 0.2 },
+        { value: hasMissions ? clamp01(autocuidado / 3) : null, weight: 0.1 },
       ],
       hasCheckins && hasMissions ? both : hasCheckins ? checkinLabel : missionsLabel,
     ),
     resiliencia: build(
       "resiliencia",
       [
-        input.streak > 0 ? { value: clamp01(input.streak / 7), weight: 0.45 } : null,
-        adherence7 === null ? null : { value: adherence7, weight: 0.35 },
-        social === null ? null : { value: norm5(social), weight: 0.2 },
+        { value: input.streak > 0 ? clamp01(input.streak / 7) : null, weight: 0.45 },
+        { value: adherence7 === null ? null : adherence7, weight: 0.35 },
+        { value: social === null ? null : norm5(social), weight: 0.2 },
       ],
       input.streak > 0 ? `Racha de ${input.streak} día${input.streak === 1 ? "" : "s"} · ${missionsLabel}` : missionsLabel,
     ),
     energia: build(
       "energia",
       [
-        energy === null ? null : { value: norm5(energy), weight: 0.55 },
-        hasMissions ? { value: clamp01(movimiento / 3), weight: 0.3 } : null,
-        adherence7 === null ? null : { value: adherence7, weight: 0.15 },
+        { value: energy === null ? null : norm5(energy), weight: 0.55 },
+        { value: hasMissions ? clamp01(movimiento / 3) : null, weight: 0.3 },
+        { value: adherence7 === null ? null : adherence7, weight: 0.15 },
       ],
       hasCheckins && hasMissions
         ? `${checkinLabel} · ${movimiento} de movimiento`
@@ -148,9 +142,9 @@ export function deriveUserMetrics(input: MetricsInput): Record<MetricKey, Metric
     claridad: build(
       "claridad",
       [
-        hasMissions ? { value: clamp01(reflexivas / 3), weight: 0.45 } : null,
-        stress === null ? null : { value: 1 - norm5(stress), weight: 0.35 },
-        mood === null ? null : { value: norm5(mood), weight: 0.2 },
+        { value: hasMissions ? clamp01(reflexivas / 3) : null, weight: 0.45 },
+        { value: stress === null ? null : 1 - norm5(stress), weight: 0.35 },
+        { value: mood === null ? null : norm5(mood), weight: 0.2 },
       ],
       hasMissions
         ? `${reflexivas} misión${reflexivas === 1 ? "" : "es"} de reflexión · ${checkinLabel}`
