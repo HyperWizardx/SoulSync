@@ -18,7 +18,7 @@ export type TaskCategory = "autocuidado" | "reflexion" | "movimiento" | "social"
 export interface TaskEventRecord { date: string; missionId: string; status: TaskStatus; category: TaskCategory; durationSeconds: number; }
 export interface UserStatsInput { bienestar: number; resiliencia: number; energia: number; claridad: number; }
 export interface PredictionInput { today: string; checkins: CheckinRecord[]; telemetry: TelemetryInput; scales?: ScaleRecord[]; taskEvents?: TaskEventRecord[]; stats?: UserStatsInput; }
-export type FeatureKey = "moodLow" | "moodDecline" | "stressHigh" | "sleepDeficit" | "engagementDrop" | "lowAdherence" | "socialWithdrawal" | "streakBreak" | "scaleDistress" | "taskSkipRate" | "selfcareGap" | "statBienestarBajo" | "statResilienciaBaja" | "statEnergiaBaja" | "statClaridadBaja";
+export type FeatureKey = "moodLow" | "moodDecline" | "stressHigh" | "sleepDeficit" | "engagementDrop" | "lowAdherence" | "socialWithdrawal" | "streakBreak" | "scaleDistress" | "taskSkipRate" | "selfcareGap";
 export interface FeatureValue { key: FeatureKey; value: number | null; available: boolean; }
 export type TrendDirection = "mejorando" | "estable" | "empeorando" | "indeterminada";
 export interface FeatureSet { featureVersion: string; features: Record<FeatureKey, FeatureValue>; checkinCount14: number; wellbeingIndex7: number | null; wellbeingIndexPrev7: number | null; }
