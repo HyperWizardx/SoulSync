@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Lock, Flame, Coins, Gem, Sparkles, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "@/hooks/useUserStore";
 import { useWellbeing } from "@/hooks/useWellbeing";
-import { MISSIONS, MISSION_CATEGORY, type Mission } from "@/lib/missionsData";
+import { MISSIONS, MISSION_CATEGORY, getMissionById, type Mission } from "@/lib/missionsData";
 import { AvatarIcon } from "@/components/avatars/AvatarArt";
 import { BreathingMission } from "@/components/missions/BreathingMission";
 import { JournalMission } from "@/components/missions/JournalMission";
@@ -19,7 +19,12 @@ import { MeditationMission } from "@/components/missions/MeditationMission";
 import { DailyChallengeMission } from "@/components/missions/DailyChallengeMission";
 import { ARWalkMission } from "@/components/missions/ARWalkMission";
 
-export const Route = createFileRoute("/missions")({ component: MissionsPage });
+export const Route = createFileRoute("/missions")({
+  validateSearch: (search: Record<string, unknown>): { mission?: string } => ({
+    mission: typeof search.mission === "string" ? search.mission : undefined,
+  }),
+  component: MissionsPage,
+});
 const tabs = ["Activas", "AR", "Completadas", "Bloqueadas"] as const;
 
 function MissionsPage() {
@@ -28,6 +33,14 @@ function MissionsPage() {
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<typeof tabs[number]>("Activas");
   const [active, setActive] = useState<Mission | null>(null);
+  const { mission: missionParam } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  useEffect(() => {
+    if (!missionParam) return;
+    const m = getMissionById(missionParam);
+    if (m && (!m.requiredLevel || user.level >= m.requiredLevel)) setActive(m);
+    void navigate({ search: {}, replace: true });
+  }, [missionParam, navigate, user.level]);
   const today = new Date().toDateString();
   const completedToday = useMemo(() => new Set(user.missionHistory.filter((m) => m.date === today).map((m) => m.id)), [user.missionHistory, today]);
   const { activas, ar, completadas, bloqueadas } = useMemo(() => {
