@@ -43,10 +43,10 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 const pct = (n: number) => Math.round(clamp01(n) * 100);
 
 const ZONE_CATALOG = [
-  { key: "valle", name: "Valle de la Calma", emoji: "🏔️", requiredLevel: 1, description: "Se ilumina con tus tareas completadas hoy." },
-  { key: "bosque", name: "Bosque Interior", emoji: "🌲", requiredLevel: 2, description: "Crece con tus check-ins registrados." },
-  { key: "mar", name: "Mar de Emociones", emoji: "🌊", requiredLevel: 5, description: "Refleja tu tendencia emocional reciente." },
-  { key: "montana", name: "Montaña de Fuerza", emoji: "⛰️", requiredLevel: 10, description: "Se levanta con tus rachas sostenidas." },
+  { key: "valle", name: "Valle de la Calma", emoji: "🏔️", requiredLevel: 1, description: "Se ilumina con tus tareas completadas hoy.", categories: ["autocuidado"] as const },
+  { key: "bosque", name: "Bosque Interior", emoji: "🌲", requiredLevel: 2, description: "Crece con tus check-ins registrados.", categories: ["reflexion", "cognitivo"] as const },
+  { key: "mar", name: "Mar de Emociones", emoji: "🌊", requiredLevel: 5, description: "Refleja tu tendencia emocional reciente.", categories: ["social", "reflexion"] as const },
+  { key: "montana", name: "Montaña de Fuerza", emoji: "⛰️", requiredLevel: 10, description: "Se levanta con tus rachas sostenidas.", categories: ["movimiento", "ar"] as const },
 ] as const;
 
 /**
