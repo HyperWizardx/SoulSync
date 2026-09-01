@@ -11,7 +11,9 @@ export type MissionType =
   | "ar-focus"
   | "meditation"
   | "daily-challenge"
-  | "ar-walk";
+  | "ar-walk"
+  | "social";
+
 
 export interface Mission {
   id: string;
