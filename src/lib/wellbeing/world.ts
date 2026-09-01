@@ -27,6 +27,8 @@ export interface WorldZone {
   /** Progreso 0–100 derivado de la actividad real */
   progress: number;
   description: string;
+  /** Categorías de misión asociadas a la zona */
+  categories: readonly string[];
 }
 
 export interface WorldState {
