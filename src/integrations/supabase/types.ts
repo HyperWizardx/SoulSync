@@ -18,18 +18,27 @@ export type Database = {
         Row: {
           code: string
           id: string
+          reward_coins: number
+          reward_gems: number
+          reward_xp: number
           unlocked_at: string
           user_id: string
         }
         Insert: {
           code: string
           id?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_xp?: number
           unlocked_at?: string
           user_id: string
         }
         Update: {
           code?: string
           id?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_xp?: number
           unlocked_at?: string
           user_id?: string
         }
@@ -38,26 +47,72 @@ export type Database = {
       inventory: {
         Row: {
           acquired_at: string
+          equipped: boolean
           id: string
+          item_key: string | null
           item_name: string
+          kind: string
+          quantity: number
           user_id: string
         }
         Insert: {
           acquired_at?: string
+          equipped?: boolean
           id?: string
+          item_key?: string | null
           item_name: string
+          kind?: string
+          quantity?: number
           user_id: string
         }
         Update: {
           acquired_at?: string
+          equipped?: boolean
           id?: string
+          item_key?: string | null
           item_name?: string
+          kind?: string
+          quantity?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      item_effects: {
+        Row: {
+          created_at: string
+          effect: string
+          expires_at: string | null
+          id: string
+          item_key: string
+          magnitude: number
+          user_id: string
+          uses_left: number | null
+        }
+        Insert: {
+          created_at?: string
+          effect: string
+          expires_at?: string | null
+          id?: string
+          item_key: string
+          magnitude?: number
+          user_id: string
+          uses_left?: number | null
+        }
+        Update: {
+          created_at?: string
+          effect?: string
+          expires_at?: string | null
+          id?: string
+          item_key?: string
+          magnitude?: number
+          user_id?: string
+          uses_left?: number | null
         }
         Relationships: []
       }
       mission_completions: {
         Row: {
+          category: string
           completed_at: string
           completed_date: string
           id: string
@@ -68,6 +123,7 @@ export type Database = {
           xp_earned: number
         }
         Insert: {
+          category?: string
           completed_at?: string
           completed_date?: string
           id?: string
@@ -78,6 +134,7 @@ export type Database = {
           xp_earned?: number
         }
         Update: {
+          category?: string
           completed_at?: string
           completed_date?: string
           id?: string

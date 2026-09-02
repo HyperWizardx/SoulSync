@@ -33,14 +33,41 @@ export type ProgressPayload = {
     is_ar: boolean; completed_at: string; completed_date: string;
   }>;
   inventory: string[];
+  items: InventoryItem[];
+  effects: ActiveEffect[];
   achievements: string[];
 };
+
+export type InventoryItem = {
+  id: string;
+  item_key: string;
+  item_name: string;
+  quantity: number;
+  kind: string;
+  equipped: boolean;
+};
+
+export type ActiveEffect = {
+  id: string;
+  item_key: string;
+  effect: string;
+  magnitude: number;
+  uses_left: number | null;
+  expires_at: string | null;
+};
+
+function isEffectActive(e: { uses_left: number | null; expires_at: string | null }) {
+  if (e.uses_left !== null && e.uses_left <= 0) return false;
+  if (e.expires_at !== null && Date.parse(e.expires_at) < Date.now()) return false;
+  return true;
+}
+
 
 export const getProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ProgressPayload> => {
     const { supabase, userId } = context;
-    const [pRes, sRes, aRes, hRes, iRes, achRes] = await Promise.all([
+    const [pRes, sRes, aRes, hRes, iRes, achRes, efRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
@@ -50,9 +77,11 @@ export const getProgress = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .order("completed_at", { ascending: false })
         .limit(50),
-      supabase.from("inventory").select("item_name").eq("user_id", userId),
+      supabase.from("inventory").select("*").eq("user_id", userId),
       supabase.from("achievements").select("code").eq("user_id", userId),
+      supabase.from("item_effects").select("*").eq("user_id", userId),
     ]);
+
 
     // Self-heal: if signup trigger missed (e.g. legacy users), create rows.
     if (!pRes.data) {
