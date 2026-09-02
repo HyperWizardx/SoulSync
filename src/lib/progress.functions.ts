@@ -67,7 +67,7 @@ export const getProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ProgressPayload> => {
     const { supabase, userId } = context;
-    const [pRes, sRes, aRes, hRes, iRes, achRes] = await Promise.all([
+    const [pRes, sRes, aRes, hRes, iRes, achRes, efRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
@@ -77,9 +77,11 @@ export const getProgress = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .order("completed_at", { ascending: false })
         .limit(50),
-      supabase.from("inventory").select("item_name").eq("user_id", userId),
+      supabase.from("inventory").select("*").eq("user_id", userId),
       supabase.from("achievements").select("code").eq("user_id", userId),
+      supabase.from("item_effects").select("*").eq("user_id", userId),
     ]);
+
 
     // Self-heal: if signup trigger missed (e.g. legacy users), create rows.
     if (!pRes.data) {
