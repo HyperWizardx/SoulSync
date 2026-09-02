@@ -80,7 +80,7 @@ function MissionsPage() {
     {active?.type === "ar-focus" && <ARFocusMission onComplete={() => finishMission(active, "Enfoque sostenido 🎯")} onClose={() => setActive(null)} />}
     {active?.type === "meditation" && <MeditationMission durationSec={active.durationSec || 120} onComplete={() => finishMission(active, "Meditación completada 🧘")} onClose={() => setActive(null)} />}
     {active?.type === "daily-challenge" && <DailyChallengeMission onComplete={(title) => finishMission(active, title)} onClose={() => setActive(null)} />}
-    {active?.type === "ar-walk" && <ARWalkMission goal={30} onComplete={() => finishMission(active, "Caminata completada 🚶")} onClose={() => setActive(null)} />}
+    {active?.type === "ar-walk" && <ARWalkMission goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada 🚶")} onClose={() => setActive(null)} />}
   </div></MobileLayout>;
 }
 
