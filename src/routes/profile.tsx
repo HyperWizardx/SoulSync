@@ -1,29 +1,66 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
 import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon } from "lucide-react";
-import { useUserStore } from "@/hooks/useUserStore";
+import { useUserStore, useProfileSummary } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MiniAvatar3D } from "@/components/MiniAvatar3D";
 import { AvatarIcon } from "@/components/avatars/AvatarArt";
 import { getArchetypeStyle } from "@/lib/archetype";
 import { WeeklyChart } from "@/components/WeeklyChart";
-import { ACHIEVEMENTS } from "@/lib/achievements";
+import {
+  ACHIEVEMENTS,
+  REWARD_BY_RARITY,
+  RARITY_CLASSES,
+  RARITY_LABEL,
+  achievementProgress,
+  type AchievementContext,
+} from "@/lib/achievements";
+import { getItem, getItemByName } from "@/lib/items";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
+  head: () => ({
+    meta: [
+      { title: "Tu perfil de héroe | SoulSync" },
+      { name: "description", content: "Consulta tus trofeos, atributos RPG, logros y objetos reales derivados de tus misiones completadas en SoulSync." },
+      { property: "og:title", content: "Tu perfil de héroe | SoulSync" },
+      { property: "og:description", content: "Trofeos, atributos y logros calculados con tu actividad real de bienestar." },
+      { property: "og:type", content: "profile" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function ProfilePage() {
-  const { user, updateUser, updateSettings, archetypeName, signOut } = useUserStore();
+  const { user, updateUser, updateSettings, archetypeName, signOut, useItem, toggleEquip } = useUserStore();
+  const { data: summary } = useProfileSummary();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user.name);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedAttr, setExpandedAttr] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"todos" | "desbloqueados" | "pendientes">("todos");
   const archStyle = getArchetypeStyle(user.archetype);
 
   const unlocked = new Set(user.achievements);
+  const ctx = (summary?.context as AchievementContext | undefined) ?? null;
+
+  const trophies = [
+    { emoji: "⭐", label: "Nivel", value: summary?.trophies.level ?? user.level },
+    { emoji: "🔥", label: "Racha", value: summary?.trophies.streak ?? user.streak },
+    { emoji: "🎯", label: "Misiones", value: summary?.trophies.missions ?? user.missionHistory.length },
+    { emoji: "📱", label: "Misiones AR", value: summary?.trophies.missionsAR ?? 0 },
+    { emoji: "📔", label: "Check-ins", value: summary?.trophies.checkins ?? 0 },
+    { emoji: "🗺️", label: "Zonas", value: summary?.trophies.zonesUnlocked ?? 0 },
+    { emoji: "📆", label: "Días activos (30 d)", value: summary?.trophies.activeDays30 ?? 0 },
+    { emoji: "✨", label: "XP (30 d)", value: summary?.trophies.xp30 ?? 0 },
+    { emoji: "🏆", label: "Logros", value: unlocked.size },
+  ];
+
+  const visibleAchievements = ACHIEVEMENTS.filter((a) =>
+    filter === "todos" ? true : filter === "desbloqueados" ? unlocked.has(a.code) : !unlocked.has(a.code),
+  );
 
   const handleSignOut = async () => {
     await signOut();
@@ -32,12 +69,12 @@ function ProfilePage() {
   };
 
   const attributes = [
-    { name: "Resiliencia", value: user.attributes.resiliencia },
-    { name: "Empatía", value: user.attributes.empatia },
-    { name: "Mindfulness", value: user.attributes.mindfulness },
-    { name: "Autoconocimiento", value: user.attributes.autoconocimiento },
-    { name: "Conexión Social", value: user.attributes.conexionSocial },
-    { name: "Creatividad", value: user.attributes.creatividad },
+    { name: "Resiliencia", value: user.attributes.resiliencia, category: "movimiento", categoryLabel: "movimiento" },
+    { name: "Empatía", value: user.attributes.empatia, category: "social", categoryLabel: "conexión social" },
+    { name: "Mindfulness", value: user.attributes.mindfulness, category: "autocuidado", categoryLabel: "autocuidado" },
+    { name: "Autoconocimiento", value: user.attributes.autoconocimiento, category: "reflexion", categoryLabel: "reflexión" },
+    { name: "Conexión Social", value: user.attributes.conexionSocial, category: "social", categoryLabel: "conexión social" },
+    { name: "Creatividad", value: user.attributes.creatividad, category: "cognitivo", categoryLabel: "actividad cognitiva" },
   ];
 
   const handleSaveName = () => {
@@ -54,6 +91,7 @@ function ProfilePage() {
     { v: "large", label: "A+" },
     { v: "xl", label: "A++" },
   ];
+
 
   return (
     <MobileLayout>
