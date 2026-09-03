@@ -219,7 +219,22 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     return diff >= 0 && diff < 7 ? sum + count : sum;
   }, 0);
 
-  const world = deriveWorldState({
+  // Bonus activos de objetos de la tienda (afectan el Mundo de forma real)
+  const { data: effectRows } = await supabase
+    .from("item_effects")
+    .select("effect, magnitude, uses_left, expires_at")
+    .eq("user_id", userId);
+  let vitalityBonus = 0;
+  let harmonyBonus = 0;
+  for (const r of effectRows ?? []) {
+    const expired = r.expires_at !== null && Date.parse(String(r.expires_at)) < Date.now();
+    const spent = r.uses_left !== null && Number(r.uses_left) <= 0;
+    if (expired || spent) continue;
+    if (r.effect === "world_vitality") vitalityBonus += Number(r.magnitude);
+    if (r.effect === "world_harmony") harmonyBonus += Number(r.magnitude);
+  }
+
+  const baseWorld = deriveWorldState({
     tasksToday,
     dailyGoal,
     tasksLast7,
@@ -230,6 +245,13 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     trend: prediction.trend,
     riskLevel: prediction.riskLevel,
   });
+
+  const world: WorldState = {
+    ...baseWorld,
+    vitality: Math.min(100, baseWorld.vitality + vitalityBonus),
+    harmony: Math.min(100, baseWorld.harmony + harmonyBonus),
+  };
+
 
   await supabase.from("world_state").upsert(
     {

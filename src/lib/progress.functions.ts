@@ -1,10 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { addTimelineEvent, hasActiveConsent } from "@/lib/wellbeing/load";
+import { getItem, getItemByName, MAX_EQUIPPED, type ItemEffect } from "@/lib/items";
+import {
+  REWARD_BY_RARITY,
+  evaluateAchievements,
+  type AchievementContext,
+} from "@/lib/achievements";
+import type { Database } from "@/integrations/supabase/types";
+
+type SupabaseLike = SupabaseClient<Database>;
 
 const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 const XP_PER_LEVEL = 600;
+
 
 export type ProgressPayload = {
   profile: {
@@ -138,7 +149,26 @@ export const getProgress = createServerFn({ method: "GET" })
         completed_at: h.completed_at, completed_date: h.completed_date,
       })),
       inventory: (iRes.data ?? []).map((r) => r.item_name),
+      items: (iRes.data ?? []).map((r) => ({
+        id: r.id as string,
+        item_key: (r.item_key as string | null) ?? "",
+        item_name: r.item_name as string,
+        quantity: (r.quantity as number | null) ?? 1,
+        kind: (r.kind as string | null) ?? "consumable",
+        equipped: Boolean(r.equipped),
+      })),
+      effects: (efRes.data ?? [])
+        .map((r) => ({
+          id: r.id as string,
+          item_key: r.item_key as string,
+          effect: r.effect as string,
+          magnitude: Number(r.magnitude),
+          uses_left: (r.uses_left as number | null) ?? null,
+          expires_at: (r.expires_at as string | null) ?? null,
+        }))
+        .filter(isEffectActive),
       achievements: (achRes.data ?? []).map((r) => r.code),
+
     };
   });
 
@@ -191,11 +221,13 @@ export const completeMissionServer = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Read current rows
-    const [pRes, sRes, aRes] = await Promise.all([
+    // Read current rows + objetos activos
+    const [pRes, sRes, aRes, efRes, invRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("item_effects").select("*").eq("user_id", userId),
+      supabase.from("inventory").select("*").eq("user_id", userId).eq("equipped", true),
     ]);
     if (!pRes.data || !sRes.data || !aRes.data) {
       throw new Error("Perfil no inicializado");
@@ -204,8 +236,46 @@ export const completeMissionServer = createServerFn({ method: "POST" })
     const stats = sRes.data;
     const attrs = aRes.data;
 
+    // --- Efectos de objetos ---
+    const activeRows = (efRes.data ?? []).filter((r) =>
+      isEffectActive({
+        uses_left: (r.uses_left as number | null) ?? null,
+        expires_at: (r.expires_at as string | null) ?? null,
+      }),
+    );
+    const equippedEffects: ItemEffect[] = (invRes.data ?? []).flatMap((r) => {
+      const item = getItem((r.item_key as string | null) ?? "");
+      return item && item.kind === "permanent" ? item.effects : [];
+    });
+
+    let xpMult = 1;
+    let coinMult = 1;
+    const attrBonus: Record<string, number> = {};
+    let hasShield = false;
+    for (const r of activeRows) {
+      const mag = Number(r.magnitude);
+      if (r.effect === "xp_multiplier") xpMult *= mag;
+      else if (r.effect === "coin_multiplier") coinMult *= mag;
+      else if (r.effect === "streak_shield") hasShield = true;
+      else if (r.effect === "attribute_bonus") {
+        const key = getItem(r.item_key as string)?.effects.find((e) => e.effect === "attribute_bonus")?.attribute;
+        if (key) attrBonus[key] = (attrBonus[key] ?? 0) + mag;
+      }
+    }
+    for (const e of equippedEffects) {
+      if (e.effect === "xp_multiplier") xpMult *= e.magnitude;
+      else if (e.effect === "coin_multiplier") coinMult *= e.magnitude;
+      else if (e.effect === "attribute_bonus" && e.attribute) {
+        attrBonus[e.attribute] = (attrBonus[e.attribute] ?? 0) + e.magnitude;
+      }
+    }
+
+    const gainedXp = Math.round(data.xp * xpMult);
+    const gainedCoins = Math.round(data.coins * coinMult);
+    const boosted = xpMult > 1 || coinMult > 1 || Object.keys(attrBonus).length > 0;
+
     // XP / level
-    let xp = prof.xp + data.xp;
+    let xp = prof.xp + gainedXp;
     let level = prof.level;
     let leveledUp = false;
     while (xp >= XP_PER_LEVEL) {
@@ -214,37 +284,41 @@ export const completeMissionServer = createServerFn({ method: "POST" })
       leveledUp = true;
     }
 
-    // Streak
+    // Streak (el Escudo Emocional evita perderla tras un día sin misiones)
     const today = new Date().toISOString().slice(0, 10);
     const last = prof.last_mission_date;
     let streak = prof.streak;
-    if (last === today) {
-      // same day, keep
-    } else {
+    let shieldUsed = false;
+    if (last !== today) {
       const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      streak = last === yesterday ? streak + 1 : 1;
+      if (last === yesterday) streak = streak + 1;
+      else if (hasShield && streak > 0) {
+        streak = streak + 1;
+        shieldUsed = true;
+      } else streak = 1;
     }
 
-    // Stats + attributes
+    // Stats + attributes (con bonus de objetos)
     const newStats = {
       bienestar: clamp(stats.bienestar + (data.stats.bienestar ?? 0)),
       resiliencia: clamp(stats.resiliencia + (data.stats.resiliencia ?? 0)),
       energia: clamp(stats.energia + (data.stats.energia ?? 0)),
       claridad: clamp(stats.claridad + (data.stats.claridad ?? 0)),
     };
+    const bonusFor = (k: string) => Math.round(attrBonus[k] ?? 0);
     const newAttrs = {
-      resiliencia: clamp(attrs.resiliencia + (data.attributes.resiliencia ?? 0)),
-      empatia: clamp(attrs.empatia + (data.attributes.empatia ?? 0)),
-      mindfulness: clamp(attrs.mindfulness + (data.attributes.mindfulness ?? 0)),
-      autoconocimiento: clamp(attrs.autoconocimiento + (data.attributes.autoconocimiento ?? 0)),
-      conexion_social: clamp(attrs.conexion_social + (data.attributes.conexion_social ?? 0)),
-      creatividad: clamp(attrs.creatividad + (data.attributes.creatividad ?? 0)),
+      resiliencia: clamp(attrs.resiliencia + (data.attributes.resiliencia ?? 0) + bonusFor("resiliencia")),
+      empatia: clamp(attrs.empatia + (data.attributes.empatia ?? 0) + bonusFor("empatia")),
+      mindfulness: clamp(attrs.mindfulness + (data.attributes.mindfulness ?? 0) + bonusFor("mindfulness")),
+      autoconocimiento: clamp(attrs.autoconocimiento + (data.attributes.autoconocimiento ?? 0) + bonusFor("autoconocimiento")),
+      conexion_social: clamp(attrs.conexion_social + (data.attributes.conexion_social ?? 0) + bonusFor("conexion_social")),
+      creatividad: clamp(attrs.creatividad + (data.attributes.creatividad ?? 0) + bonusFor("creatividad")),
     };
 
     const [u1, u2, u3, u4] = await Promise.all([
       supabase.from("profiles").update({
         xp, level, streak, last_mission_date: today,
-        coins: prof.coins + data.coins, gems: prof.gems + data.gems,
+        coins: prof.coins + gainedCoins, gems: prof.gems + data.gems,
       }).eq("user_id", userId),
       supabase.from("user_stats").update(newStats).eq("user_id", userId),
       supabase.from("user_attributes").update(newAttrs).eq("user_id", userId),
@@ -252,13 +326,20 @@ export const completeMissionServer = createServerFn({ method: "POST" })
         user_id: userId,
         mission_id: data.missionId,
         title: data.title,
-        xp_earned: data.xp,
+        xp_earned: gainedXp,
         is_ar: data.isAR,
+        category: data.isAR ? "ar" : data.category,
         completed_date: today,
       }),
     ]);
     const err = u1.error ?? u2.error ?? u3.error ?? u4.error;
     if (err) throw new Error(err.message);
+
+    // Consumir usos de los efectos por misión
+    await consumeUses(
+      supabase,
+      activeRows.filter((r) => (r.uses_left as number | null) !== null && (shieldUsed || r.effect !== "streak_shield")),
+    );
 
     // Telemetría del módulo de bienestar: solo se registra si el usuario dio
     // consentimiento de investigación. La gamificación (arriba) ya ocurrió y
@@ -279,8 +360,8 @@ export const completeMissionServer = createServerFn({ method: "POST" })
       await addTimelineEvent(supabase, userId, {
         kind: "task_completed",
         title: `Tarea completada: ${data.title}`,
-        detail: `+${data.xp} XP · categoría ${data.isAR ? "ar" : data.category}`,
-        payload: { missionId: data.missionId, xp: data.xp, isAR: data.isAR },
+        detail: `+${gainedXp} XP · categoría ${data.isAR ? "ar" : data.category}${boosted ? " · con objeto activo" : ""}`,
+        payload: { missionId: data.missionId, xp: gainedXp, isAR: data.isAR, boosted },
       });
       if (leveledUp) {
         await addTimelineEvent(supabase, userId, {
@@ -293,40 +374,133 @@ export const completeMissionServer = createServerFn({ method: "POST" })
     }
 
     // --- Logros ---
-    const dailyGoal = (prof as { daily_goal?: number }).daily_goal ?? 3;
-    const [missionCountRes, arCountRes, todayCountRes, alreadyRes] = await Promise.all([
-      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId),
-      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("is_ar", true),
-      supabase.from("mission_completions").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("completed_date", today),
-      supabase.from("achievements").select("code").eq("user_id", userId),
-    ]);
-    const totalMissions = missionCountRes.count ?? 0;
-    const arMissions = arCountRes.count ?? 0;
-    const todayMissions = todayCountRes.count ?? 0;
-    const owned = new Set((alreadyRes.data ?? []).map((r) => r.code));
+    const ctx = await buildAchievementContext(supabase, userId, { level, streak });
+    const unlocked = await grantAchievements(supabase, userId, ctx);
 
-    const candidates: string[] = [];
-    if (totalMissions >= 1) candidates.push("first_step");
-    if (streak >= 3) candidates.push("streak_3");
-    if (streak >= 7) candidates.push("streak_7");
-    if (streak >= 30) candidates.push("streak_30");
-    if (totalMissions >= 10) candidates.push("missions_10");
-    if (totalMissions >= 50) candidates.push("missions_50");
-    if (data.isAR && arMissions >= 1) candidates.push("ar_first");
-    if (arMissions >= 5) candidates.push("ar_5");
-    if (level >= 5) candidates.push("level_5");
-    if (level >= 10) candidates.push("level_10");
-    if (todayMissions >= dailyGoal) candidates.push("daily_goal");
-
-    const toUnlock = candidates.filter((c) => !owned.has(c));
-    if (toUnlock.length > 0) {
-      await supabase.from("achievements").insert(
-        toUnlock.map((code) => ({ user_id: userId, code }))
-      );
-    }
-
-    return { leveledUp, newLevel: level, unlockedAchievements: toUnlock };
+    return {
+      leveledUp,
+      newLevel: level,
+      unlockedAchievements: unlocked.map((u) => u.code),
+      gainedXp,
+      gainedCoins,
+      boosted,
+    };
   });
+
+/** Descuenta un uso a los efectos consumibles y borra los agotados. */
+async function consumeUses(
+  supabase: SupabaseLike,
+  rows: Array<{ id: string; uses_left: number | null }>,
+) {
+  for (const r of rows) {
+    const left = (r.uses_left ?? 1) - 1;
+    if (left <= 0) await supabase.from("item_effects").delete().eq("id", r.id);
+    else await supabase.from("item_effects").update({ uses_left: left }).eq("id", r.id);
+  }
+}
+
+/** Reúne el contexto real del usuario para evaluar los logros. */
+export async function buildAchievementContext(
+  supabase: SupabaseLike,
+  userId: string,
+  overrides: Partial<AchievementContext> = {},
+): Promise<AchievementContext> {
+  const today = new Date().toISOString().slice(0, 10);
+  const [profRes, misRes, checkRes, predRes, worldRes, invRes] = await Promise.all([
+    supabase.from("profiles").select("level,streak,daily_goal").eq("user_id", userId).maybeSingle(),
+    supabase.from("mission_completions").select("category,is_ar,completed_date").eq("user_id", userId).limit(2000),
+    supabase.from("wellbeing_checkins").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("wellbeing_predictions").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("world_state").select("zones_unlocked").eq("user_id", userId).maybeSingle(),
+    supabase.from("inventory").select("quantity").eq("user_id", userId),
+  ]);
+
+  const missionsRows = misRes.data ?? [];
+  const byCategory: Record<string, number> = {};
+  const byDate: Record<string, number> = {};
+  let missionsAR = 0;
+  for (const m of missionsRows) {
+    const c = (m.category as string | null) ?? "autocuidado";
+    byCategory[c] = (byCategory[c] ?? 0) + 1;
+    const d = (m.completed_date as string | null) ?? today;
+    byDate[d] = (byDate[d] ?? 0) + 1;
+    if (m.is_ar) missionsAR += 1;
+  }
+  const dailyGoal = Math.max(1, (profRes.data?.daily_goal as number | undefined) ?? 3);
+  const goalDays = Object.values(byDate).filter((n) => n >= dailyGoal).length;
+  const categoriesWith5 = ["autocuidado", "reflexion", "movimiento", "social", "cognitivo"].filter(
+    (c) => (byCategory[c] ?? 0) >= 5,
+  ).length;
+  const purchases = (invRes.data ?? []).reduce((s, r) => s + ((r.quantity as number | null) ?? 1), 0);
+
+  return {
+    missions: missionsRows.length,
+    missionsAR,
+    streak: profRes.data?.streak ?? 0,
+    level: profRes.data?.level ?? 1,
+    byCategory,
+    categoriesWith5,
+    checkins: checkRes.count ?? 0,
+    predictions: predRes.count ?? 0,
+    goalDays,
+    zonesUnlocked: (worldRes.data?.zones_unlocked as number | undefined) ?? 0,
+    purchases,
+    itemsUsed: 0,
+    ...overrides,
+  };
+}
+
+/** Desbloquea logros pendientes y entrega su recompensa (una sola vez). */
+export async function grantAchievements(
+  supabase: SupabaseLike,
+  userId: string,
+  ctx: AchievementContext,
+) {
+  const { data: ownedRows } = await supabase.from("achievements").select("code").eq("user_id", userId);
+  const owned = (ownedRows ?? []).map((r) => r.code as string);
+  const pending = evaluateAchievements(ctx, owned);
+  if (pending.length === 0) return [];
+
+  let xpTotal = 0;
+  let coinTotal = 0;
+  let gemTotal = 0;
+  const rows = pending.map((a) => {
+    const reward = REWARD_BY_RARITY[a.rarity];
+    xpTotal += reward.xp;
+    coinTotal += reward.coins;
+    gemTotal += reward.gems;
+    return {
+      user_id: userId,
+      code: a.code,
+      reward_xp: reward.xp,
+      reward_coins: reward.coins,
+      reward_gems: reward.gems,
+    };
+  });
+  const { error } = await supabase.from("achievements").insert(rows);
+  if (error) return [];
+
+  const { data: prof } = await supabase
+    .from("profiles").select("xp,level,coins,gems").eq("user_id", userId).maybeSingle();
+  if (prof) {
+    let xp = (prof.xp as number) + xpTotal;
+    let level = prof.level as number;
+    while (xp >= XP_PER_LEVEL) {
+      xp -= XP_PER_LEVEL;
+      level += 1;
+    }
+    await supabase
+      .from("profiles")
+      .update({
+        xp,
+        level,
+        coins: (prof.coins as number) + coinTotal,
+        gems: (prof.gems as number) + gemTotal,
+      })
+      .eq("user_id", userId);
+  }
+  return pending;
+}
 
 const BuySchema = z.object({
   itemName: z.string().min(1).max(80),
@@ -339,29 +513,183 @@ export const buyItem = createServerFn({ method: "POST" })
   .inputValidator((d) => BuySchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const item = getItemByName(data.itemName);
+    if (!item) throw new Error("Objeto no disponible");
+    if (item.price !== data.price || item.currency !== data.currency) {
+      throw new Error("Precio inválido");
+    }
+
     const { data: prof, error: pErr } = await supabase
       .from("profiles").select("coins,gems").eq("user_id", userId).single();
     if (pErr || !prof) throw new Error("Perfil no encontrado");
 
     const balance = data.currency === "coins" ? prof.coins : prof.gems;
-    if (balance < data.price) throw new Error("Saldo insuficiente");
+    if (balance < item.price) throw new Error("Saldo insuficiente");
 
-    const { error: invErr } = await supabase
+    const { data: existing } = await supabase
       .from("inventory")
-      .insert({ user_id: userId, item_name: data.itemName });
-    if (invErr) {
-      if (invErr.code === "23505") throw new Error("Ya tienes este objeto");
-      throw new Error(invErr.message);
+      .select("id,quantity")
+      .eq("user_id", userId)
+      .eq("item_name", item.name)
+      .maybeSingle();
+
+    if (existing) {
+      if (item.kind === "permanent") throw new Error("Ya tienes este objeto");
+      const { error } = await supabase
+        .from("inventory")
+        .update({ quantity: ((existing.quantity as number | null) ?? 1) + 1, item_key: item.key, kind: item.kind })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase.from("inventory").insert({
+        user_id: userId,
+        item_name: item.name,
+        item_key: item.key,
+        kind: item.kind,
+        quantity: 1,
+      });
+      if (error) throw new Error(error.message);
     }
 
-    const update = data.currency === "coins"
-      ? { coins: prof.coins - data.price }
-      : { gems: prof.gems - data.price };
+    const update = item.currency === "coins"
+      ? { coins: prof.coins - item.price }
+      : { gems: prof.gems - item.price };
     const { error: upErr } = await supabase.from("profiles").update(update).eq("user_id", userId);
     if (upErr) throw new Error(upErr.message);
 
-    return { ok: true };
+    const ctx = await buildAchievementContext(supabase, userId);
+    const unlocked = await grantAchievements(supabase, userId, ctx);
+    return { ok: true, unlockedAchievements: unlocked.map((a) => a.code) };
   });
+
+/** Usa un consumible: crea sus efectos activos y descuenta una unidad. */
+export const useItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ itemKey: z.string().min(1).max(60) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const item = getItem(data.itemKey);
+    if (!item || item.kind !== "consumable") throw new Error("Objeto no usable");
+
+    const { data: row } = await supabase
+      .from("inventory")
+      .select("id,quantity")
+      .eq("user_id", userId)
+      .eq("item_name", item.name)
+      .maybeSingle();
+    const qty = (row?.quantity as number | null) ?? 0;
+    if (!row || qty < 1) throw new Error("No tienes este objeto");
+
+    const now = Date.now();
+    const rows = item.effects.map((e) => ({
+      user_id: userId,
+      item_key: item.key,
+      effect: e.effect,
+      magnitude: e.magnitude,
+      uses_left: e.uses ?? null,
+      expires_at: e.hours ? new Date(now + e.hours * 3_600_000).toISOString() : null,
+    }));
+    const { error } = await supabase.from("item_effects").insert(rows);
+    if (error) throw new Error(error.message);
+
+    if (qty <= 1) await supabase.from("inventory").delete().eq("id", row.id);
+    else await supabase.from("inventory").update({ quantity: qty - 1 }).eq("id", row.id);
+
+    if (await hasActiveConsent(supabase, userId)) {
+      await addTimelineEvent(supabase, userId, {
+        kind: "milestone",
+        title: `Usaste ${item.name}`,
+        detail: item.detail,
+        payload: { itemKey: item.key },
+      });
+    }
+
+    const ctx = await buildAchievementContext(supabase, userId, { itemsUsed: 1 });
+    const unlocked = await grantAchievements(supabase, userId, ctx);
+    return { ok: true, unlockedAchievements: unlocked.map((a) => a.code) };
+  });
+
+/** Equipa o desequipa un objeto permanente (máx. MAX_EQUIPPED a la vez). */
+export const toggleEquip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ itemKey: z.string().min(1).max(60) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const item = getItem(data.itemKey);
+    if (!item || item.kind !== "permanent") throw new Error("Objeto no equipable");
+
+    const { data: rows } = await supabase
+      .from("inventory")
+      .select("id,item_name,equipped")
+      .eq("user_id", userId);
+    const target = (rows ?? []).find((r) => r.item_name === item.name);
+    if (!target) throw new Error("No tienes este objeto");
+
+    const equippedCount = (rows ?? []).filter((r) => r.equipped).length;
+    const next = !target.equipped;
+    if (next && equippedCount >= MAX_EQUIPPED) {
+      throw new Error(`Solo puedes equipar ${MAX_EQUIPPED} objetos a la vez`);
+    }
+    const { error } = await supabase
+      .from("inventory")
+      .update({ equipped: next, item_key: item.key, kind: item.kind })
+      .eq("id", target.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, equipped: next };
+  });
+
+/** Resumen real para la pantalla de perfil: trofeos, categorías y logros. */
+export const getProfileSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const ctx = await buildAchievementContext(supabase, userId);
+    const today = new Date().toISOString().slice(0, 10);
+    const since30 = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+    const since7 = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const since14 = new Date(Date.now() - 13 * 86400000).toISOString().slice(0, 10);
+
+    const { data: recent } = await supabase
+      .from("mission_completions")
+      .select("category,is_ar,completed_date,xp_earned")
+      .eq("user_id", userId)
+      .gte("completed_date", since30)
+      .limit(2000);
+
+    const rows = recent ?? [];
+    const cat30: Record<string, number> = {};
+    const cat7: Record<string, number> = {};
+    const catPrev7: Record<string, number> = {};
+    let xp30 = 0;
+    for (const r of rows) {
+      const c = (r.category as string | null) ?? "autocuidado";
+      const d = (r.completed_date as string | null) ?? today;
+      cat30[c] = (cat30[c] ?? 0) + 1;
+      xp30 += (r.xp_earned as number | null) ?? 0;
+      if (d >= since7) cat7[c] = (cat7[c] ?? 0) + 1;
+      else if (d >= since14) catPrev7[c] = (catPrev7[c] ?? 0) + 1;
+    }
+
+    const activeDays = new Set(rows.map((r) => r.completed_date as string)).size;
+
+    return {
+      context: ctx,
+      trophies: {
+        level: ctx.level,
+        streak: ctx.streak,
+        missions: ctx.missions,
+        missionsAR: ctx.missionsAR,
+        checkins: ctx.checkins,
+        zonesUnlocked: ctx.zonesUnlocked,
+        activeDays30: activeDays,
+        xp30,
+      },
+      categories30: cat30,
+      categories7: cat7,
+      categoriesPrev7: catPrev7,
+    };
+  });
+
 
 const MigrateSchema = z.object({
   name: z.string().min(1).max(40).optional(),
