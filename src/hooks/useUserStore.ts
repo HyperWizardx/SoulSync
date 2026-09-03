@@ -11,7 +11,12 @@ import {
   migrateLocalProgress,
   updateSettings,
   getWeeklyStats,
+  useItem as useItemServer,
+  toggleEquip,
+  getProfileSummary,
   type ProgressPayload,
+  type InventoryItem,
+  type ActiveEffect,
 } from "@/lib/progress.functions";
 import { emitFeedback } from "@/lib/feedback";
 import { AVATAR_META } from "@/components/avatars/AvatarArt";
@@ -69,6 +74,8 @@ export interface UserData {
   completedMissions: string[];
   missionHistory: { id: string; title: string; date: string; xp: number }[];
   inventory: string[];
+  items: InventoryItem[];
+  effects: ActiveEffect[];
   stats: UserStats;
   attributes: UserAttributes;
   achievements: string[];
@@ -88,6 +95,8 @@ const DEFAULT_USER: UserData = {
   completedMissions: [],
   missionHistory: [],
   inventory: [],
+  items: [],
+  effects: [],
   stats: { bienestar: 50, resiliencia: 50, energia: 50, claridad: 50 },
   attributes: {
     resiliencia: 30,
@@ -112,6 +121,8 @@ export function useUserStore() {
   const buyItemFn = useServerFn(buyItem);
   const migrateFn = useServerFn(migrateLocalProgress);
   const updateSettingsFn = useServerFn(updateSettings);
+  const useItemFn = useServerFn(useItemServer);
+  const toggleEquipFn = useServerFn(toggleEquip);
   const migratedRef = useRef(false);
 
   const { hasSession } = useAuthSession();
@@ -182,6 +193,8 @@ export function useUserStore() {
           xp: h.xp_earned,
         })),
         inventory: data.inventory ?? [],
+        items: data.items ?? [],
+        effects: data.effects ?? [],
         stats: data.stats ?? DEFAULT_USER.stats,
         attributes: data.attributes
           ? {
@@ -268,7 +281,28 @@ export function useUserStore() {
   const buyMut = useMutation({
     mutationFn: (d: { itemName: string; price: number; currency: "coins" | "gems" }) =>
       buyItemFn({ data: d }),
+    onSuccess: (res) => {
+      for (const code of res.unlockedAchievements ?? []) emitFeedback({ type: "achievement", code });
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["profile-summary"] });
+    },
+  });
+
+  const useItemMut = useMutation({
+    mutationFn: (itemKey: string) => useItemFn({ data: { itemKey } }),
+    onSuccess: (res) => {
+      for (const code of res.unlockedAchievements ?? []) emitFeedback({ type: "achievement", code });
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["wellbeing"] });
+      qc.invalidateQueries({ queryKey: ["profile-summary"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "No se pudo usar el objeto"),
+  });
+
+  const equipMut = useMutation({
+    mutationFn: (itemKey: string) => toggleEquipFn({ data: { itemKey } }),
     onSuccess: invalidate,
+    onError: (e) => toast.error(e instanceof Error ? e.message : "No se pudo equipar"),
   });
 
   const settingsMut = useMutation({
@@ -345,6 +379,30 @@ export function useUserStore() {
     [settingsMut]
   );
 
+  const useItemAction = useCallback(
+    async (itemKey: string) => {
+      try {
+        await useItemMut.mutateAsync(itemKey);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [useItemMut]
+  );
+
+  const toggleEquipAction = useCallback(
+    async (itemKey: string) => {
+      try {
+        await equipMut.mutateAsync(itemKey);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [equipMut]
+  );
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     qc.clear();
@@ -361,17 +419,34 @@ export function useUserStore() {
     updateSettings: updateUserSettings,
     completeMission,
     buyItem: buyItemAction,
+    useItem: useItemAction,
+    toggleEquip: toggleEquipAction,
     signOut,
     avatarMeta,
     archetypeName,
   };
 }
 
+export function useProfileSummary() {
+  const fn = useServerFn(getProfileSummary);
+  const { hasSession } = useAuthSession();
+  return useQuery({
+    queryKey: ["profile-summary"],
+    queryFn: () => fn(),
+    staleTime: 30_000,
+    enabled: hasSession,
+    retry: false,
+  });
+}
+
 export function useWeeklyStats() {
   const fn = useServerFn(getWeeklyStats);
+  const { hasSession } = useAuthSession();
   return useQuery({
     queryKey: ["weekly-stats"],
     queryFn: () => fn(),
     staleTime: 60_000,
+    enabled: hasSession,
+    retry: false,
   });
 }
