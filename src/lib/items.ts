@@ -186,3 +186,50 @@ export const RARITY_CLASS: Record<StoreItem["rarity"], string> = {
   Épico: "bg-primary/20 text-primary",
   Legendario: "bg-soul-gold/20 text-soul-gold",
 };
+
+export interface EffectRowLike {
+  item_key: string;
+  effect: string;
+  magnitude: number;
+}
+
+export interface EffectBonuses {
+  xpMult: number;
+  coinMult: number;
+  attrBonus: Record<string, number>;
+  hasShield: boolean;
+}
+
+/**
+ * Combina los efectos consumibles activos con los objetos permanentes
+ * equipados. Función pura (probada en items.test.ts).
+ */
+export function computeEffectBonuses(
+  active: EffectRowLike[],
+  equippedKeys: string[],
+): EffectBonuses {
+  const out: EffectBonuses = { xpMult: 1, coinMult: 1, attrBonus: {}, hasShield: false };
+
+  for (const r of active) {
+    if (r.effect === "xp_multiplier") out.xpMult *= r.magnitude;
+    else if (r.effect === "coin_multiplier") out.coinMult *= r.magnitude;
+    else if (r.effect === "streak_shield") out.hasShield = true;
+    else if (r.effect === "attribute_bonus") {
+      const attr = getItem(r.item_key)?.effects.find((e) => e.effect === "attribute_bonus")?.attribute;
+      if (attr) out.attrBonus[attr] = (out.attrBonus[attr] ?? 0) + r.magnitude;
+    }
+  }
+
+  for (const key of equippedKeys) {
+    const item = getItem(key);
+    if (!item || item.kind !== "permanent") continue;
+    for (const e of item.effects) {
+      if (e.effect === "xp_multiplier") out.xpMult *= e.magnitude;
+      else if (e.effect === "coin_multiplier") out.coinMult *= e.magnitude;
+      else if (e.effect === "attribute_bonus" && e.attribute) {
+        out.attrBonus[e.attribute] = (out.attrBonus[e.attribute] ?? 0) + e.magnitude;
+      }
+    }
+  }
+  return out;
+}
