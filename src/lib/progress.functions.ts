@@ -243,32 +243,16 @@ export const completeMissionServer = createServerFn({ method: "POST" })
         expires_at: (r.expires_at as string | null) ?? null,
       }),
     );
-    const equippedEffects: ItemEffect[] = (invRes.data ?? []).flatMap((r) => {
-      const item = getItem((r.item_key as string | null) ?? "");
-      return item && item.kind === "permanent" ? item.effects : [];
-    });
+    const equippedKeys = (invRes.data ?? []).map((r) => (r.item_key as string | null) ?? "");
+    const { xpMult, coinMult, attrBonus, hasShield } = computeEffectBonuses(
+      activeRows.map((r) => ({
+        item_key: r.item_key as string,
+        effect: r.effect as string,
+        magnitude: Number(r.magnitude),
+      })),
+      equippedKeys,
+    );
 
-    let xpMult = 1;
-    let coinMult = 1;
-    const attrBonus: Record<string, number> = {};
-    let hasShield = false;
-    for (const r of activeRows) {
-      const mag = Number(r.magnitude);
-      if (r.effect === "xp_multiplier") xpMult *= mag;
-      else if (r.effect === "coin_multiplier") coinMult *= mag;
-      else if (r.effect === "streak_shield") hasShield = true;
-      else if (r.effect === "attribute_bonus") {
-        const key = getItem(r.item_key as string)?.effects.find((e) => e.effect === "attribute_bonus")?.attribute;
-        if (key) attrBonus[key] = (attrBonus[key] ?? 0) + mag;
-      }
-    }
-    for (const e of equippedEffects) {
-      if (e.effect === "xp_multiplier") xpMult *= e.magnitude;
-      else if (e.effect === "coin_multiplier") coinMult *= e.magnitude;
-      else if (e.effect === "attribute_bonus" && e.attribute) {
-        attrBonus[e.attribute] = (attrBonus[e.attribute] ?? 0) + e.magnitude;
-      }
-    }
 
     const gainedXp = Math.round(data.xp * xpMult);
     const gainedCoins = Math.round(data.coins * coinMult);
