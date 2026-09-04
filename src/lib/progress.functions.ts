@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { addTimelineEvent, hasActiveConsent } from "@/lib/wellbeing/load";
-import { getItem, getItemByName, MAX_EQUIPPED, type ItemEffect } from "@/lib/items";
+import { getItem, getItemByName, MAX_EQUIPPED, computeEffectBonuses } from "@/lib/items";
 import {
   REWARD_BY_RARITY,
   evaluateAchievements,
