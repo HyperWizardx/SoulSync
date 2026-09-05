@@ -21,7 +21,7 @@ export function AdminShell({
   subtitle?: string;
   requires: "psicologo" | "investigador";
   children: ReactNode;
-  back?: { to: string; label: string };
+  back?: { to: "/admin"; label: string };
 }) {
   const navigate = useNavigate();
   const { hasSession, isCheckingSession } = useAuthSession();
