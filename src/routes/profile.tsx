@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon } from "lucide-react";
+import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck } from "lucide-react";
+import { useAdminAccess } from "@/hooks/useAdmin";
 import { useUserStore, useProfileSummary } from "@/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
