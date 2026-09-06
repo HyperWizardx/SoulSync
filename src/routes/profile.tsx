@@ -36,6 +36,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { user, updateUser, updateSettings, archetypeName, signOut, useItem, toggleEquip } = useUserStore();
   const { data: summary } = useProfileSummary();
+  const { data: adminAccess } = useAdminAccess();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user.name);
