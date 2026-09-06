@@ -272,6 +272,21 @@ function ProfilePage() {
           </Link>
         </div>
 
+        {adminAccess?.isAdmin && (
+          <Link
+            to={adminAccess.psicologo ? "/admin" : "/admin/metricas"}
+            className="mt-3 flex items-center gap-3 rounded-xl border border-primary/40 bg-primary/10 p-3 transition-all hover:border-primary active:scale-95"
+          >
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Panel de administración</p>
+              <p className="text-[11px] text-muted-foreground">
+                {adminAccess.psicologo ? "Seguimiento de estudiantes" : "Métricas de la población"}
+              </p>
+            </div>
+          </Link>
+        )}
+
         {/* Inventario */}
         <div className="mt-6">
           <h2 className="font-cinzel font-semibold text-foreground">Mochila</h2>
