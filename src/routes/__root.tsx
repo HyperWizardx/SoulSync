@@ -1,8 +1,8 @@
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { AuthedShell } from "@/components/AuthedShell";
-import { AuthSessionProvider } from "@/components/AuthSessionProvider";
+import { AuthedShell } from "@/presentation/components/layout/AuthedShell";
+import { AuthSessionProvider } from "@/presentation/components/layout/AuthSessionProvider";
 
 import appCss from "../styles.css?url";
 

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { useAdminAccess, useStudentDetail } from "@/hooks/useAdmin";
+import { AdminShell } from "@/presentation/components/admin/AdminShell";
+import { useAdminAccess, useStudentDetail } from "@/presentation/hooks/useAdmin";
 
 export const Route = createFileRoute("/admin/estudiante/$id")({
   component: StudentDetailPage,

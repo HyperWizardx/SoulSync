@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { Brain, RefreshCw } from "lucide-react";
-import { useWellbeing } from "@/hooks/useWellbeing";
-import { ConsentCard } from "@/components/wellbeing/ConsentCard";
-import { CheckinCard } from "@/components/wellbeing/CheckinCard";
-import { RiskCard } from "@/components/wellbeing/RiskCard";
-import { TimelineFeed } from "@/components/wellbeing/TimelineFeed";
-import { TREND_COPY } from "@/lib/wellbeing/trend";
+import { useWellbeing } from "@/presentation/hooks/useWellbeing";
+import { ConsentCard } from "@/presentation/components/wellbeing/ConsentCard";
+import { CheckinCard } from "@/presentation/components/wellbeing/CheckinCard";
+import { RiskCard } from "@/presentation/components/wellbeing/RiskCard";
+import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
+import { TREND_COPY } from "@/domain/wellbeing/trend";
 
 export const Route = createFileRoute("/ai")({
   head: () => ({

@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { ChevronRight, Flame } from "lucide-react";
-import { useUserStore } from "@/hooks/useUserStore";
-import { useWellbeing } from "@/hooks/useWellbeing";
-import { AvatarIcon } from "@/components/avatars/AvatarArt";
-import { AvatarHero, computeMood } from "@/components/avatars/AvatarHero";
-import { getArchetypeStyle } from "@/lib/archetype";
-import { DailyGoalCard } from "@/components/DailyGoalCard";
-import { IntegratedStatus } from "@/components/wellbeing/IntegratedStatus";
-import { SEASON_COPY } from "@/lib/wellbeing/world";
+import { useUserStore } from "@/presentation/hooks/useUserStore";
+import { useWellbeing } from "@/presentation/hooks/useWellbeing";
+import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
+import { AvatarHero, computeMood } from "@/presentation/components/avatars/AvatarHero";
+import { getArchetypeStyle } from "@/domain/identity/archetype";
+import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
+import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
+import { SEASON_COPY } from "@/domain/world/world";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({

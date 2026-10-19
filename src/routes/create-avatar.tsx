@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { StarField } from "@/components/StarField";
+import { StarField } from "@/presentation/components/layout/StarField";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
-import { useUserStore } from "@/hooks/useUserStore";
-import { AvatarIcon, AVATAR_META } from "@/components/avatars/AvatarArt";
+import { useUserStore } from "@/presentation/hooks/useUserStore";
+import { AvatarIcon, AVATAR_META } from "@/presentation/components/avatars/AvatarArt";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/create-avatar")({

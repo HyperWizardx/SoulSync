@@ -1,14 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck } from "lucide-react";
-import { useAdminAccess } from "@/hooks/useAdmin";
-import { useUserStore, useProfileSummary } from "@/hooks/useUserStore";
+import { useAdminAccess } from "@/presentation/hooks/useAdmin";
+import { useUserStore, useProfileSummary } from "@/presentation/hooks/useUserStore";
 import { useState } from "react";
 import { toast } from "sonner";
-import { MiniAvatar3D } from "@/components/MiniAvatar3D";
-import { AvatarIcon } from "@/components/avatars/AvatarArt";
-import { getArchetypeStyle } from "@/lib/archetype";
-import { WeeklyChart } from "@/components/WeeklyChart";
+import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
+import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
+import { getArchetypeStyle } from "@/domain/identity/archetype";
+import { WeeklyChart } from "@/presentation/components/layout/WeeklyChart";
 import {
   ACHIEVEMENTS,
   REWARD_BY_RARITY,
@@ -16,8 +16,8 @@ import {
   RARITY_LABEL,
   achievementProgress,
   type AchievementContext,
-} from "@/lib/achievements";
-import { getItem, getItemByName } from "@/lib/items";
+} from "@/domain/gamification/achievements";
+import { getItem, getItemByName } from "@/domain/gamification/items";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,

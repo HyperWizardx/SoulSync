@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, Users, AlertTriangle, ShieldCheck, Activity } from "lucide-react";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { useAdminAccess, useStudents } from "@/hooks/useAdmin";
-import type { StudentRow } from "@/lib/admin.functions";
+import { AdminShell } from "@/presentation/components/admin/AdminShell";
+import { useAdminAccess, useStudents } from "@/presentation/hooks/useAdmin";
+import type { StudentRow } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminStudentsPage,

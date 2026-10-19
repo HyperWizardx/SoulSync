@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { Coins, Gem, Sparkles } from "lucide-react";
-import { useUserStore } from "@/hooks/useUserStore";
-import { STORE_ITEMS, RARITY_CLASS, MAX_EQUIPPED, getItem, type StoreItem } from "@/lib/items";
+import { useUserStore } from "@/presentation/hooks/useUserStore";
+import { STORE_ITEMS, RARITY_CLASS, MAX_EQUIPPED, getItem, type StoreItem } from "@/domain/gamification/items";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/store")({
