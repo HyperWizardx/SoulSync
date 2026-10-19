@@ -69,4 +69,6 @@ src/
 - Alias de importación: `@/domain`, `@/application`, `@/infrastructure`, `@/service`, `@/presentation`, `@/shared`.
 - `src/routes/`, `src/router.tsx`, `src/start.ts`, `src/integrations/supabase/*` y `components/ui` (shadcn) permanecen en su sitio por exigencia del framework/autogeneración.
 - Sin cambios en base de datos ni en la interfaz.
-- Verificación al cerrar cada fase: typecheck limpio y las ~57 pruebas actuales en verde; se añaden pruebas de casos de uso con repositorios simulados.
+- Verificación al cerrar cada fase: typecheck limpio y las ~57 pruebas actuales en verde; se añaden pruebas de casos de uso con repositorios simulados.  
+  
+Además, puedes colocar comentarios breves y concisos en español sobre el funcionamiento de cada archivo, en bloques de código y en variables, para una documentación.
