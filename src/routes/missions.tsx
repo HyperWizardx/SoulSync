@@ -1,23 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { useEffect, useMemo, useState } from "react";
 import { Lock, Flame, Coins, Gem, Sparkles, Camera } from "lucide-react";
 import { toast } from "sonner";
-import { useUserStore } from "@/hooks/useUserStore";
-import { useWellbeing } from "@/hooks/useWellbeing";
-import { MISSIONS, MISSION_CATEGORY, getMissionById, type Mission } from "@/lib/missionsData";
-import { AvatarIcon } from "@/components/avatars/AvatarArt";
-import { BreathingMission } from "@/components/missions/BreathingMission";
-import { JournalMission } from "@/components/missions/JournalMission";
-import { TimerMission } from "@/components/missions/TimerMission";
-import { GratitudeMission } from "@/components/missions/GratitudeMission";
-import { QuizMission } from "@/components/missions/QuizMission";
-import { ARAuraMission } from "@/components/missions/ARAuraMission";
-import { AREnergyMission } from "@/components/missions/AREnergyMission";
-import { ARFocusMission } from "@/components/missions/ARFocusMission";
-import { MeditationMission } from "@/components/missions/MeditationMission";
-import { DailyChallengeMission } from "@/components/missions/DailyChallengeMission";
-import { ARWalkMission } from "@/components/missions/ARWalkMission";
+import { useUserStore } from "@/presentation/hooks/useUserStore";
+import { useWellbeing } from "@/presentation/hooks/useWellbeing";
+import { MISSIONS, MISSION_CATEGORY, getMissionById, type Mission } from "@/domain/gamification/missionsData";
+import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
+import { BreathingMission } from "@/presentation/components/missions/BreathingMission";
+import { JournalMission } from "@/presentation/components/missions/JournalMission";
+import { TimerMission } from "@/presentation/components/missions/TimerMission";
+import { GratitudeMission } from "@/presentation/components/missions/GratitudeMission";
+import { QuizMission } from "@/presentation/components/missions/QuizMission";
+import { ARAuraMission } from "@/presentation/components/missions/ARAuraMission";
+import { AREnergyMission } from "@/presentation/components/missions/AREnergyMission";
+import { ARFocusMission } from "@/presentation/components/missions/ARFocusMission";
+import { MeditationMission } from "@/presentation/components/missions/MeditationMission";
+import { DailyChallengeMission } from "@/presentation/components/missions/DailyChallengeMission";
+import { ARWalkMission } from "@/presentation/components/missions/ARWalkMission";
 
 export const Route = createFileRoute("/missions")({
   validateSearch: (search: Record<string, unknown>): { mission?: string } => ({

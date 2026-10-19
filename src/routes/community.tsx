@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { MapPin, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 

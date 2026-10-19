@@ -13,7 +13,6 @@ import { Route as WorldRouteImport } from './routes/world'
 import { Route as StoreRouteImport } from './routes/store'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MissionsRouteImport } from './routes/missions'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateAvatarRouteImport } from './routes/create-avatar'
 import { Route as CommunityRouteImport } from './routes/community'
@@ -22,10 +21,7 @@ import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminMetricasRouteImport } from './routes/admin/metricas'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AdminEstudianteIdRouteImport } from './routes/admin/estudiante.$id'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const WorldRoute = WorldRouteImport.update({
@@ -46,11 +42,6 @@ const ProfileRoute = ProfileRouteImport.update({
 const MissionsRoute = MissionsRouteImport.update({
   id: '/missions',
   path: '/missions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -93,29 +84,11 @@ const AdminMetricasRoute = AdminMetricasRouteImport.update({
   path: '/admin/metricas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AdminEstudianteIdRoute = AdminEstudianteIdRouteImport.update({
   id: '/admin/estudiante/$id',
   path: '/admin/estudiante/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -129,17 +102,13 @@ export interface FileRoutesByFullPath {
   '/community': typeof CommunityRoute
   '/create-avatar': typeof CreateAvatarRoute
   '/dashboard': typeof DashboardRoute
-  '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/profile': typeof ProfileRoute
   '/store': typeof StoreRoute
   '/world': typeof WorldRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/metricas': typeof AdminMetricasRoute
   '/admin/': typeof AdminIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/estudiante/$id': typeof AdminEstudianteIdRoute
 }
 export interface FileRoutesByTo {
@@ -149,17 +118,13 @@ export interface FileRoutesByTo {
   '/community': typeof CommunityRoute
   '/create-avatar': typeof CreateAvatarRoute
   '/dashboard': typeof DashboardRoute
-  '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/profile': typeof ProfileRoute
   '/store': typeof StoreRoute
   '/world': typeof WorldRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/metricas': typeof AdminMetricasRoute
   '/admin': typeof AdminIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/estudiante/$id': typeof AdminEstudianteIdRoute
 }
 export interface FileRoutesById {
@@ -170,17 +135,13 @@ export interface FileRoutesById {
   '/community': typeof CommunityRoute
   '/create-avatar': typeof CreateAvatarRoute
   '/dashboard': typeof DashboardRoute
-  '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/profile': typeof ProfileRoute
   '/store': typeof StoreRoute
   '/world': typeof WorldRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/metricas': typeof AdminMetricasRoute
   '/admin/': typeof AdminIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/estudiante/$id': typeof AdminEstudianteIdRoute
 }
 export interface FileRouteTypes {
@@ -192,17 +153,13 @@ export interface FileRouteTypes {
     | '/community'
     | '/create-avatar'
     | '/dashboard'
-    | '/mcp'
     | '/missions'
     | '/profile'
     | '/store'
     | '/world'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/admin/metricas'
     | '/admin/'
     | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/admin/estudiante/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -212,17 +169,13 @@ export interface FileRouteTypes {
     | '/community'
     | '/create-avatar'
     | '/dashboard'
-    | '/mcp'
     | '/missions'
     | '/profile'
     | '/store'
     | '/world'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/admin/metricas'
     | '/admin'
     | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/admin/estudiante/$id'
   id:
     | '__root__'
@@ -232,17 +185,13 @@ export interface FileRouteTypes {
     | '/community'
     | '/create-avatar'
     | '/dashboard'
-    | '/mcp'
     | '/missions'
     | '/profile'
     | '/store'
     | '/world'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/admin/metricas'
     | '/admin/'
     | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/admin/estudiante/$id'
   fileRoutesById: FileRoutesById
 }
@@ -253,17 +202,13 @@ export interface RootRouteChildren {
   CommunityRoute: typeof CommunityRoute
   CreateAvatarRoute: typeof CreateAvatarRoute
   DashboardRoute: typeof DashboardRoute
-  McpRoute: typeof McpRoute
   MissionsRoute: typeof MissionsRoute
   ProfileRoute: typeof ProfileRoute
   StoreRoute: typeof StoreRoute
   WorldRoute: typeof WorldRoute
-  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
-  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AdminMetricasRoute: typeof AdminMetricasRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
-  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   AdminEstudianteIdRoute: typeof AdminEstudianteIdRoute
 }
 
@@ -295,13 +240,6 @@ declare module '@tanstack/react-router' {
       path: '/missions'
       fullPath: '/missions'
       preLoaderRoute: typeof MissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -360,32 +298,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMetricasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/estudiante/$id': {
       id: '/admin/estudiante/$id'
       path: '/admin/estudiante/$id'
       fullPath: '/admin/estudiante/$id'
       preLoaderRoute: typeof AdminEstudianteIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -405,18 +322,13 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityRoute: CommunityRoute,
   CreateAvatarRoute: CreateAvatarRoute,
   DashboardRoute: DashboardRoute,
-  McpRoute: McpRoute,
   MissionsRoute: MissionsRoute,
   ProfileRoute: ProfileRoute,
   StoreRoute: StoreRoute,
   WorldRoute: WorldRoute,
-  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AdminMetricasRoute: AdminMetricasRoute,
   AdminIndexRoute: AdminIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
-  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   AdminEstudianteIdRoute: AdminEstudianteIdRoute,
 }
 export const routeTree = rootRouteImport

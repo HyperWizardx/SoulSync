@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { StarField } from "@/components/StarField";
+import { StarField } from "@/presentation/components/layout/StarField";
 
 const searchSchema = z.object({
   mode: z.enum(["login", "signup"]).optional().default("login"),

@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { useAdminAccess, useExportDataset, usePopulationMetrics } from "@/hooks/useAdmin";
-import { DATASETS, type DatasetKey } from "@/lib/admin.functions";
+import { AdminShell } from "@/presentation/components/admin/AdminShell";
+import { useAdminAccess, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
+import { DATASETS, type DatasetKey } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/metricas")({
   component: AdminMetricsPage,

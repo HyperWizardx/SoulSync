@@ -1,15 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MobileLayout } from "@/components/MobileLayout";
-import { useWellbeing } from "@/hooks/useWellbeing";
-import { useUserStore } from "@/hooks/useUserStore";
-import { SEASON_COPY } from "@/lib/wellbeing/world";
-import { TREND_COPY } from "@/lib/wellbeing/trend";
-import { TimelineFeed } from "@/components/wellbeing/TimelineFeed";
+import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
+import { useWellbeing } from "@/presentation/hooks/useWellbeing";
+import { useUserStore } from "@/presentation/hooks/useUserStore";
+import { SEASON_COPY } from "@/domain/world/world";
+import { TREND_COPY } from "@/domain/wellbeing/trend";
+import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { Lock } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { MISSIONS, MISSION_CATEGORY } from "@/lib/missionsData";
-import type { WorldZone } from "@/lib/wellbeing/world";
+import { MISSIONS, MISSION_CATEGORY } from "@/domain/gamification/missionsData";
+import type { WorldZone } from "@/domain/world/world";
 
 export const Route = createFileRoute("/world")({
   head: () => ({

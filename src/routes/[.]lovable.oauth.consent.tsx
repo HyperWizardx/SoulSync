@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StarField } from "@/components/StarField";
+import { StarField } from "@/presentation/components/layout/StarField";
 
 type OAuthDetails = {
   client?: { name?: string | null } | null;

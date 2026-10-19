@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { StarField } from "@/components/StarField";
+import { StarField } from "@/presentation/components/layout/StarField";
 import { Shield, Brain, Heart } from "lucide-react";
 import { useEffect } from "react";
-import { useAuthSession } from "@/components/AuthSessionProvider";
+import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 
 export const Route = createFileRoute("/")({
   component: SplashPage,
