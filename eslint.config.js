@@ -23,4 +23,22 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // Regla de Clean Architecture: el Dominio no depende de capas externas.
+  {
+    files: ["src/domain/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: ["react", "react-dom", "@/integrations/*", "@/infrastructure/*", "@/service/*", "@/presentation/*", "@/application/*"],
+      }],
+    },
+  },
+  // La Aplicación solo conoce el Dominio y lo Transversal.
+  {
+    files: ["src/application/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: ["react", "@/integrations/*", "@/infrastructure/*", "@/service/*", "@/presentation/*"],
+      }],
+    },
+  },
 );
