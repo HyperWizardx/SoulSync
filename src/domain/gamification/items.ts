@@ -1,6 +1,6 @@
 /**
  * Catálogo de objetos de la tienda. Compartido cliente/servidor.
- * Los efectos se aplican en el servidor (progress.functions.ts) al completar
+ * Los efectos se aplican en el servidor (service/server-functions/missions.functions.ts) al completar
  * misiones y al recalcular el Mundo.
  */
 export type ItemKind = "consumable" | "permanent";
