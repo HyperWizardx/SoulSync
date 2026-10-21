@@ -6,18 +6,16 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getProgress,
   updateProfile,
-  completeMissionServer,
-  buyItem,
   migrateLocalProgress,
   updateSettings,
   getWeeklyStats,
-  useItem as useItemServer,
-  toggleEquip,
   getProfileSummary,
   type ProgressPayload,
   type InventoryItem,
   type ActiveEffect,
 } from "@/service/server-functions/progress.functions";
+import { completeMissionServer } from "@/service/server-functions/missions.functions";
+import { buyItem, useItem as useItemServer, toggleEquip } from "@/service/server-functions/store.functions";
 import { emitFeedback } from "@/shared/feedback";
 import { AVATAR_META } from "@/presentation/components/avatars/AvatarArt";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
