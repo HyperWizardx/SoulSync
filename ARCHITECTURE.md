@@ -41,3 +41,10 @@ Presentación ─► Servicio ─► Aplicación ─► Dominio ◄─ Infraestr
 ## Pruebas
 
 `bunx vitest run` — dominio (reglas, modelo, métricas, objetos, agregación) y aplicación (casos de uso con repositorios simulados).
+
+## Gamificación (progreso, misiones, tienda)
+
+- Dominio: `domain/gamification/progression.ts` (XP por nivel, racha y escudo, atributos 0–100, efectos activos).
+- Aplicación: `application/gamification/completeMission.ts` (cálculo puro del resultado de una misión).
+- Infraestructura: `infrastructure/persistence/supabase/gamificationRepository.ts` (contexto y entrega de logros, consumo de usos).
+- Servicio: `progress.functions.ts` (perfil/ajustes/estadísticas), `missions.functions.ts` (completar misión), `store.functions.ts` (comprar/usar/equipar).
