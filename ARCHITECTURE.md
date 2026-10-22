@@ -56,3 +56,12 @@ Presentación ─► Servicio ─► Aplicación ─► Dominio ◄─ Infraestr
 - Infraestructura: `infrastructure/persistence/supabase/adminRepository.ts` implementa las consultas y su mapeo; el cliente para leer correos se entrega como función diferida desde el servicio.
 - Servicio: `admin.functions.ts` autentica, valida entradas con Zod y compone las dependencias. Conserva los nombres y payloads públicos utilizados por las pantallas.
 - Pruebas: `application/research/useCases.test.ts` usa un repositorio simulado para comprobar roles independientes, identidad solo para psicología y exportación del último consentimiento vigente.
+
+## Estado del usuario en Presentación
+
+- `presentation/hooks/useUserStore.ts` es una fachada compatible: conserva sus exportaciones y compone los hooks especializados sin cambiar las pantallas consumidoras.
+- `hooks/user/userState.ts` define el modelo visible y traduce el contrato de progreso; no consulta la nube ni calcula recompensas de negocio.
+- `useProgressQueries.ts` concentra lectura, consultas de resumen/semana y migración local heredada, siempre condicionadas a la sesión.
+- `useProfileActions.ts`, `useMissionActions.ts` y `useInventoryActions.ts` separan identidad/ajustes, misiones y objetos. Conservan las claves de consultas y la actualización inmediata del perfil antes de navegar.
+- Las reglas de recompensas y permisos permanecen en las capas interiores; los hooks solo coordinan llamadas, caché y avisos visuales.
+- `userState.test.ts` comprueba la traducción de datos reales y la actualización del perfil sin alterar el progreso original.

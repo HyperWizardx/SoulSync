@@ -8,3 +8,4 @@
 - Access to other users' data is checked server-side via `has_role`; names/emails only for the psychologist role — why: privacy of pilot participants.
 
 - Research admin operations use an injected `AdminRepository` and clock; privileged identity reads are supplied lazily by authenticated service handlers and reached only after psychologist authorization — why: preserves privacy and makes use cases testable without cloud dependencies.
+- Keep `useUserStore` as a compatibility facade over presentation hooks for progress queries, profile/settings, missions and inventory; retain query keys and immediate profile cache updates — why: separates responsibilities without breaking consumers or onboarding navigation.

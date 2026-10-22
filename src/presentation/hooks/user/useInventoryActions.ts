@@ -8,7 +8,7 @@ import { emitFeedback } from '@/shared/feedback';
 export function useInventoryActions() {
   const qc = useQueryClient();
   const buyItemFn = useServerFn(buyItem);
-  const useItemFn = useServerFn(useItemServer);
+  const applyItemFn = useServerFn(useItemServer);
   const toggleEquipFn = useServerFn(toggleEquip);
   const invalidate = () => qc.invalidateQueries({ queryKey: ['progress'] });
   const buyMut = useMutation({
@@ -22,7 +22,7 @@ export function useInventoryActions() {
   });
 
   const useItemMut = useMutation({
-    mutationFn: (itemKey: string) => useItemFn({ data: { itemKey } }),
+    mutationFn: (itemKey: string) => applyItemFn({ data: { itemKey } }),
     onSuccess: (res) => {
       for (const code of res.unlockedAchievements ?? []) emitFeedback({ type: "achievement", code });
       invalidate();
