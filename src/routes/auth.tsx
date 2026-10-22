@@ -12,6 +12,14 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/auth")({
+  head: () => ({ meta: [
+    { title: "Accede a tu cuenta | SoulSync" },
+    { name: "description", content: "Inicia sesión o crea tu cuenta para guardar tu progreso en SoulSync." },
+    { property: "og:title", content: "Accede a tu cuenta | SoulSync" },
+    { property: "og:description", content: "Inicia sesión o crea tu cuenta para guardar tu progreso en SoulSync." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: (s) => searchSchema.parse(s),
   component: AuthPage,
 });
