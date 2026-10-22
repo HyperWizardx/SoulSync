@@ -1,6 +1,5 @@
-# Reorganización del panel de administración
+# Organización del estado del usuario
 
-- [x] Separar contratos de dominio, casos de uso y consultas de infraestructura.
-- [x] Reducir las funciones de servicio a autenticación, validación y composición.
-- [x] Añadir pruebas de permisos, seudonimización y exportación con consentimiento.
-- [x] Actualizar documentación y verificar pruebas y acceso al panel.
+- [x] Separar lectura y migración, perfil y ajustes, misiones e inventario manteniendo la fachada existente.
+- [ ] Añadir pruebas de traducción del progreso y actualización inmediata del perfil.
+- [ ] Documentar la separación y verificar pruebas y pantallas con sesión.
