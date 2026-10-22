@@ -48,3 +48,11 @@ Presentación ─► Servicio ─► Aplicación ─► Dominio ◄─ Infraestr
 - Aplicación: `application/gamification/completeMission.ts` (cálculo puro del resultado de una misión).
 - Infraestructura: `infrastructure/persistence/supabase/gamificationRepository.ts` (contexto y entrega de logros, consumo de usos).
 - Servicio: `progress.functions.ts` (perfil/ajustes/estadísticas), `missions.functions.ts` (completar misión), `store.functions.ts` (comprar/usar/equipar).
+
+## Investigación (panel de administración)
+
+- Dominio: `domain/research/ports.ts` define roles, contratos de lectura y campos permitidos para exportación; `aggregate.ts` mantiene agregación y CSV puros.
+- Aplicación: `application/research/useCases.ts` comprueba roles por petición y orquesta listados, ficha, métricas y exportación mediante un repositorio inyectado y un reloj sustituible.
+- Infraestructura: `infrastructure/persistence/supabase/adminRepository.ts` implementa las consultas y su mapeo; el cliente para leer correos se entrega como función diferida desde el servicio.
+- Servicio: `admin.functions.ts` autentica, valida entradas con Zod y compone las dependencias. Conserva los nombres y payloads públicos utilizados por las pantallas.
+- Pruebas: `application/research/useCases.test.ts` usa un repositorio simulado para comprobar roles independientes, identidad solo para psicología y exportación del último consentimiento vigente.

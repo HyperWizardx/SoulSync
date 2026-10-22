@@ -5,6 +5,14 @@ import { useEffect } from "react";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [
+    { title: "Bienvenido a SoulSync" },
+    { name: "description", content: "SoulSync: tu aventura de bienestar emocional con misiones y seguimiento personal." },
+    { property: "og:title", content: "Bienvenido a SoulSync" },
+    { property: "og:description", content: "SoulSync: tu aventura de bienestar emocional con misiones y seguimiento personal." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: SplashPage,
 });
 

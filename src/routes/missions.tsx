@@ -20,6 +20,14 @@ import { DailyChallengeMission } from "@/presentation/components/missions/DailyC
 import { ARWalkMission } from "@/presentation/components/missions/ARWalkMission";
 
 export const Route = createFileRoute("/missions")({
+  head: () => ({ meta: [
+    { title: "Misiones diarias | SoulSync" },
+    { name: "description", content: "Misiones de autocuidado, reflexión, movimiento y realidad aumentada en SoulSync." },
+    { property: "og:title", content: "Misiones diarias | SoulSync" },
+    { property: "og:description", content: "Misiones de autocuidado, reflexión, movimiento y realidad aumentada en SoulSync." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: (search: Record<string, unknown>): { mission?: string } => ({
     mission: typeof search.mission === "string" ? search.mission : undefined,
   }),

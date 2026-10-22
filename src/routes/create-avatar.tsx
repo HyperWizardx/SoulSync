@@ -7,6 +7,14 @@ import { AvatarIcon, AVATAR_META } from "@/presentation/components/avatars/Avata
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/create-avatar")({
+  head: () => ({ meta: [
+    { title: "Crea tu héroe | SoulSync" },
+    { name: "description", content: "Personaliza tu avatar, nombre y arquetipo para tu aventura en SoulSync." },
+    { property: "og:title", content: "Crea tu héroe | SoulSync" },
+    { property: "og:description", content: "Personaliza tu avatar, nombre y arquetipo para tu aventura en SoulSync." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: CreateAvatarPage,
 });
 

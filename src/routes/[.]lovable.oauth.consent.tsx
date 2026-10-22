@@ -18,6 +18,14 @@ type OAuthApi = {
 const oauth = () => (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
+  head: () => ({ meta: [
+    { title: "Autorizar una conexión | SoulSync" },
+    { name: "description", content: "Decide si permites que una aplicación conectada acceda a tu progreso de SoulSync." },
+    { property: "og:title", content: "Autorizar una conexión | SoulSync" },
+    { property: "og:description", content: "Decide si permites que una aplicación conectada acceda a tu progreso de SoulSync." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     authorization_id: typeof s.authorization_id === "string" ? s.authorization_id : "",

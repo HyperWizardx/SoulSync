@@ -4,6 +4,14 @@ import { MapPin, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/community")({
+  head: () => ({ meta: [
+    { title: "Comunidad | SoulSync" },
+    { name: "description", content: "La comunidad de bienestar de SoulSync y sus conexiones de apoyo." },
+    { property: "og:title", content: "Comunidad | SoulSync" },
+    { property: "og:description", content: "La comunidad de bienestar de SoulSync y sus conexiones de apoyo." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: CommunityPage,
 });
 
