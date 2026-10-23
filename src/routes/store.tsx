@@ -20,7 +20,7 @@ export const Route = createFileRoute("/store")({
 });
 
 function StorePage() {
-  const { user, buyItem, useItem, toggleEquip } = useUserStore();
+  const { user, buyItem, useItem: applyItem, toggleEquip } = useUserStore();
 
   const owned = (item: StoreItem) => user.items.find((i) => i.item_name === item.name);
   const equippedCount = user.items.filter((i) => i.equipped).length;
@@ -36,7 +36,7 @@ function StorePage() {
   };
 
   const handleUse = async (item: StoreItem) => {
-    const ok = await useItem(item.key);
+    const ok = await applyItem(item.key);
     if (ok) toast.success(`${item.name} activado`, { description: item.detail, icon: item.emoji });
   };
 

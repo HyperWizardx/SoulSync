@@ -34,7 +34,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { user, updateUser, updateSettings, archetypeName, signOut, useItem, toggleEquip } = useUserStore();
+  const { user, updateUser, updateSettings, archetypeName, signOut, useItem: applyItem, toggleEquip } = useUserStore();
   const { data: summary } = useProfileSummary();
   const { data: adminAccess } = useAdminAccess();
   const navigate = useNavigate();
@@ -314,7 +314,7 @@ function ProfilePage() {
                     {item && inv.kind === "consumable" && (
                       <button
                         onClick={async () => {
-                          const ok = await useItem(item.key);
+                          const ok = await applyItem(item.key);
                           if (ok) toast.success(`${item.name} activado`, { icon: item.emoji });
                         }}
                         className="rounded-lg bg-soul-teal/15 px-2 py-1 text-[11px] font-semibold text-soul-teal active:scale-95"
