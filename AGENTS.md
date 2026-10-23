@@ -9,3 +9,5 @@
 
 - Research admin operations use an injected `AdminRepository` and clock; privileged identity reads are supplied lazily by authenticated service handlers and reached only after psychologist authorization — why: preserves privacy and makes use cases testable without cloud dependencies.
 - Keep `useUserStore` as a compatibility facade over presentation hooks for progress queries, profile/settings, missions and inventory; retain query keys and immediate profile cache updates — why: separates responsibilities without breaking consumers or onboarding navigation.
+
+- Shared mission reward and attribute contracts live in domain/gamification/rewards and are re-exported by the presentation facade — why: domain consumers must not import presentation types.

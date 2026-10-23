@@ -1,4 +1,4 @@
-import type { MissionReward, TaskCategoryName } from "@/presentation/hooks/useUserStore";
+import type { MissionReward, TaskCategoryName } from "@/domain/gamification/rewards";
 
 export type MissionType =
   | "breathing"
