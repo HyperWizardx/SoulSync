@@ -43,21 +43,8 @@ export const todayISO = () => new Date().toISOString().slice(0, 10);
 
 type Db = SupabaseClient<Database>;
 
-export async function assertConsent(supabase: Db, userId: string) {
-  const { data } = await supabase
-    .from("research_consent")
-    .select("consent_version, revoked_at")
-    .eq("user_id", userId)
-    .order("accepted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!data || data.revoked_at || data.consent_version !== CONSENT_VERSION) {
-    throw new Error("Consentimiento requerido antes de registrar check-ins.");
-  }
-}
-
 /**
- * Igual que assertConsent pero sin lanzar: para rutas donde la telemetría
+ * Comprueba el consentimiento sin lanzar: para rutas donde la telemetría
  * es un efecto secundario opcional (p. ej. completar/omitir una misión) y
  * no debe romper el flujo principal si el usuario no ha consentido.
  */

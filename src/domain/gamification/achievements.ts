@@ -105,17 +105,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   { code: "item_used", name: "Alquimista", emoji: "⚗️", description: "Usa un objeto en una misión", rarity: "comun", group: "tienda", target: 1, metric: (c) => c.itemsUsed },
 ];
 
-export const GROUP_LABEL: Record<Achievement["group"], string> = {
-  constancia: "Constancia",
-  volumen: "Misiones",
-  categorias: "Categorías",
-  ar: "Realidad aumentada",
-  nivel: "Nivel",
-  bienestar: "Bienestar",
-  mundo: "Mundo",
-  tienda: "Tienda",
-};
-
 export function getAchievement(code: string): Achievement | undefined {
   return ACHIEVEMENTS.find((a) => a.code === code);
 }
