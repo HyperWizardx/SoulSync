@@ -1,6 +1,6 @@
 import type { CheckinRecord } from "@/domain/wellbeing/types";
 import { MISSION_CATEGORY, getMissionById } from "@/domain/gamification/missionsData";
-import type { TaskCategoryName } from "@/presentation/hooks/useUserStore";
+import type { TaskCategoryName } from "@/domain/gamification/rewards";
 
 export type MetricKey = "bienestar" | "resiliencia" | "energia" | "claridad";
 

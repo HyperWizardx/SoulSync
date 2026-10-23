@@ -65,3 +65,5 @@ Presentación ─► Servicio ─► Aplicación ─► Dominio ◄─ Infraestr
 - `useProfileActions.ts`, `useMissionActions.ts` y `useInventoryActions.ts` separan identidad/ajustes, misiones y objetos. Conservan las claves de consultas y la actualización inmediata del perfil antes de navegar.
 - Las reglas de recompensas y permisos permanecen en las capas interiores; los hooks solo coordinan llamadas, caché y avisos visuales.
 - `userState.test.ts` comprueba la traducción de datos reales y la actualización del perfil sin alterar el progreso original.
+
+Los contratos compartidos de recompensas y atributos se definen en `domain/gamification/rewards.ts`; presentación los reexporta para conservar compatibilidad sin dependencias hacia fuera del dominio.
