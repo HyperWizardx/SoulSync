@@ -72,7 +72,7 @@ export async function buildAchievementContext(
 }
 
 /** Desbloquea logros pendientes y entrega su recompensa (una sola vez). */
-export async function grantAchievements(db: Db, userId: string, ctx: AchievementContext) {
+async function grantAchievements(db: Db, userId: string, ctx: AchievementContext) {
   const { data: ownedRows } = await db.from("achievements").select("code").eq("user_id", userId);
   const owned = (ownedRows ?? []).map((r) => r.code as string);
   const pending = evaluateAchievements(ctx, owned);
