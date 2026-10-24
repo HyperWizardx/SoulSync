@@ -1,0 +1,3 @@
+ALTER TABLE public.wellbeing_checkins ADD COLUMN IF NOT EXISTS checkin_local_hour smallint, ADD COLUMN IF NOT EXISTS response_seconds integer;
+COMMENT ON COLUMN public.wellbeing_checkins.checkin_local_hour IS 'Hora local (0-23) del check-in; variable pasiva con consentimiento';
+COMMENT ON COLUMN public.wellbeing_checkins.response_seconds IS 'Segundos que tardó en responder el check-in; variable pasiva con consentimiento';
