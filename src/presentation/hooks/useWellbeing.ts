@@ -26,6 +26,8 @@ export function useWellbeing() {
       energy: number;
       social: number;
       sleepHours?: number | null;
+      localHour?: number;
+      responseSeconds?: number;
     }) => checkinFn({ data }),
     onSuccess: (data) => {
       setPayload(data);

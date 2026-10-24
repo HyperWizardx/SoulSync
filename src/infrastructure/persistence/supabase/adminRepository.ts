@@ -39,7 +39,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
     async loadDetail(uid, since30) {
     const [checkinRes, predRes, missionRes, taskRes, timelineRes, scaleRes, worldRes, statRes, attrRes] =
       await Promise.all([
-        supabase.from("wellbeing_checkins").select("checkin_date, mood, stress, energy, social, sleep_hours").eq("user_id", uid).gte("checkin_date", since30).order("checkin_date", { ascending: true }),
+        supabase.from("wellbeing_checkins").select("checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds").eq("user_id", uid).gte("checkin_date", since30).order("checkin_date", { ascending: true }),
         supabase.from("wellbeing_predictions").select("generated_at, risk_level, trend, score, coverage").eq("user_id", uid).order("generated_at", { ascending: false }).limit(30),
         supabase.from("mission_completions").select("title, completed_at, xp_earned, is_ar, category").eq("user_id", uid).order("completed_at", { ascending: false }).limit(40),
         supabase.from("task_events").select("status, category").eq("user_id", uid).gte("occurred_date", since30),
@@ -57,6 +57,8 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
       energy: c.energy,
       social: c.social,
       sleepHours: c.sleep_hours === null ? null : Number(c.sleep_hours),
+      localHour: c.checkin_local_hour ?? null,
+      responseSeconds: c.response_seconds ?? null,
     }));
 
     const { user_id: _omit, updated_at: _omit2, ...attrs } = (attrRes.data ?? {}) as Record<string, any>;

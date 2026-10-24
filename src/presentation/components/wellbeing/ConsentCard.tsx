@@ -54,7 +54,7 @@ export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onC
             <li>• Escalas de bienestar que respondas dentro de la app, si las hay.</li>
           </ul>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            No se recogen textos libres ni información clínica. Puedes revocar el consentimiento cuando quieras y tus
+            También se registra la hora de tu check-in y cuánto tardas en responderlo (para detectar trasnocho o cambios de rutina). No se recogen textos libres ni información clínica. Puedes revocar el consentimiento cuando quieras y tus
             datos del módulo se eliminan.
           </p>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{DISCLAIMER}</p>
