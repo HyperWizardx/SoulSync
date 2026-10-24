@@ -1,10 +1,14 @@
 /** Control compacto de paisaje sonoro para misiones de respiración, meditación y enfoque. */
+import { useEffect } from "react";
 import { Volume2 } from "lucide-react";
 import { SOUNDSCAPES, useSoundscape } from "@/presentation/hooks/useSoundscape";
 
 export function SoundscapeControl({ stopped = false }: { stopped?: boolean }) {
   const s = useSoundscape();
-  if (stopped && s.kind !== "off") s.stop();
+  const { kind, stop } = s;
+  useEffect(() => {
+    if (stopped && kind !== "off") stop();
+  }, [stopped, kind, stop]);
   const binaural = s.kind === "alpha" || s.kind === "theta";
   return (
     <div className="w-full max-w-xs rounded-2xl border border-border bg-card/80 p-3">

@@ -1,3 +1,4 @@
+import { SoundscapeControl } from "@/presentation/components/missions/SoundscapeControl";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
@@ -84,6 +85,7 @@ export function BreathingMission({ cycles = 4, onComplete, onClose }: Props) {
       <p className="mt-8 max-w-xs text-center text-xs text-muted-foreground">
         {done ? "¡Sesión completada!" : "Sigue el ritmo de la esfera. Respira con calma."}
       </p>
+      <div className="mt-6 flex w-full justify-center"><SoundscapeControl stopped={done} /></div>
     </div>
   );
 }

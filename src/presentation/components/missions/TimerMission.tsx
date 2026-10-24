@@ -1,3 +1,4 @@
+import { SoundscapeControl } from "@/presentation/components/missions/SoundscapeControl";
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, X } from "lucide-react";
 
@@ -88,6 +89,7 @@ export function TimerMission({ title, emoji, durationSec, description, onComplet
           {running ? "Pausar" : "Continuar"}
         </button>
       )}
+      <div className="mt-6 flex w-full justify-center"><SoundscapeControl /></div>
     </div>
   );
 }

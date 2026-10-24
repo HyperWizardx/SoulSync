@@ -46,7 +46,7 @@ export function useSoundscape() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
       if (saved?.volume !== undefined) setVolume(Number(saved.volume));
-      if (saved?.kind) setKind(saved.kind === "off" ? "off" : "off"); // no autoreproducir sin gesto
+      // No se autoreproduce: el navegador exige un gesto del usuario.
       if (saved?.kind) lastKind.current = saved.kind;
     } catch { /* noop */ }
   }, []);
