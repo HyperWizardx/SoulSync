@@ -6,6 +6,8 @@ import { useUserStore, useProfileSummary } from "@/presentation/hooks/useUserSto
 import { useState } from "react";
 import { toast } from "sonner";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
+import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
+import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { WeeklyChart } from "@/presentation/components/layout/WeeklyChart";
@@ -190,6 +192,7 @@ function ProfilePage() {
 
         {/* Avatar Card */}
         <div className="mt-4 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 to-card p-6">
+          <AuraHalo aura={wellbeing.data?.aura} color={archStyle.glow} showLabel={false}>
           <div className="relative">
             <MiniAvatar3D size={140} glowColor={archStyle.glow} exposure={archStyle.exposure} />
             <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-lg">
