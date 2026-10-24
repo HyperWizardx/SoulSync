@@ -46,6 +46,7 @@ function ProfilePage() {
   const [expandedAttr, setExpandedAttr] = useState<string | null>(null);
   const [filter, setFilter] = useState<"todos" | "desbloqueados" | "pendientes">("todos");
   const archStyle = getArchetypeStyle(user.archetype);
+  const wellbeing = useWellbeing();
 
   const unlocked = new Set(user.achievements);
   const ctx = (summary?.context as AchievementContext | undefined) ?? null;
@@ -202,6 +203,12 @@ function ProfilePage() {
               <AvatarIcon index={user.avatar} size={34} />
             </span>
           </div>
+          </AuraHalo>
+          {wellbeing.data?.aura && (
+            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+              <span className="font-semibold text-foreground">Aura {wellbeing.data.aura.name}</span> · {wellbeing.data.aura.message}
+            </p>
+          )}
 
           {editing ? (
             <div className="mt-3 flex items-center gap-2 animate-fade-in">
