@@ -36,6 +36,8 @@ const CheckinSchema = z.object({
   energy: z.number().int().min(1).max(5),
   social: z.number().int().min(1).max(5),
   sleepHours: z.number().min(0).max(24).nullable().optional(),
+  localHour: z.number().int().min(0).max(23).nullable().optional(),
+  responseSeconds: z.number().int().min(0).max(3600).nullable().optional(),
 });
 
 /** Guarda el check-in diario (requiere consentimiento). */

@@ -150,6 +150,16 @@ export function extractFeatures(input: PredictionInput): FeatureSet {
     features.selfcareGap = available("selfcareGap", (7 - Math.min(7, selfcareDays.size)) / 7);
   }
 
+  // --- Variables pasivas (fv4): hora y latencia del check-in ---
+  const passive = computePassiveSignals(last14, last7);
+  features.lateCheckin = passive.lateCheckin === null ? unavailable("lateCheckin") : available("lateCheckin", passive.lateCheckin);
+  features.scheduleIrregularity =
+    passive.scheduleIrregularity === null
+      ? unavailable("scheduleIrregularity")
+      : available("scheduleIrregularity", passive.scheduleIrregularity);
+  features.responseLatency =
+    passive.responseLatency === null ? unavailable("responseLatency") : available("responseLatency", passive.responseLatency);
+
   // --- Índice compuesto de bienestar por ventana (autorreporte + cumplimiento) ---
   const windowIndex = (window: typeof last7, missions: number): number | null => {
     if (window.length === 0) return null;
@@ -193,4 +203,43 @@ export function serializeFeatures(featureSet: FeatureSet): Record<string, number
   out["wellbeingIndexPrev7"] =
     featureSet.wellbeingIndexPrev7 === null ? null : Number(featureSet.wellbeingIndexPrev7.toFixed(4));
   return out;
+}
+
+/** Mínimo de check-ins con dato pasivo para calcular cada señal. */
+export const MIN_PASSIVE = 3;
+
+/**
+ * Señales pasivas a partir de la hora local y la latencia del check-in.
+ * - lateCheckin: fracción de check-ins entre 00:00 y 04:59.
+ * - scheduleIrregularity: desviación típica de la hora (madrugada se cuenta como +24 h) / 6 h.
+ * - responseLatency: cuánto supera la latencia reciente (últimos 7 días) a la línea base propia.
+ */
+export function computePassiveSignals(
+  last14: { date: string; localHour?: number | null; responseSeconds?: number | null }[],
+  last7: { date: string; responseSeconds?: number | null }[],
+): { lateCheckin: number | null; scheduleIrregularity: number | null; responseLatency: number | null } {
+  const hours = last14
+    .map((c) => c.localHour)
+    .filter((h): h is number => typeof h === "number" && h >= 0 && h <= 23);
+  let lateCheckin: number | null = null;
+  let scheduleIrregularity: number | null = null;
+  if (hours.length >= MIN_PASSIVE) {
+    lateCheckin = clamp01(hours.filter((h) => h < 5).length / hours.length);
+    const shifted = hours.map((h) => (h < 5 ? h + 24 : h));
+    const m = shifted.reduce((a, b) => a + b, 0) / shifted.length;
+    const sd = Math.sqrt(shifted.reduce((a, b) => a + (b - m) ** 2, 0) / shifted.length);
+    scheduleIrregularity = clamp01(sd / 6);
+  }
+  const lat = (rows: { responseSeconds?: number | null }[]) =>
+    rows.map((c) => c.responseSeconds).filter((s): s is number => typeof s === "number" && s > 0);
+  const all = lat(last14);
+  const recent = lat(last7);
+  let responseLatency: number | null = null;
+  if (all.length >= MIN_PASSIVE + 1 && recent.length >= 1) {
+    const sorted = [...all].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    const recentMean = recent.reduce((a, b) => a + b, 0) / recent.length;
+    responseLatency = median <= 0 ? null : clamp01(recentMean / median - 1);
+  }
+  return { lateCheckin, scheduleIrregularity, responseLatency };
 }

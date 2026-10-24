@@ -13,6 +13,8 @@ import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features"
 import { activeModel } from "@/domain/wellbeing/inference";
 import { deriveWorldState } from "@/domain/world/world";
 import type { WorldState } from "@/domain/world/world";
+import { computeAura, type AuraState } from "@/domain/gamification/aura";
+import { SELFCARE_CATEGORIES, daysBetween } from "@/domain/wellbeing/features";
 
 export type ConsentState = {
   accepted: boolean;
@@ -37,6 +39,8 @@ export type WellbeingPayload = {
   prediction: WellbeingPrediction | null;
   world: WorldState | null;
   timeline: TimelineEntry[];
+  /** Aura del avatar según el autocuidado de los últimos 7 días. */
+  aura: AuraState;
 };
 
 export const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -99,7 +103,7 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         .maybeSingle(),
       supabase
         .from("wellbeing_checkins")
-        .select("checkin_date, mood, stress, energy, social, sleep_hours")
+        .select("checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds")
         .eq("user_id", userId)
         .gte("checkin_date", since)
         .order("checkin_date", { ascending: false }),
@@ -110,7 +114,7 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         .maybeSingle(),
       supabase
         .from("mission_completions")
-        .select("completed_date")
+        .select("completed_date, category")
         .eq("user_id", userId)
         .gte("completed_at", sinceTelemetry),
       supabase
@@ -148,6 +152,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     energy: c.energy as number,
     social: c.social as number,
     sleepHours: c.sleep_hours === null ? null : Number(c.sleep_hours),
+    localHour: c.checkin_local_hour ?? null,
+    responseSeconds: c.response_seconds ?? null,
   }));
 
   const todayCheckin = checkins.find((c) => c.date === today) ?? null;
@@ -160,8 +166,48 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     occurredAt: t.occurred_at as string,
   }));
 
+  // Aura: días con check-in y días con misiones de autocuidado (últimos 7 días).
+  const in7 = (d: string) => {
+    const diff = daysBetween(d, today);
+    return diff >= 0 && diff < 7;
+  };
+  const checkinDays = new Set(checkins.filter((c) => in7(c.date)).map((c) => c.date));
+  const selfcareDays = new Set(
+    (missionRes.data ?? [])
+      .filter((m) => in7(m.completed_date as string) && SELFCARE_CATEGORIES.has(String(m.category ?? "")))
+      .map((m) => m.completed_date as string),
+  );
+  const aura = computeAura(
+    { checkinDays: checkinDays.size, selfcareDays: selfcareDays.size, streak: profileRes.data?.streak ?? 0 },
+    new Set([...checkinDays, ...selfcareDays]).size,
+  );
+
   if (!consent.accepted) {
-    return { consent, todayCheckin, checkins, prediction: null, world: null, timeline };
+    return { consent, todayCheckin, checkins, prediction: null, world: null, timeline, aura };
+  }
+
+  // Hito en la historia cuando el aura sube de nivel respecto al último registrado.
+  if (aura.level > 0) {
+    const { data: lastAura } = await supabase
+      .from("timeline_events")
+      .select("payload")
+      .eq("user_id", userId)
+      .eq("kind", "milestone")
+      .like("title", "Aura%")
+      .order("occurred_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const prevLevel = Number((lastAura?.payload as { auraLevel?: number } | null)?.auraLevel ?? 0);
+    if (aura.level > prevLevel) {
+      const title = `Aura ${aura.name}`;
+      await addTimelineEvent(supabase, userId, {
+        kind: "milestone",
+        title,
+        detail: aura.message,
+        payload: { auraLevel: aura.level },
+      });
+      timeline.unshift({ id: `local-aura-${aura.level}`, kind: "milestone", title, detail: aura.message, occurredAt: new Date().toISOString() });
+    }
   }
 
   const missionsByDate: Record<string, number> = {};
@@ -307,5 +353,5 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     }
   }
 
-  return { consent, todayCheckin, checkins, prediction, world, timeline };
+  return { consent, todayCheckin, checkins, prediction, world, timeline, aura };
 }

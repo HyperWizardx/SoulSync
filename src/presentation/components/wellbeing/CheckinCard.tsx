@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import type { CheckinRecord } from "@/domain/wellbeing/types";
 
@@ -12,7 +12,7 @@ const SCALES = [
 interface Props {
   today: CheckinRecord | null;
   pending: boolean;
-  onSubmit: (v: { mood: number; stress: number; energy: number; social: number; sleepHours: number | null }) => void;
+  onSubmit: (v: { mood: number; stress: number; energy: number; social: number; sleepHours: number | null; localHour: number; responseSeconds: number }) => void;
 }
 
 export function CheckinCard({ today, pending, onSubmit }: Props) {
@@ -24,6 +24,11 @@ export function CheckinCard({ today, pending, onSubmit }: Props) {
   });
   const [sleep, setSleep] = useState<string>(today?.sleepHours != null ? String(today.sleepHours) : "");
   const [open, setOpen] = useState(!today);
+  // Variable pasiva: momento en que se abre el formulario para medir la latencia.
+  const openedAt = useRef<number>(0);
+  useEffect(() => {
+    if (open) openedAt.current = Date.now();
+  }, [open]);
 
   if (today && !open) {
     return (
@@ -97,7 +102,8 @@ export function CheckinCard({ today, pending, onSubmit }: Props) {
         onClick={() => {
           const parsed = sleep.trim() === "" ? null : Number(sleep);
           const sleepHours = parsed !== null && Number.isFinite(parsed) && parsed >= 0 && parsed <= 24 ? parsed : null;
-          onSubmit({ ...values, sleepHours });
+          const responseSeconds = Math.min(3600, Math.max(0, Math.round((Date.now() - openedAt.current) / 1000)));
+          onSubmit({ ...values, sleepHours, localHour: new Date().getHours(), responseSeconds });
           setOpen(false);
         }}
         className="mt-4 min-h-11 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-transform active:scale-95 disabled:opacity-50"

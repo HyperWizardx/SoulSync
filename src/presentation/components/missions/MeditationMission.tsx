@@ -1,3 +1,4 @@
+import { SoundscapeControl } from "@/presentation/components/missions/SoundscapeControl";
 import { useEffect, useRef, useState } from "react";
 import { X, Pause, Play } from "lucide-react";
 import { tap } from "@/shared/haptics";
@@ -88,6 +89,7 @@ export function MeditationMission({ durationSec = 120, onComplete, onClose }: Pr
       >
         {paused ? <><Play className="h-4 w-4" /> Reanudar</> : <><Pause className="h-4 w-4" /> Pausar</>}
       </button>
+      <div className="mt-6 flex w-full justify-center"><SoundscapeControl stopped={remaining <= 0} /></div>
     </div>
   );
 }

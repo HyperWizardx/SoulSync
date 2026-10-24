@@ -5,6 +5,8 @@ import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
 import { AvatarHero, computeMood } from "@/presentation/components/avatars/AvatarHero";
+import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
+import { AVATAR_META } from "@/presentation/components/avatars/AvatarArt";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
 import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
@@ -55,7 +57,9 @@ function DashboardPage() {
         </div>
 
         <div className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
-          <AvatarHero index={user.avatar} mood={computeMood(user.stats)} size={176} />
+          <AuraHalo aura={wb?.aura} color={(AVATAR_META[user.avatar] ?? AVATAR_META[0]).ring}>
+            <AvatarHero index={user.avatar} mood={computeMood(user.stats)} size={176} />
+          </AuraHalo>
         </div>
 
         <div className="mt-4">

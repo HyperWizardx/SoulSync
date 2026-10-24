@@ -12,6 +12,9 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   scaleDistress: "Resultado de escala de bienestar",
   taskSkipRate: "Tareas diarias omitidas",
   selfcareGap: "Días sin práctica de autocuidado",
+  lateCheckin: "Check-ins de madrugada",
+  scheduleIrregularity: "Horario irregular de uso",
+  responseLatency: "Respuestas más lentas de lo habitual",
 };
 
 export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
@@ -26,6 +29,9 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   scaleDistress: "Proviene de una escala de bienestar que respondiste dentro de la app.",
   taskSkipRate: "Esta semana omitiste una parte de las tareas que iniciaste o tenías asignadas.",
   selfcareGap: "Hubo varios días sin completar tareas de autocuidado, reflexión o movimiento.",
+  lateCheckin: "Parte de tus check-ins recientes se hicieron entre las 00:00 y las 05:00, lo que puede indicar trasnocho.",
+  scheduleIrregularity: "La hora a la que haces tu check-in varía bastante de un día a otro.",
+  responseLatency: "Tus últimos check-ins te tomaron más tiempo que tu propio promedio.",
 };
 
 export const RISK_COPY: Record<RiskLevel, { title: string; body: string; tone: string }> = {

@@ -395,11 +395,13 @@ export type Database = {
       wellbeing_checkins: {
         Row: {
           checkin_date: string
+          checkin_local_hour: number | null
           created_at: string
           energy: number
           id: string
           mood: number
           note: string | null
+          response_seconds: number | null
           sleep_hours: number | null
           social: number
           stress: number
@@ -408,11 +410,13 @@ export type Database = {
         }
         Insert: {
           checkin_date?: string
+          checkin_local_hour?: number | null
           created_at?: string
           energy: number
           id?: string
           mood: number
           note?: string | null
+          response_seconds?: number | null
           sleep_hours?: number | null
           social: number
           stress: number
@@ -421,11 +425,13 @@ export type Database = {
         }
         Update: {
           checkin_date?: string
+          checkin_local_hour?: number | null
           created_at?: string
           energy?: number
           id?: string
           mood?: number
           note?: string | null
+          response_seconds?: number | null
           sleep_hours?: number | null
           social?: number
           stress?: number
