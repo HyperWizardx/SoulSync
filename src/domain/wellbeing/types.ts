@@ -7,10 +7,10 @@
  * validado clínicamente. Los pesos del baseline se fijaron por criterio
  * (no fueron aprendidos de un dataset etiquetado).
  */
-export const FEATURE_VERSION = "fv3";
+export const FEATURE_VERSION = "fv4";
 export const CONSENT_VERSION = "consent-2026-08-v1";
 export type RiskLevel = "bajo" | "moderado" | "alto" | "insuficiente";
-export interface CheckinRecord { date: string; mood: number; stress: number; energy: number; social: number; sleepHours?: number | null; }
+export interface CheckinRecord { date: string; mood: number; stress: number; energy: number; social: number; sleepHours?: number | null; localHour?: number | null; responseSeconds?: number | null; }
 export interface ScaleRecord { code: string; raw: number; max: number; answeredAt: string; }
 export interface TelemetryInput { missionsByDate: Record<string, number>; dailyGoal: number; lastMissionDate?: string | null; }
 export type TaskStatus = "assigned" | "started" | "completed" | "skipped";
@@ -18,7 +18,7 @@ export type TaskCategory = "autocuidado" | "reflexion" | "movimiento" | "social"
 export interface TaskEventRecord { date: string; missionId: string; status: TaskStatus; category: TaskCategory; durationSeconds: number; }
 export interface UserStatsInput { bienestar: number; resiliencia: number; energia: number; claridad: number; }
 export interface PredictionInput { today: string; checkins: CheckinRecord[]; telemetry: TelemetryInput; scales?: ScaleRecord[]; taskEvents?: TaskEventRecord[]; stats?: UserStatsInput; }
-export type FeatureKey = "moodLow" | "moodDecline" | "stressHigh" | "sleepDeficit" | "engagementDrop" | "lowAdherence" | "socialWithdrawal" | "streakBreak" | "scaleDistress" | "taskSkipRate" | "selfcareGap";
+export type FeatureKey = "moodLow" | "moodDecline" | "stressHigh" | "sleepDeficit" | "engagementDrop" | "lowAdherence" | "socialWithdrawal" | "streakBreak" | "scaleDistress" | "taskSkipRate" | "selfcareGap" | "lateCheckin" | "scheduleIrregularity" | "responseLatency";
 export interface FeatureValue { key: FeatureKey; value: number | null; available: boolean; }
 export type TrendDirection = "mejorando" | "estable" | "empeorando" | "indeterminada";
 export interface FeatureSet { featureVersion: string; features: Record<FeatureKey, FeatureValue>; checkinCount14: number; wellbeingIndex7: number | null; wellbeingIndexPrev7: number | null; }

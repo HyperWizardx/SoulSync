@@ -99,7 +99,7 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         .maybeSingle(),
       supabase
         .from("wellbeing_checkins")
-        .select("checkin_date, mood, stress, energy, social, sleep_hours")
+        .select("checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds")
         .eq("user_id", userId)
         .gte("checkin_date", since)
         .order("checkin_date", { ascending: false }),
@@ -148,6 +148,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     energy: c.energy as number,
     social: c.social as number,
     sleepHours: c.sleep_hours === null ? null : Number(c.sleep_hours),
+    localHour: c.checkin_local_hour ?? null,
+    responseSeconds: c.response_seconds ?? null,
   }));
 
   const todayCheckin = checkins.find((c) => c.date === today) ?? null;

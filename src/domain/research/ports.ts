@@ -32,7 +32,7 @@ export interface ConsentRow { user_id: string; consent_version: string; revoked_
 export interface StudentSnapshot {
   profiles: { user_id: string; name: string | null; level: number | null; streak: number | null; archetype: number | null; daily_goal: number | null; last_mission_date: string | null }[];
   consents: ConsentRow[];
-  checkins: { user_id: string; checkin_date: string; mood: number; stress: number; energy: number; social: number; sleep_hours: number | null }[];
+  checkins: { user_id: string; checkin_date: string; mood: number; stress: number; energy: number; social: number; sleep_hours: number | null; checkin_local_hour?: number | null; response_seconds?: number | null }[];
   missions: { user_id: string; completed_date: string; completed_at: string }[];
   tasks: { user_id: string; occurred_date: string; mission_id: string; status: string; category: string; duration_seconds: number }[];
   emails: Map<string, string>;
@@ -51,7 +51,7 @@ export interface AdminDeps { repository: AdminRepository; now: () => Date; }
 
 /** Campos permitidos: no se exporta texto libre ni identidad directa. */
 export const DATASET_COLUMNS = {
-      checkins: "user_id, checkin_date, mood, stress, energy, social, sleep_hours",
+      checkins: "user_id, checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds",
       task_events: "user_id, occurred_date, mission_id, status, category, duration_seconds, is_ar",
       missions: "user_id, completed_date, mission_id, title, category, xp_earned, is_ar",
       predictions: "user_id, generated_at, model_version, feature_version, score, risk_level, trend, trend_delta, coverage",

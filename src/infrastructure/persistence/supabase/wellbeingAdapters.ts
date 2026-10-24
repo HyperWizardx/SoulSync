@@ -30,7 +30,7 @@ export const supabaseConsentRepository = (db: Db): ConsentRepository => ({
 export const supabaseWellbeingEventRepository = (db: Db): WellbeingEventRepository => ({
   async upsertCheckin(userId, date, i) {
     await db.from("wellbeing_checkins").upsert(
-      { user_id: userId, checkin_date: date, mood: i.mood, stress: i.stress, energy: i.energy, social: i.social, sleep_hours: i.sleepHours ?? null },
+      { user_id: userId, checkin_date: date, mood: i.mood, stress: i.stress, energy: i.energy, social: i.social, sleep_hours: i.sleepHours ?? null, checkin_local_hour: i.localHour ?? null, response_seconds: i.responseSeconds ?? null },
       { onConflict: "user_id,checkin_date" },
     );
   },

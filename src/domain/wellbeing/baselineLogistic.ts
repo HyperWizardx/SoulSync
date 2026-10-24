@@ -22,7 +22,14 @@ export const BASELINE_WEIGHTS: Record<FeatureKey, number> = {
   streakBreak: 0.03,
   taskSkipRate: 0.07,
   selfcareGap: 0.05,
+  // Variables pasivas (fv4): pesos pequeños, solo cuentan si hay datos.
+  lateCheckin: 0.04,
+  scheduleIrregularity: 0.03,
+  responseLatency: 0.02,
 };
+
+/** Variables pasivas: si faltan no reducen la cobertura (no penalizan a quien no las tiene). */
+export const PASSIVE_FEATURES = new Set<FeatureKey>(["lateCheckin", "scheduleIrregularity", "responseLatency"]);
 
 /** Pendiente e intercepto del enlace logístico: índice 0.5 → probabilidad 0.5. */
 const INTERCEPT = -3.2;
@@ -49,7 +56,9 @@ export const baselineLogisticModel: WellbeingModel = {
     const generatedAt = new Date().toISOString();
     const entries = Object.values(featureSet.features);
 
-    const totalWeight = entries.reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
+    const totalWeight = entries
+      .filter((f) => f.available || !PASSIVE_FEATURES.has(f.key))
+      .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
     const availableWeight = entries
       .filter((f) => f.available)
       .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);

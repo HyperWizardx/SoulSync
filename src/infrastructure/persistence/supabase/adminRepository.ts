@@ -21,7 +21,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
   const [profiles, consents, checkins, missions, tasks] = await Promise.all([
     supabase.from("profiles").select("user_id, name, level, streak, archetype, daily_goal, last_mission_date"),
     supabase.from("research_consent").select("user_id, consent_version, revoked_at, accepted_at").order("accepted_at", { ascending: false }),
-    supabase.from("wellbeing_checkins").select("user_id, checkin_date, mood, stress, energy, social, sleep_hours").gte("checkin_date", since),
+    supabase.from("wellbeing_checkins").select("user_id, checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds").gte("checkin_date", since),
     supabase.from("mission_completions").select("user_id, completed_date, completed_at").gte("completed_at", sinceTs),
     supabase.from("task_events").select("user_id, occurred_date, mission_id, status, category, duration_seconds").gte("occurred_date", since),
   ]);

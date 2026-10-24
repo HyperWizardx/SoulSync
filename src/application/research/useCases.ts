@@ -68,6 +68,8 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
       energy: c.energy,
       social: c.social,
       sleepHours: c.sleep_hours === null ? null : Number(c.sleep_hours),
+      localHour: c.checkin_local_hour ?? null,
+      responseSeconds: c.response_seconds ?? null,
     }));
     const userMissions = missionsByUser.get(p.user_id) ?? [];
     const userTasks = tasksByUser.get(p.user_id) ?? [];

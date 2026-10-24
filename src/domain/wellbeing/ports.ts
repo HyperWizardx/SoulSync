@@ -12,6 +12,9 @@ export interface CheckinInput {
   energy: number;
   social: number;
   sleepHours?: number | null;
+  /** Variables pasivas (solo con consentimiento). */
+  localHour?: number | null;
+  responseSeconds?: number | null;
 }
 
 /** Evento del ciclo de vida de una tarea/misión. */
