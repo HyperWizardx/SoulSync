@@ -11,3 +11,5 @@
 - Keep `useUserStore` as a compatibility facade over presentation hooks for progress queries, profile/settings, missions and inventory; retain query keys and immediate profile cache updates — why: separates responsibilities without breaking consumers or onboarding navigation.
 
 - Shared mission reward and attribute contracts live in domain/gamification/rewards and are re-exported by the presentation facade — why: domain consumers must not import presentation types.
+- Passive check-in signals are optional model features excluded from coverage when missing — why: users without that data must not get a weaker signal.
+- The admin what-if simulator calls the active model through `application/research/simulate.ts` and never persists — why: explainability must match real inference exactly.

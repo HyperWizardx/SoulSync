@@ -145,8 +145,8 @@ describe("baselineLogisticModel", () => {
 
   it("incluye trazabilidad completa", () => {
     const p = baselineLogisticModel.predict(extractFeatures(makeInput({ checkins: checkins(5, {}) })));
-    expect(p.modelVersion).toBe("baseline-logistic-v2");
-    expect(p.featureVersion).toBe("fv3");
+    expect(p.modelVersion).toBe("baseline-logistic-v3");
+    expect(p.featureVersion).toBe("fv4");
     expect(typeof p.generatedAt).toBe("string");
     expect(p.coverage).toBeGreaterThan(0);
   });

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { WhatIfSimulator } from "@/presentation/components/admin/WhatIfSimulator";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
 import { useAdminAccess, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
 import { DATASETS, type DatasetKey } from "@/service/server-functions/admin.functions";
@@ -134,6 +135,8 @@ function AdminMetricsPage() {
               </tbody>
             </table>
           </div>
+
+          <WhatIfSimulator participants={data?.rows ?? []} />
 
           <div className="rounded-2xl border border-border bg-card p-4">
             <h2 className="mb-1 font-semibold text-foreground">Exportar datos</h2>

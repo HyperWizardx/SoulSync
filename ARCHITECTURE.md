@@ -67,3 +67,9 @@ Presentación ─► Servicio ─► Aplicación ─► Dominio ◄─ Infraestr
 - `userState.test.ts` comprueba la traducción de datos reales y la actualización del perfil sin alterar el progreso original.
 
 Los contratos compartidos de recompensas y atributos se definen en `domain/gamification/rewards.ts`; presentación los reexporta para conservar compatibilidad sin dependencias hacia fuera del dominio.
+
+## Aura, paisajes sonoros, variables pasivas y simulador (fv4)
+- `domain/gamification/aura.ts`: regla pura del aura del avatar (0–4) desde check-ins, autocuidado y racha; `AuraHalo` la dibuja en Dashboard y Perfil.
+- `presentation/hooks/useSoundscape.ts`: sonido generado con Web Audio (ruido, lluvia, olas, binaurales) en respiración, meditación y temporizador.
+- `domain/wellbeing/features.ts` → `computePassiveSignals`: hora local y latencia del check-in (`lateCheckin`, `scheduleIrregularity`, `responseLatency`); `PASSIVE_FEATURES` no penalizan la cobertura si faltan.
+- `application/research/simulate.ts`: simulador what-if que ejecuta el modelo activo sin persistir; UI en `/admin/metricas`.
