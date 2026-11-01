@@ -89,7 +89,7 @@ export function TimerMission({ title, emoji, durationSec, description, onComplet
           {running ? "Pausar" : "Continuar"}
         </button>
       )}
-      <div className="mt-6 flex w-full justify-center"><SoundscapeControl /></div>
+      <div className="mt-6 flex w-full justify-center"><SoundscapeControl stopped={done} /></div>
     </div>
   );
 }
