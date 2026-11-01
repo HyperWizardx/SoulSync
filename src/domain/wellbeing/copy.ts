@@ -79,4 +79,7 @@ export const RECOMMENDATIONS: Record<FeatureKey, string> = {
   scaleDistress: "Conversa tus resultados con Bienestar Universitario; ellos pueden orientarte mejor que la app.",
   taskSkipRate: "Elige una sola tarea corta hoy: completar una es mejor señal que planear cinco.",
   selfcareGap: "Reserva 3 minutos para respiración o gratitud; son las tareas que más sostienen tu ritmo.",
+  lateCheckin: "Intenta hacer tu check-in antes de medianoche y prueba la Meditación guiada para cerrar el día.",
+  scheduleIrregularity: "Elige una hora fija para tu check-in; una rutina estable ayuda a tu descanso.",
+  responseLatency: "Si te cuesta responder, tómate un respiro: una Respiración guiada corta puede despejarte.",
 };

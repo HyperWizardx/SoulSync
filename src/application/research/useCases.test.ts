@@ -94,7 +94,7 @@ describe('Exportación consentida', () => {
     expect(repository.loadDataset).toHaveBeenCalledWith('checkins', [uid]);
     expect(result.rows).toBe(1);
     expect(result.filename).toBe('soulsync_checkins.csv');
-    expect(result.csv.split('\n')[1]).toBe(`${participantCode(uid)},2026-10-21,4,2,3,4,8`);
+    expect(result.csv.split('\n')[1]).toBe(`${participantCode(uid)},2026-10-21,4,2,3,4,8,,`);
     expect(result.csv).not.toContain(uid);
     expect(result.csv).not.toContain('privado@example.com');
   });

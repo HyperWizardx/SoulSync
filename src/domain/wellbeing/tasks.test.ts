@@ -127,8 +127,8 @@ describe("tendencia esperada", () => {
     const p = baselineLogisticModel.predict(
       extractFeatures(makeInput({ taskEvents: tasks(5, "completed") })),
     );
-    expect(p.modelVersion).toBe("baseline-logistic-v2");
-    expect(p.featureVersion).toBe("fv3");
+    expect(p.modelVersion).toBe("baseline-logistic-v3");
+    expect(p.featureVersion).toBe("fv4");
     expect(p.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(["mejorando", "estable", "empeorando", "indeterminada"]).toContain(p.trend);
   });

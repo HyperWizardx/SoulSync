@@ -2,7 +2,7 @@ import { explainContributions } from "@/domain/wellbeing/explain";
 import { computeTrend } from "@/domain/wellbeing/trend";
 import type { FeatureKey, FeatureSet, WellbeingModel, WellbeingPrediction, RiskLevel } from "@/domain/wellbeing/types";
 
-export const BASELINE_MODEL_VERSION = "baseline-logistic-v2";
+export const BASELINE_MODEL_VERSION = "baseline-logistic-v3";
 
 /**
  * Pesos definidos por CRITERIO (revisión conceptual de la propuesta de tesis),
