@@ -23,5 +23,11 @@ export interface FeatureValue { key: FeatureKey; value: number | null; available
 export type TrendDirection = "mejorando" | "estable" | "empeorando" | "indeterminada";
 export interface FeatureSet { featureVersion: string; features: Record<FeatureKey, FeatureValue>; checkinCount14: number; wellbeingIndex7: number | null; wellbeingIndexPrev7: number | null; }
 export interface FactorExplanation { key: FeatureKey; label: string; contribution: number; value: number; direction: "riesgo" | "protector"; description: string; }
-export interface WellbeingPrediction { modelVersion: string; featureVersion: string; score: number | null; riskLevel: RiskLevel; coverage: number; explanation: FactorExplanation[]; generatedAt: string; trend: TrendDirection; trendDelta: number; insufficientReason?: string; }
-export interface WellbeingModel { modelVersion: string; predict(featureSet: FeatureSet): WellbeingPrediction; }
+export type SignalConfidence = "alta" | "media" | "baja";
+export type SafetyFlag = "triada_estres_sueno_aislamiento" | "escala_severa" | "animo_muy_bajo_sostenido";
+/** Ajustes del criterio de decisión (v4) sobre el índice base, en puntos de score (0–1). */
+export interface DecisionAdjustments { personal: number; protective: number; academic: number; hysteresis: "ninguna" | "contenida" | "sostenida"; }
+export interface WellbeingPrediction { modelVersion: string; featureVersion: string; score: number | null; riskLevel: RiskLevel; coverage: number; explanation: FactorExplanation[]; generatedAt: string; trend: TrendDirection; trendDelta: number; insufficientReason?: string; rawScore?: number | null; confidence?: SignalConfidence; safetyFlags?: SafetyFlag[]; protectiveFactors?: { key: FeatureKey; label: string }[]; adjustments?: DecisionAdjustments; }
+/** Contexto opcional para decidir: historia de niveles (más reciente primero), periodo académico y check-ins para la línea base personal. */
+export interface DecisionContext { previousLevels?: RiskLevel[]; examPeriod?: boolean; checkins?: CheckinRecord[]; today?: string; }
+export interface WellbeingModel { modelVersion: string; predict(featureSet: FeatureSet, context?: DecisionContext): WellbeingPrediction; }
