@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      academic_calendar: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_date: string
+          id: string
+          kind: string
+          label: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          end_date: string
+          id?: string
+          kind?: string
+          label: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_date?: string
+          id?: string
+          kind?: string
+          label?: string
+          start_date?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           code: string
@@ -41,6 +71,30 @@ export type Database = {
           reward_xp?: number
           unlocked_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      follow_ups: {
+        Row: {
+          created_at: string
+          id: string
+          note: string
+          psychologist_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string
+          psychologist_id?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string
+          psychologist_id?: string
+          student_id?: string
         }
         Relationships: []
       }
