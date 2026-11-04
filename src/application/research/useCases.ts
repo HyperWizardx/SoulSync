@@ -1,5 +1,8 @@
 /** Casos de uso del panel: permisos, consentimiento, señales y exportación por puertos. */
-import { runInference } from '@/domain/wellbeing/inference';
+import { activeModel, isExamPeriod, runInference } from '@/domain/wellbeing/inference';
+import { buildDashboardSeries } from '@/domain/research/dashboard';
+import { SAFETY_FLAG_COPY } from '@/domain/wellbeing/decision';
+import type { RiskLevel } from '@/domain/wellbeing/types';
 import { CONSENT_VERSION } from '@/domain/wellbeing/types';
 import type { CheckinRecord, PredictionInput, TaskCategory, TaskStatus, FactorExplanation } from '@/domain/wellbeing/types';
 import { aggregatePopulation, participantCode, toCsv, type StudentRow } from '@/domain/research/aggregate';
@@ -48,10 +51,25 @@ function groupBy<T extends { user_id: string }>(rows: T[] | null): Map<string, T
 
 
 async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<StudentRow[]> {
+  return (await loadStudentData(deps, withEmails)).rows;
+}
+
+/** Carga filas + datos crudos + contexto de decisión (calendario, niveles previos, seguimientos). */
+async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
   const today = todayISO(deps);
-  const { profiles, consents, checkins, missions, tasks, emails } = await deps.repository.loadStudents(
-    withEmails, daysAgoISO(deps, 13), new Date(deps.now().getTime() - 13 * 86_400_000).toISOString(),
-  );
+  const [snapshot, ctx] = await Promise.all([
+    deps.repository.loadStudents(withEmails, daysAgoISO(deps, 27), new Date(deps.now().getTime() - 13 * 86_400_000).toISOString()),
+    deps.repository.loadDecisionContext(daysAgoISO(deps, 29)),
+  ]);
+  const { profiles, consents, checkins, missions, tasks, emails } = snapshot;
+  const examPeriod = isExamPeriod(today, ctx.calendar);
+  const levelsByUser = new Map<string, RiskLevel[]>();
+  for (const p of [...ctx.predictions].sort((a, b) => b.generated_at.localeCompare(a.generated_at))) {
+    if (p.generated_at.slice(0, 10) === today) continue;
+    levelsByUser.set(p.user_id, [...(levelsByUser.get(p.user_id) ?? []), p.risk_level as RiskLevel]);
+  }
+  const lastFollow = new Map<string, string>();
+  for (const f of ctx.followUps) if (!lastFollow.has(f.student_id) || lastFollow.get(f.student_id)! < f.created_at) lastFollow.set(f.student_id, f.created_at);
   const consentByUser = new Map<string, { consent_version: string; revoked_at: string | null }>();
   for (const c of consents) if (!consentByUser.has(c.user_id)) consentByUser.set(c.user_id, c);
 
@@ -59,7 +77,7 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
   const missionsByUser = groupBy(missions);
   const tasksByUser = groupBy(tasks);
 
-  return profiles.map((p) => {
+  const rows = profiles.map((p) => {
     const consent = consentState(consentByUser.get(p.user_id));
     const userCheckins: CheckinRecord[] = (checkinsByUser.get(p.user_id) ?? []).map((c) => ({
       date: c.checkin_date,
@@ -77,9 +95,12 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
     const missionsByDate: Record<string, number> = {};
     for (const m of userMissions) missionsByDate[m.completed_date] = (missionsByDate[m.completed_date] ?? 0) + 1;
 
+    const within14 = (d: string) =>
+      (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${d}T00:00:00Z`)) / 86_400_000 < 14;
     const within7 = (d: string) =>
       (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${d}T00:00:00Z`)) / 86_400_000 < 7;
     const missions7 = userMissions.filter((m) => within7(m.completed_date)).length;
+    const checkins14 = userCheckins.filter((c) => within14(c.date)).length;
     const skipped7 = userTasks.filter((t) => t.status === "skipped" && within7(t.occurred_date)).length;
     const goal = Math.max(1, p.daily_goal ?? 3);
 
@@ -92,7 +113,8 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
       streak: (p.streak as number) ?? 0,
       archetype: (p.archetype as number | null) ?? null,
       consent,
-      checkins14: userCheckins.length,
+      checkins14,
+      lastFollowUp: lastFollow.get(p.user_id) ?? null,
       missions7,
       skipped7,
       adherence7: userMissions.length === 0 && userTasks.length === 0 ? null : Math.min(1, missions7 / (goal * 7)),
@@ -103,7 +125,7 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
     };
 
     if (consent !== "vigente") {
-      return { ...base, riskLevel: null, score: null, trend: null, coverage: 0 } satisfies StudentRow;
+      return { ...base, riskLevel: null, score: null, trend: null, coverage: 0, confidence: null, safetyFlags: 0, topFactors: [] } satisfies StudentRow;
     }
 
     const prediction = runInference(
@@ -121,16 +143,21 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
           durationSeconds: Number(t.duration_seconds ?? 0),
         })),
       ),
+      { previousLevels: levelsByUser.get(p.user_id), examPeriod },
     );
 
     return {
       ...base,
+      confidence: prediction.confidence ?? null,
+      safetyFlags: prediction.safetyFlags?.length ?? 0,
+      topFactors: prediction.explanation.filter((f) => f.direction === 'riesgo').slice(0, 3).map((f) => f.label),
       riskLevel: prediction.riskLevel,
       score: prediction.score,
       trend: prediction.trend,
       coverage: prediction.coverage,
     } satisfies StudentRow;
   });
+  return { rows, snapshot, ctx, today };
 }
 
 export async function listStudentsUseCase(deps: AdminDeps, userId: string): Promise<StudentRow[]> {
@@ -146,15 +173,55 @@ export async function listStudentsUseCase(deps: AdminDeps, userId: string): Prom
 
 export async function getPopulationMetricsUseCase(deps: AdminDeps, userId: string) {
   await requireRole(deps, userId, 'investigador');
-  const rows = (await loadStudentRows(deps, false)).map(r => ({ ...r, name: r.participantCode, email: null }));
-  return { metrics: aggregatePopulation(rows, todayISO(deps)), rows };
+  const data = await loadStudentData(deps, false);
+  const rows = data.rows.map(r => ({ ...r, name: r.participantCode, email: null, lastFollowUp: null }));
+  return { metrics: aggregatePopulation(rows, data.today), rows, dashboard: dashboardFrom(data, rows), calendar: data.ctx.calendar, modelVersion: activeModel.modelVersion };
+}
+
+function dashboardFrom(data: Awaited<ReturnType<typeof loadStudentData>>, rows: StudentRow[]) {
+  const consented = new Set(rows.filter(r => r.consent === 'vigente').map(r => r.userId));
+  return buildDashboardSeries({
+    today: data.today, rows,
+    checkins: data.snapshot.checkins.map(c => ({ user_id: c.user_id, checkin_date: c.checkin_date, mood: c.mood, stress: c.stress, sleep_hours: c.sleep_hours })),
+    missions: data.snapshot.missions.filter(m => consented.has(m.user_id)),
+    tasks: data.snapshot.tasks.filter(t => consented.has(t.user_id)),
+    predictions: data.ctx.predictions.filter(p => consented.has(p.user_id)),
+  });
+}
+
+/** Panel de psicología: filas identificadas + series agregadas. */
+export async function getPsychologistDashboardUseCase(deps: AdminDeps, userId: string) {
+  await requireRole(deps, userId, 'psicologo');
+  const data = await loadStudentData(deps, true);
+  return { dashboard: dashboardFrom(data, data.rows) };
+}
+
+export async function addFollowUpUseCase(deps: AdminDeps, userId: string, studentId: string, note: string) {
+  await requireRole(deps, userId, 'psicologo');
+  await deps.repository.addFollowUp(userId, studentId, note.trim().slice(0, 1000));
+}
+
+async function requireAnyAdmin(deps: AdminDeps, userId: string) {
+  const access = await deps.repository.readAccess(userId);
+  if (!access.isAdmin) throw new Error('Acceso restringido: no tienes permisos de administración para esta vista.');
+}
+export async function addCalendarPeriodUseCase(deps: AdminDeps, userId: string, period: { label: string; start: string; end: string }) {
+  await requireAnyAdmin(deps, userId);
+  if (period.end < period.start) throw new Error('La fecha final debe ser posterior a la inicial.');
+  await deps.repository.addCalendarPeriod(userId, { ...period, kind: 'parciales' });
+}
+export async function removeCalendarPeriodUseCase(deps: AdminDeps, userId: string, id: string) {
+  await requireAnyAdmin(deps, userId);
+  await deps.repository.removeCalendarPeriod(id);
 }
 
 export async function getStudentDetailUseCase(deps: AdminDeps, userId: string, targetId: string): Promise<StudentDetail> {
   await requireRole(deps, userId, 'psicologo');
-  const [rows, snapshot] = await Promise.all([
-    loadStudentRows(deps, true), deps.repository.loadDetail(targetId, daysAgoISO(deps, 29)),
+  const [data, snapshot, followUps] = await Promise.all([
+    loadStudentData(deps, true), deps.repository.loadDetail(targetId, daysAgoISO(deps, 29)), deps.repository.loadFollowUps(targetId),
   ]);
+  const rows = data.rows;
+  let decision: StudentDetail['prediction'] = null;
   const row = rows.find(r => r.userId === targetId);
   if (!row) throw new Error('Estudiante no encontrado.');
   const { tasks, ...detail } = snapshot;
@@ -163,8 +230,14 @@ export async function getStudentDetailUseCase(deps: AdminDeps, userId: string, t
   if (row.consent === 'vigente') {
     const prediction = runInference(buildInput(todayISO(deps), detail.checkins, {}, 3, null,
       tasks.map(t => ({ date: todayISO(deps), missionId: '', status: t.status as TaskStatus, category: t.category as TaskCategory, durationSeconds: 0 })),
-    ));
+    ), { previousLevels: data.ctx.predictions.filter(p => p.user_id === targetId && p.generated_at.slice(0, 10) !== todayISO(deps)).sort((a, b) => b.generated_at.localeCompare(a.generated_at)).map(p => p.risk_level as RiskLevel), examPeriod: isExamPeriod(todayISO(deps), data.ctx.calendar) });
     explanation = prediction.explanation;
+    decision = {
+      confidence: prediction.confidence ?? null,
+      safetyFlags: (prediction.safetyFlags ?? []).map(f => SAFETY_FLAG_COPY[f]),
+      protective: (prediction.protectiveFactors ?? []).map(f => f.label),
+      adjustments: prediction.adjustments ?? null,
+    };
     insufficientReason = prediction.insufficientReason ?? null;
   }
   const byCat = new Map<string, { completed: number; skipped: number }>();
@@ -174,7 +247,7 @@ export async function getStudentDetailUseCase(deps: AdminDeps, userId: string, t
     if (t.status === 'skipped') entry.skipped += 1;
     byCat.set(t.category, entry);
   }
-  return { row, ...detail, explanation, insufficientReason, tasksByCategory: [...byCat.entries()].map(([category, v]) => ({ category, ...v })) };
+  return { row, ...detail, followUps, prediction: decision, explanation, insufficientReason, tasksByCategory: [...byCat.entries()].map(([category, v]) => ({ category, ...v })) };
 }
 
 export async function exportDatasetUseCase(deps: AdminDeps, userId: string, dataset: DatasetKey) {
