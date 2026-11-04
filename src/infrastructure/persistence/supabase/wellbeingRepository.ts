@@ -10,7 +10,8 @@ import type {
   WellbeingPrediction,
 } from "@/domain/wellbeing/types";
 import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features";
-import { activeModel } from "@/domain/wellbeing/inference";
+import { activeModel, isExamPeriod } from "@/domain/wellbeing/inference";
+import type { RiskLevel } from "@/domain/wellbeing/types";
 import { deriveWorldState } from "@/domain/world/world";
 import type { WorldState } from "@/domain/world/world";
 import { computeAura, type AuraState } from "@/domain/gamification/aura";
@@ -41,6 +42,8 @@ export type WellbeingPayload = {
   timeline: TimelineEntry[];
   /** Aura del avatar según el autocuidado de los últimos 7 días. */
   aura: AuraState;
+  /** Última señal de un día anterior, para mostrar "qué cambió". */
+  previous?: { riskLevel: RiskLevel; score: number | null; generatedAt: string } | null;
 };
 
 export const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -105,7 +108,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         .from("wellbeing_checkins")
         .select("checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds")
         .eq("user_id", userId)
-        .gte("checkin_date", since)
+        // 28 días: los 14 recientes alimentan las features y el resto la línea base personal.
+        .gte("checkin_date", new Date(Date.now() - 27 * 86_400_000).toISOString().slice(0, 10))
         .order("checkin_date", { ascending: false }),
       supabase
         .from("profiles")
@@ -244,7 +248,22 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
   };
 
   const featureSet = extractFeatures(input);
-  const prediction = activeModel.predict(featureSet);
+  // Contexto de decisión: niveles previos (histéresis) y calendario académico.
+  const [{ data: prevPreds }, { data: calendar }] = await Promise.all([
+    supabase.from("wellbeing_predictions").select("risk_level, score, generated_at").eq("user_id", userId)
+      .order("generated_at", { ascending: false }).limit(5),
+    supabase.from("academic_calendar").select("start_date, end_date"),
+  ]);
+  const previousPreds = (prevPreds ?? []).filter((p) => String(p.generated_at).slice(0, 10) !== today);
+  const prediction = activeModel.predict(featureSet, {
+    previousLevels: previousPreds.map((p) => p.risk_level as RiskLevel),
+    examPeriod: isExamPeriod(today, (calendar ?? []).map((c) => ({ start: String(c.start_date), end: String(c.end_date) }))),
+    checkins,
+    today,
+  });
+  const previous = previousPreds[0]
+    ? { riskLevel: previousPreds[0].risk_level as RiskLevel, score: previousPreds[0].score === null ? null : Number(previousPreds[0].score), generatedAt: String(previousPreds[0].generated_at) }
+    : null;
 
   const tasksToday = missionsByDate[today] ?? 0;
   const tasksLast7 = Object.entries(missionsByDate).reduce((sum, [date, count]) => {
@@ -353,5 +372,5 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     }
   }
 
-  return { consent, todayCheckin, checkins, prediction, world, timeline, aura };
+  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous };
 }
