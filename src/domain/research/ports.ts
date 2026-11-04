@@ -21,6 +21,8 @@ export interface StudentDetail {
   world: { vitality: number; harmony: number; zonesUnlocked: number; season: string } | null;
   stats: { bienestar: number; resiliencia: number; energia: number; claridad: number } | null;
   attributes: Record<string, number> | null;
+  followUps?: { id: string; studentId: string; note: string; createdAt: string }[];
+  prediction?: { confidence: string | null; safetyFlags: string[]; protective: string[]; adjustments: { personal: number; protective: number; academic: number; hysteresis: string } | null } | null;
 }
 
 export const DATASETS = ["checkins", "task_events", "missions", "predictions", "scales", "resumen"] as const;
@@ -40,7 +42,20 @@ export interface StudentSnapshot {
 export type DetailSnapshot = Omit<StudentDetail, 'row' | 'explanation' | 'insufficientReason' | 'tasksByCategory'> & {
   tasks: { status: string; category: string }[];
 };
+export interface FollowUp { id: string; studentId: string; note: string; createdAt: string; }
+export interface CalendarPeriod { id: string; label: string; start: string; end: string; kind: string; }
+export interface DecisionSnapshot {
+  calendar: CalendarPeriod[];
+  predictions: { user_id: string; risk_level: string; generated_at: string }[];
+  /** Solo se llena para psicología (RLS); para investigación queda vacío. */
+  followUps: { student_id: string; created_at: string }[];
+}
 export interface AdminRepository {
+  loadDecisionContext(since: string): Promise<DecisionSnapshot>;
+  loadFollowUps(studentId: string): Promise<FollowUp[]>;
+  addFollowUp(psychologistId: string, studentId: string, note: string): Promise<void>;
+  addCalendarPeriod(userId: string, period: Omit<CalendarPeriod, 'id'>): Promise<void>;
+  removeCalendarPeriod(id: string): Promise<void>;
   readAccess(userId: string): Promise<AdminAccess>;
   loadStudents(withEmails: boolean, since: string, sinceTs: string): Promise<StudentSnapshot>;
   loadDetail(userId: string, since: string): Promise<DetailSnapshot>;

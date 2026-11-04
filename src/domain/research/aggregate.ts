@@ -29,6 +29,11 @@ export interface StudentRow {
   adherence7: number | null;
   lastCheckin: string | null;
   lastActivity: string | null;
+  /** Criterio v4: confianza, reglas de seguridad activadas y factores principales. */
+  confidence?: "alta" | "media" | "baja" | null;
+  safetyFlags?: number;
+  topFactors?: string[];
+  lastFollowUp?: string | null;
 }
 
 export interface PopulationMetrics {
