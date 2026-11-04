@@ -17,6 +17,34 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
       const investigador = Boolean(i.data);
       return { psicologo, investigador, isAdmin: psicologo || investigador };
     },
+    async loadDecisionContext(since) {
+      const [cal, preds, fups] = await Promise.all([
+        supabase.from('academic_calendar').select('id, label, start_date, end_date, kind').order('start_date', { ascending: false }),
+        supabase.from('wellbeing_predictions').select('user_id, risk_level, generated_at').gte('generated_at', `${since}T00:00:00Z`),
+        supabase.from('follow_ups').select('student_id, created_at'),
+      ]);
+      return {
+        calendar: (cal.data ?? []).map((c) => ({ id: c.id, label: c.label, start: String(c.start_date), end: String(c.end_date), kind: c.kind })),
+        predictions: (preds.data ?? []).map((p) => ({ user_id: p.user_id, risk_level: String(p.risk_level), generated_at: String(p.generated_at) })),
+        followUps: fups.data ?? [],
+      };
+    },
+    async loadFollowUps(studentId) {
+      const { data } = await supabase.from('follow_ups').select('id, student_id, note, created_at').eq('student_id', studentId).order('created_at', { ascending: false }).limit(20);
+      return (data ?? []).map((f) => ({ id: f.id, studentId: f.student_id, note: f.note, createdAt: f.created_at }));
+    },
+    async addFollowUp(psychologistId, studentId, note) {
+      const { error } = await supabase.from('follow_ups').insert({ psychologist_id: psychologistId, student_id: studentId, note });
+      if (error) throw new Error('No se pudo registrar el seguimiento.');
+    },
+    async addCalendarPeriod(userId, period) {
+      const { error } = await supabase.from('academic_calendar').insert({ created_by: userId, label: period.label, start_date: period.start, end_date: period.end, kind: period.kind });
+      if (error) throw new Error('No se pudo guardar el periodo académico.');
+    },
+    async removeCalendarPeriod(id) {
+      const { error } = await supabase.from('academic_calendar').delete().eq('id', id);
+      if (error) throw new Error('No se pudo eliminar el periodo.');
+    },
     async loadStudents(withEmails, since, sinceTs) {
   const [profiles, consents, checkins, missions, tasks] = await Promise.all([
     supabase.from("profiles").select("user_id, name, level, streak, archetype, daily_goal, last_mission_date"),

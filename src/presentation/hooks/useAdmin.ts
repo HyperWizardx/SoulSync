@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 import {
@@ -7,6 +7,10 @@ import {
   getPopulationMetrics,
   getStudentDetail,
   listStudents,
+  getPsychologistDashboard,
+  addFollowUp,
+  addCalendarPeriod,
+  removeCalendarPeriod,
   type DatasetKey,
 } from "@/service/server-functions/admin.functions";
 
@@ -60,5 +64,31 @@ export function useExportDataset() {
     a.click();
     URL.revokeObjectURL(url);
     return result;
+  };
+}
+
+export function usePsychologistDashboard(enabled: boolean) {
+  const fn = useServerFn(getPsychologistDashboard);
+  return useQuery({ queryKey: ["admin", "psych-dashboard"], queryFn: () => fn(), enabled });
+}
+
+/** Registrar seguimiento: refresca la ficha y la cola de atención. */
+export function useAddFollowUp(studentId: string) {
+  const fn = useServerFn(addFollowUp);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (note: string) => fn({ data: { studentId, note } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin"] }); },
+  });
+}
+
+export function useCalendarActions() {
+  const add = useServerFn(addCalendarPeriod);
+  const remove = useServerFn(removeCalendarPeriod);
+  const qc = useQueryClient();
+  const done = () => qc.invalidateQueries({ queryKey: ["admin"] });
+  return {
+    add: useMutation({ mutationFn: (p: { label: string; start: string; end: string }) => add({ data: p }), onSuccess: done }),
+    remove: useMutation({ mutationFn: (id: string) => remove({ data: { id } }), onSuccess: done }),
   };
 }
