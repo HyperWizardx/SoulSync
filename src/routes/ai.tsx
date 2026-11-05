@@ -5,6 +5,7 @@ import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { ConsentCard } from "@/presentation/components/wellbeing/ConsentCard";
 import { CheckinCard } from "@/presentation/components/wellbeing/CheckinCard";
 import { RiskCard } from "@/presentation/components/wellbeing/RiskCard";
+import { InsightPanel } from "@/presentation/components/wellbeing/InsightPanel";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
 
@@ -102,6 +103,10 @@ function AIPage() {
                       Esta estimación es preventiva y no constituye un diagnóstico médico o psicológico.
                     </p>
                   </section>
+                )}
+
+                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
+                  <InsightPanel prediction={data.prediction} previous={data.previous} checkins={data.checkins} />
                 )}
 
                 {data.prediction ? (

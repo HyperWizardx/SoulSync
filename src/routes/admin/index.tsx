@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, Users, AlertTriangle, ShieldCheck, Activity } from "lucide-react";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
-import { useAdminAccess, useStudents } from "@/presentation/hooks/useAdmin";
+import { useAdminAccess, usePsychologistDashboard, useStudents } from "@/presentation/hooks/useAdmin";
+import { ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
 import type { StudentRow } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/")({
@@ -36,6 +37,7 @@ const CONSENT_LABEL: Record<StudentRow["consent"], string> = {
 function AdminStudentsPage() {
   const { data: access } = useAdminAccess();
   const { data: students, isLoading } = useStudents(Boolean(access?.psicologo));
+  const { data: dash } = usePsychologistDashboard(Boolean(access?.psicologo));
   const [query, setQuery] = useState("");
   const [risk, setRisk] = useState<string>("todos");
   const [consent, setConsent] = useState<string>("todos");
@@ -83,6 +85,37 @@ function AdminStudentsPage() {
         ))}
       </div>
 
+      {dash && (
+        <>
+          <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatTile label="Reglas de seguridad activas" value={dash.dashboard.safetyFlagged} tone={dash.dashboard.safetyFlagged ? "danger" : "ok"} />
+            <StatTile label="Sin check-in hace 3+ días" value={dash.dashboard.noCheckin3d} tone={dash.dashboard.noCheckin3d ? "warn" : "ok"} />
+            <StatTile label="Señal moderada" value={(students ?? []).filter((s) => s.riskLevel === "moderado").length} tone="warn" />
+            <StatTile label="Sin seguimiento registrado (alto/moderado)" value={(students ?? []).filter((s) => (s.riskLevel === "alto" || s.riskLevel === "moderado") && !s.lastFollowUp).length} />
+          </div>
+          <div className="mb-5 grid gap-3 lg:grid-cols-2">
+            <ChartCard title="Ánimo y estrés del grupo" hint="Promedio diario (1–5), últimos 14 días, solo con consentimiento.">
+              <MoodStressChart data={dash.dashboard.daily} />
+            </ChartCard>
+            <ChartCard title="Señales por día" hint="Predicciones registradas por nivel.">
+              <RiskHistoryChart data={dash.dashboard.riskHistory} />
+            </ChartCard>
+            <ChartCard title="Factores más frecuentes" hint="Cuántos estudiantes tienen cada factor entre sus 3 principales.">
+              <HorizontalBars data={dash.dashboard.topFactors} />
+            </ChartCard>
+            <ChartCard title="Distribución actual de riesgo">
+              <DonutChart data={[
+                { name: "Alto", value: summary.alto, tone: "danger" },
+                { name: "Moderado", value: (students ?? []).filter((s) => s.riskLevel === "moderado").length, tone: "gold" },
+                { name: "Bajo", value: (students ?? []).filter((s) => s.riskLevel === "bajo").length, tone: "teal" },
+                { name: "Insuficiente", value: (students ?? []).filter((s) => s.riskLevel === "insuficiente").length, tone: "muted" },
+              ]} />
+            </ChartCard>
+          </div>
+          <h2 className="mb-2 font-semibold text-foreground">Cola de atención priorizada</h2>
+        </>
+      )}
+
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -123,7 +156,7 @@ function AdminStudentsPage() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase text-muted-foreground">
               <tr>
-                {["Estudiante", "Código", "Señal", "Tendencia", "Cobertura", "Check-ins 14d", "Misiones 7d", "Omitidas 7d", "Racha", "Último check-in", "Consentimiento"].map((h) => (
+                {["Estudiante", "Código", "Señal", "Confianza", "Tendencia", "Seguimiento", "Cobertura", "Check-ins 14d", "Misiones 7d", "Omitidas 7d", "Racha", "Último check-in", "Consentimiento"].map((h) => (
                   <th key={h} className="px-3 py-3 font-medium">{h}</th>
                 ))}
               </tr>
@@ -145,7 +178,9 @@ function AdminStudentsPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
+                  <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.confidence ?? "—"}{s.safetyFlags ? " · ⚠️" : ""}</td>
                   <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.trend ?? "—"}</td>
+                  <td className="px-3 py-3 text-xs text-muted-foreground">{s.lastFollowUp ? new Date(s.lastFollowUp).toLocaleDateString("es-CO") : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.consent === "vigente" ? `${Math.round(s.coverage * 100)}%` : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.consent === "vigente" ? s.checkins14 : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.missions7}</td>
