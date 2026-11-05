@@ -47,6 +47,42 @@ function Bar({ label, value, total, className }: { label: string; value: number;
   );
 }
 
+function CalendarManager({ periods }: { periods: { id: string; label: string; start: string; end: string }[] }) {
+  const { add, remove } = useCalendarActions();
+  const [label, setLabel] = useState("Parciales");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  return (
+    <section className="mb-5 rounded-2xl border border-border bg-card p-4">
+      <h2 className="font-semibold text-foreground">Calendario académico</h2>
+      <p className="mb-3 text-xs text-muted-foreground">En estas fechas el modelo atenúa el estrés situacional (p. ej. semana de parciales).</p>
+      <form
+        className="mb-3 flex flex-wrap gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!start || !end) return;
+          add.mutate({ label, start, end }, { onSuccess: () => toast.success("Periodo guardado"), onError: (err) => toast.error(err.message) });
+        }}
+      >
+        <input value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Nombre del periodo" className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground" />
+        <input type="date" value={start} onChange={(e) => setStart(e.target.value)} aria-label="Inicio" className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground" />
+        <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} aria-label="Fin" className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground" />
+        <button disabled={add.isPending} className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Agregar</button>
+      </form>
+      {periods.length === 0 ? <p className="text-xs text-muted-foreground">Sin periodos registrados.</p> : (
+        <ul className="space-y-1">
+          {periods.map((p) => (
+            <li key={p.id} className="flex items-center justify-between rounded-xl bg-secondary/50 px-3 py-2 text-sm">
+              <span className="text-foreground">{p.label} · {p.start} → {p.end}</span>
+              <button onClick={() => remove.mutate(p.id)} className="text-xs text-destructive">Eliminar</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function AdminMetricsPage() {
   const { data: access } = useAdminAccess();
   const { data, isLoading } = usePopulationMetrics(Boolean(access?.investigador));
@@ -135,6 +171,41 @@ function AdminMetricsPage() {
               </tbody>
             </table>
           </div>
+
+          {data?.dashboard && (
+            <div className="mb-5 grid gap-3 lg:grid-cols-2">
+              <ChartCard title="Actividad diaria del piloto" hint="Check-ins y misiones completadas, 14 días.">
+                <ActivityChart data={data.dashboard.daily} />
+              </ChartCard>
+              <ChartCard title="Ánimo y estrés promedio" hint="Escala 1–5, participantes con consentimiento.">
+                <MoodStressChart data={data.dashboard.daily} />
+              </ChartCard>
+              <ChartCard title="Uso por categoría de misión" hint="Eventos completados vs omitidos.">
+                <CategoryChart data={data.dashboard.categories} />
+              </ChartCard>
+              <ChartCard title={`Confianza de las señales · ${data.modelVersion}`} hint="Según cantidad de check-ins y cobertura.">
+                <DonutChart data={[
+                  { name: "Alta", value: data.dashboard.confidence.alta, tone: "teal" },
+                  { name: "Media", value: data.dashboard.confidence.media, tone: "gold" },
+                  { name: "Preliminar", value: data.dashboard.confidence.baja, tone: "muted" },
+                ]} />
+              </ChartCard>
+              <ChartCard title="Evolución de señales" hint="Predicciones por nivel y día.">
+                <RiskHistoryChart data={data.dashboard.riskHistory} />
+              </ChartCard>
+              <section className="rounded-2xl border border-border bg-card p-4">
+                <h2 className="font-semibold text-foreground">Relación misiones ↔ ánimo</h2>
+                <p className="mb-3 text-xs text-muted-foreground">Ánimo promedio de la misma persona en días con y sin misiones (exploratorio, no causal).</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <StatTile label="Días con misiones" value={data.dashboard.missionMood.withMissions ?? "—"} tone="ok" />
+                  <StatTile label="Días sin misiones" value={data.dashboard.missionMood.withoutMissions ?? "—"} />
+                </div>
+                <div className="mt-3 h-32"><HorizontalBars data={data.dashboard.topFactors} /></div>
+              </section>
+            </div>
+          )}
+
+          <CalendarManager periods={data?.calendar ?? []} />
 
           <WhatIfSimulator participants={data?.rows ?? []} />
 
