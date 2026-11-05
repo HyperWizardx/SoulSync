@@ -59,7 +59,7 @@ describe('Lectura por puertos', () => {
     const rows = await listStudentsUseCase(deps, uid);
     expect(rows[0]?.name).toBe('Nombre privado');
     expect(rows[0]?.email).toBe('privado@example.com');
-    expect(repository.loadStudents).toHaveBeenCalledWith(true, '2026-10-08', '2026-10-08T12:00:00.000Z');
+    expect(repository.loadStudents).toHaveBeenCalledWith(true, '2026-09-24', '2026-10-08T12:00:00.000Z');
     expect(vi.mocked(repository.readAccess).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(repository.loadStudents).mock.invocationCallOrder[0] ?? 0);
   });
   it('las métricas de investigación sustituyen nombre y correo por seudónimo', async () => {
