@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
-import { useAdminAccess, useStudentDetail } from "@/presentation/hooks/useAdmin";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useAddFollowUp, useAdminAccess, useStudentDetail } from "@/presentation/hooks/useAdmin";
+import { CategoryChart, ChartCard, MoodStressChart, ScoreHistoryChart, SleepChart } from "@/presentation/components/admin/DashboardCharts";
 
 export const Route = createFileRoute("/admin/estudiante/$id")({
   component: StudentDetailPage,
@@ -64,6 +67,36 @@ function CheckinChart({ checkins }: { checkins: { date: string; mood: number; st
   );
 }
 
+function FollowUpSection({ studentId, items }: { studentId: string; items: { id: string; note: string; createdAt: string }[] }) {
+  const add = useAddFollowUp(studentId);
+  const [note, setNote] = useState("");
+  return (
+    <Section title="Seguimiento realizado">
+      <form
+        className="mb-3 flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          add.mutate(note, { onSuccess: () => { setNote(""); toast.success("Seguimiento registrado"); }, onError: () => toast.error("No se pudo registrar") });
+        }}
+      >
+        <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} placeholder="Nota breve (opcional)" aria-label="Nota de seguimiento"
+          className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground" />
+        <button disabled={add.isPending} className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Registrar</button>
+      </form>
+      {items.length === 0 ? <p className="text-xs text-muted-foreground">Sin seguimientos registrados.</p> : (
+        <ul className="max-h-48 space-y-1 overflow-y-auto text-xs">
+          {items.map((f) => (
+            <li key={f.id} className="border-b border-border/40 py-1 last:border-0">
+              <span className="text-muted-foreground">{new Date(f.createdAt).toLocaleString("es-CO")}</span>
+              {f.note && <p className="text-foreground">{f.note}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
+}
+
 function StudentDetailPage() {
   const { id } = Route.useParams();
   const { data: access } = useAdminAccess();
@@ -112,6 +145,18 @@ function StudentDetailPage() {
                   <span className="text-xs text-muted-foreground">Cobertura: {Math.round(data.row.coverage * 100)}%</span>
                   {data.row.score !== null ? <span className="text-xs text-muted-foreground">Score: {data.row.score.toFixed(2)}</span> : null}
                 </div>
+                {data.prediction && (
+                  <div className="mb-3 space-y-1 rounded-xl bg-secondary/50 p-3 text-xs">
+                    <p className="text-foreground">Confianza: <span className="capitalize">{data.prediction.confidence ?? "—"}</span></p>
+                    {data.prediction.safetyFlags.length > 0 && <p className="text-destructive">⚠️ Revisión prioritaria: {data.prediction.safetyFlags.join(" · ")}</p>}
+                    {data.prediction.protective.length > 0 && <p className="text-soul-teal">Protectores: {data.prediction.protective.join(" · ")}</p>}
+                    {data.prediction.adjustments && (
+                      <p className="text-muted-foreground">
+                        Ajustes: personal {data.prediction.adjustments.personal.toFixed(2)} · protectores {data.prediction.adjustments.protective.toFixed(2)} · académico {data.prediction.adjustments.academic.toFixed(2)} · histéresis {data.prediction.adjustments.hysteresis}
+                      </p>
+                    )}
+                  </div>
+                )}
                 {data.insufficientReason ? <p className="mb-2 text-xs text-muted-foreground">{data.insufficientReason}</p> : null}
                 <ul className="space-y-2">
                   {data.explanation.map((f) => (
@@ -130,6 +175,21 @@ function StudentDetailPage() {
               </>
             )}
           </Section>
+
+          <FollowUpSection studentId={id} items={data.followUps ?? []} />
+
+          <ChartCard title="Ánimo y estrés (30 días)">
+            <MoodStressChart data={data.checkins} />
+          </ChartCard>
+          <ChartCard title="Sueño reportado">
+            <SleepChart data={data.checkins.map((c) => ({ date: c.date, sleep: c.sleepHours ?? null }))} />
+          </ChartCard>
+          <ChartCard title="Evolución del índice preventivo">
+            <ScoreHistoryChart data={[...data.predictions].reverse().map((p) => ({ date: p.generatedAt.slice(0, 10), score: p.score }))} />
+          </ChartCard>
+          <ChartCard title="Misiones completadas vs omitidas">
+            <CategoryChart data={data.tasksByCategory} />
+          </ChartCard>
 
           <Section title="Check-ins (30 días)">
             <CheckinChart checkins={data.checkins} />
