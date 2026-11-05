@@ -4,7 +4,8 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { WhatIfSimulator } from "@/presentation/components/admin/WhatIfSimulator";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
-import { useAdminAccess, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
+import { useAdminAccess, useCalendarActions, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
+import { ActivityChart, CategoryChart, ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
 import { DATASETS, type DatasetKey } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/metricas")({
