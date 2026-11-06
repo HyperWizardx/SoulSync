@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { withTimeout } from "@/presentation/components/common/QueryStatus";
 import { getWellbeing, logTaskEvent, saveCheckin, setResearchConsent } from "@/service/server-functions/wellbeing.functions";
 import type { WellbeingPayload } from "@/service/server-functions/wellbeing.functions";
 
@@ -13,8 +14,9 @@ export function useWellbeing() {
 
   const query = useQuery<WellbeingPayload>({
     queryKey: ["wellbeing"],
-    queryFn: () => fetchWellbeing(),
+    queryFn: () => withTimeout(fetchWellbeing()),
     staleTime: 60_000,
+    retry: 1,
   });
 
   const setPayload = (data: WellbeingPayload) => qc.setQueryData(["wellbeing"], data);

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
+import { withTimeout } from "@/presentation/components/common/QueryStatus";
 import {
   exportDataset,
   getAdminAccess,
@@ -19,7 +20,8 @@ export function useAdminAccess() {
   const fn = useServerFn(getAdminAccess);
   return useQuery({
     queryKey: ["admin", "access"],
-    queryFn: () => fn(),
+    queryFn: () => withTimeout(fn()),
+    retry: 1,
     enabled: hasSession,
     staleTime: 60_000,
   });
@@ -47,8 +49,9 @@ export function usePopulationMetrics(enabled: boolean) {
   const fn = useServerFn(getPopulationMetrics);
   return useQuery({
     queryKey: ["admin", "population"],
-    queryFn: () => fn(),
+    queryFn: () => withTimeout(fn()),
     enabled,
+    retry: 1,
   });
 }
 
