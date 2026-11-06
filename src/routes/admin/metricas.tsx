@@ -6,6 +6,7 @@ import { WhatIfSimulator } from "@/presentation/components/admin/WhatIfSimulator
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
 import { useAdminAccess, useCalendarActions, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
 import { ActivityChart, CategoryChart, ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
+import { ErrorState, LoadingState } from "@/presentation/components/common/QueryStatus";
 import { DATASETS, type DatasetKey } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/metricas")({
@@ -86,7 +87,7 @@ function CalendarManager({ periods }: { periods: { id: string; label: string; st
 
 function AdminMetricsPage() {
   const { data: access } = useAdminAccess();
-  const { data, isLoading } = usePopulationMetrics(Boolean(access?.investigador));
+  const { data, isLoading, isError, error, refetch, isFetching } = usePopulationMetrics(Boolean(access?.investigador));
   const exportCsv = useExportDataset();
   const [busy, setBusy] = useState<DatasetKey | null>(null);
 
@@ -106,10 +107,10 @@ function AdminMetricsPage() {
 
   return (
     <AdminShell title="Métricas de la población" subtitle="Rol investigación · datos agregados y seudonimizados" requires="investigador">
-      {isLoading || !m ? (
-        <div className="flex min-h-[30vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        </div>
+      {isError ? (
+        <ErrorState message={error instanceof Error ? error.message : undefined} onRetry={() => refetch()} retrying={isFetching} />
+      ) : isLoading || !m ? (
+        <LoadingState onRetry={() => refetch()} />
       ) : (
         <>
           <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">

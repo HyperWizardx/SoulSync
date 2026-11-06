@@ -7,6 +7,7 @@ import { CheckinCard } from "@/presentation/components/wellbeing/CheckinCard";
 import { RiskCard } from "@/presentation/components/wellbeing/RiskCard";
 import { InsightPanel } from "@/presentation/components/wellbeing/InsightPanel";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
+import { ErrorState, LoadingState } from "@/presentation/components/common/QueryStatus";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
 
 export const Route = createFileRoute("/ai")({
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/ai")({
 });
 
 function AIPage() {
-  const { data, isLoading, checkin, consent, refetch, isFetching } = useWellbeing();
+  const { data, isLoading, isError, error, checkin, consent, refetch, isFetching } = useWellbeing();
 
   return (
     <MobileLayout>
@@ -50,10 +51,16 @@ function AIPage() {
           </button>
         </div>
 
-        {isLoading || !data ? (
-          <div className="mt-6 space-y-3" aria-busy="true">
-            <div className="h-28 animate-pulse rounded-2xl bg-card" />
-            <div className="h-44 animate-pulse rounded-2xl bg-card" />
+        {isError && !data ? (
+          <div className="mt-6">
+            <ErrorState message={error instanceof Error ? error.message : undefined} onRetry={() => refetch()} retrying={isFetching} />
+          </div>
+        ) : isLoading || !data ? (
+          <div className="mt-6">
+            <LoadingState onRetry={() => refetch()}>
+              <div className="h-28 animate-pulse rounded-2xl bg-card" />
+              <div className="h-44 animate-pulse rounded-2xl bg-card" />
+            </LoadingState>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
