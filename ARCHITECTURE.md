@@ -73,3 +73,4 @@ Los contratos compartidos de recompensas y atributos se definen en `domain/gamif
 - `presentation/hooks/useSoundscape.ts`: sonido generado con Web Audio (ruido, lluvia, olas, binaurales) en respiración, meditación y temporizador.
 - `domain/wellbeing/features.ts` → `computePassiveSignals`: hora local y latencia del check-in (`lateCheckin`, `scheduleIrregularity`, `responseLatency`); `PASSIVE_FEATURES` no penalizan la cobertura si faltan.
 - `application/research/simulate.ts`: simulador what-if que ejecuta el modelo activo sin persistir; UI en `/admin/metricas`.
+- **Criterio v4 y paneles con gráficos**: `domain/wellbeing/decision.ts`, `recommendations.ts`, `domain/research/dashboard.ts`, `presentation/components/admin/DashboardCharts.tsx`; tablas `follow_ups` y `academic_calendar`.

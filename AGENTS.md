@@ -13,3 +13,5 @@
 - Shared mission reward and attribute contracts live in domain/gamification/rewards and are re-exported by the presentation facade — why: domain consumers must not import presentation types.
 - Passive check-in signals are optional model features excluded from coverage when missing — why: users without that data must not get a weaker signal.
 - The admin what-if simulator calls the active model through `application/research/simulate.ts` and never persists — why: explainability must match real inference exactly.
+- The active wellbeing model is `domain/wellbeing/decision.ts`, which wraps the logistic baseline with personal baseline, protective factors, academic calendar, safety rules, confidence and hysteresis; callers pass previous levels and exam period as `DecisionContext` — why: decision rules stay pure, testable and identical for students, admins and the simulator.
+- Admin dashboard series are computed by the pure `domain/research/dashboard.ts` from consented data only — why: charts for both roles share one tested aggregation and never leak non-consented data.
