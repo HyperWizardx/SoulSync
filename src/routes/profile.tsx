@@ -195,7 +195,7 @@ function ProfilePage() {
         <div className="mt-4 flex flex-col items-center rounded-2xl border border-border bg-gradient-to-b from-primary/10 to-card p-6">
           <AuraHalo aura={wellbeing.data?.aura} color={archStyle.glow} showLabel={false}>
           <div className="relative">
-            <MiniAvatar3D size={140} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+            <MiniAvatar3D archetype={user.archetype} size={140} glowColor={archStyle.glow} exposure={archStyle.exposure} />
             <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-lg">
               {user.level}
             </span>

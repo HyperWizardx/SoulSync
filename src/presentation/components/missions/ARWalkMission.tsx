@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Footprints } from "lucide-react";
-import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
+import { ARCompanion } from "@/presentation/components/missions/ARCompanion";
+import { Button } from "@/components/ui/button";
 import { tap, success } from "@/shared/haptics";
-import { useUserStore } from "@/presentation/hooks/useUserStore";
-import { getArchetypeStyle } from "@/domain/identity/archetype";
 
 interface Props {
   goal?: number;
@@ -12,37 +11,56 @@ interface Props {
 }
 
 export function ARWalkMission({ goal = 30, onComplete, onClose }: Props) {
-  const { user } = useUserStore();
-  const archStyle = getArchetypeStyle(user.archetype);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [steps, setSteps] = useState(0);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
   const [motionOk, setMotionOk] = useState<boolean | null>(null);
   const lastPeakRef = useRef(0);
   const completedRef = useRef(false);
+  const [walking, setWalking] = useState(false);
+  const walkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cámara
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let active = true;
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: "environment" } }, audio: false,
         });
+        if (!active) { stream.getTracks().forEach((t) => t.stop()); return; }
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
         }
         setCameraOk(true);
       } catch {
-        setCameraOk(false);
+        if (active) setCameraOk(false);
       }
     })();
-    return () => { stream?.getTracks().forEach((t) => t.stop()); };
+    return () => { active = false; stream?.getTracks().forEach((t) => t.stop()); };
   }, []);
 
-  // Detector de pasos vía DeviceMotion (umbral en aceleración)
+  // El permiso de movimiento en iOS se solicita desde el botón, no al montar.
+  const enableMotion = async () => {
+    if (typeof window.DeviceMotionEvent === "undefined") { setMotionOk(false); return; }
+    const DM = DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> };
+    try { setMotionOk(typeof DM.requestPermission === "function" ? await DM.requestPermission() === "granted" : true); }
+    catch { setMotionOk(false); }
+  };
+
+  // El avatar camina al recibir un paso, conservando su ubicación relativa a la cámara.
   useEffect(() => {
+    if (!steps) return;
+    setWalking(true);
+    if (walkTimer.current) clearTimeout(walkTimer.current);
+    walkTimer.current = setTimeout(() => setWalking(false), 1400);
+    return () => { if (walkTimer.current) clearTimeout(walkTimer.current); };
+  }, [steps]);
+
+  useEffect(() => {
+    if (motionOk !== true) return;
     const handler = (e: DeviceMotionEvent) => {
       const a = e.accelerationIncludingGravity;
       if (!a) return;
@@ -55,53 +73,39 @@ export function ARWalkMission({ goal = 30, onComplete, onClose }: Props) {
       }
     };
 
-    const attach = () => {
-      window.addEventListener("devicemotion", handler);
-      setMotionOk(true);
-    };
-
-    const DM = (DeviceMotionEvent as unknown) as { requestPermission?: () => Promise<string> };
-    if (typeof DM.requestPermission === "function") {
-      DM.requestPermission()
-        .then((res) => { if (res === "granted") attach(); else setMotionOk(false); })
-        .catch(() => setMotionOk(false));
-    } else if (typeof window.DeviceMotionEvent !== "undefined") {
-      attach();
-    } else {
-      setMotionOk(false);
-    }
+    window.addEventListener("devicemotion", handler);
 
     return () => window.removeEventListener("devicemotion", handler);
-  }, [goal]);
+  }, [goal, motionOk]);
 
   useEffect(() => {
     if (steps >= goal && !completedRef.current) {
       completedRef.current = true;
       success();
-      setTimeout(onComplete, 800);
+      const t = setTimeout(onComplete, 800);
+      return () => clearTimeout(t);
     }
   }, [steps, goal, onComplete]);
 
   const pct = (steps / goal) * 100;
-  const avatarSize = 80 + (steps / goal) * 120;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {cameraOk === false ? (
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-soul-teal/20" />
       ) : (
         <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 h-full w-full object-cover" />
       )}
 
-      <button
+      <Button
         onClick={onClose}
         aria-label="Cerrar caminata AR"
-        className="absolute top-4 right-4 z-10 rounded-full bg-black/60 p-2 text-white backdrop-blur-sm active:scale-90 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+        className="absolute top-4 right-4 z-30 p-2 backdrop-blur-sm"
       >
         <X className="h-5 w-5" />
-      </button>
+      </Button>
 
-      <div className="absolute top-4 left-4 right-16 z-10 rounded-xl bg-black/60 backdrop-blur-sm p-3 text-white">
+      <div className="relative mx-4 mt-4 mr-16 z-10 rounded-lg bg-card/90 backdrop-blur-sm p-3 text-foreground">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Footprints className="h-4 w-4 text-soul-teal" />
           <span>Caminata consciente</span>
@@ -110,27 +114,18 @@ export function ARWalkMission({ goal = 30, onComplete, onClose }: Props) {
           <span>{steps} / {goal} pasos</span>
           <span className="text-soul-gold">{Math.round(pct)}%</span>
         </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/20">
+        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
           <div className="h-full rounded-full bg-gradient-to-r from-primary to-soul-teal transition-all duration-300" style={{ width: `${pct}%` }} />
         </div>
-        {motionOk === false && (
-          <p className="mt-2 text-[10px] text-soul-gold">
-            Tu dispositivo no detecta movimiento. Toca la pantalla para sumar pasos manualmente.
-          </p>
-        )}
+        {motionOk === null && <Button className="mt-3 w-full" onClick={enableMotion}><Footprints className="h-4 w-4" />Activar sensor de pasos</Button>}
+        {motionOk === false && <p className="mt-2 text-xs text-soul-gold">Sensor no disponible. Registro manual de pasos.</p>}
+        {cameraOk === false && <p className="mt-2 text-xs text-muted-foreground">Sin cámara. Caminata sin vista AR.</p>}
       </div>
-
-      <div
-        className="absolute left-1/2 bottom-32 z-10 -translate-x-1/2 transition-all duration-500"
-        onClick={() => { if (motionOk === false) { setSteps((s) => Math.min(goal, s + 1)); tap(); } }}
-      >
-        <MiniAvatar3D size={avatarSize} glowColor={archStyle.glow} exposure={archStyle.exposure} />
-      </div>
-
-      <div className="absolute bottom-6 left-0 right-0 z-10 text-center">
-        <p className="text-xs text-white/80 px-6">
-          Camina con consciencia. Tu avatar crece con cada paso 🌱
-        </p>
+      <ARCompanion walking={walking} />
+      <div className="relative z-10 mx-4 mb-6 rounded-lg bg-card/90 p-3 text-center backdrop-blur-sm">
+        <p className="text-sm text-foreground">Caminata consciente</p>
+        <p className="mt-1 text-xs text-muted-foreground">Camina en un lugar seguro, lejos del tráfico.</p>
+        {motionOk !== true && <Button className="mt-3 w-full" disabled={steps >= goal} onClick={() => { setSteps((s) => Math.min(goal, s + 1)); tap(); }}><Footprints className="h-4 w-4" />Registrar paso manual</Button>}
       </div>
     </div>
   );

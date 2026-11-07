@@ -1,28 +1,12 @@
-import { useEffect, useRef } from "react";
+// Visor compartido por Inicio, Perfil y misiones; el 3D se carga solo en el navegador.
+import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { getArchetypeStyle } from "@/domain/identity/archetype";
+const ArchetypeScene = lazy(() => import("@/presentation/components/avatars/ArchetypeScene"));
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      "model-viewer": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          src?: string;
-          alt?: string;
-          "camera-controls"?: boolean | string;
-          "auto-rotate"?: boolean | string;
-          "disable-zoom"?: boolean | string;
-          "shadow-intensity"?: string | number;
-          exposure?: string | number;
-          ar?: boolean | string;
-          "rotation-per-second"?: string;
-          "camera-orbit"?: string;
-          "field-of-view"?: string;
-          "interaction-prompt"?: string;
-        },
-        HTMLElement
-      >;
-    }
-  }
+class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
 interface Props {
@@ -32,45 +16,39 @@ interface Props {
   className?: string;
   scale?: number;
   exposure?: number;
+  archetype?: number | null;
+  interactive?: boolean;
+  walking?: boolean;
 }
 
 export function MiniAvatar3D({
   size = 180,
   rotate = true,
-  glowColor = "hsl(var(--primary))",
+  glowColor,
   className = "",
   scale = 1,
   exposure = 1.1,
+  archetype,
+  interactive = true,
+  walking = false,
 }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ref.current) ref.current.style.transform = `scale(${scale})`;
-  }, [scale]);
+  const [mounted, setMounted] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { setMounted(true); const t = setTimeout(() => setSlow(true), 12000); return () => clearTimeout(t); }, []);
+  const style = getArchetypeStyle(archetype);
+  const fallback = <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground"><span className="text-3xl">{style.emoji}</span><span>Personaje no disponible</span></div>;
 
   return (
     <div
-      ref={ref}
+      data-avatar-archetype={style.name}
+      data-scene-ready={ready ? "true" : undefined}
       className={`relative transition-transform duration-300 ease-out ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, transform: `scale(${scale})`, maxWidth: "100%" }}
     >
-      <div
-        className="absolute inset-0 rounded-full blur-2xl opacity-70 animate-pulse"
-        style={{ background: glowColor }}
-      />
-      {/* @ts-expect-error - web component */}
-      <model-viewer
-        src="/models/avatar.glb"
-        alt="Avatar 3D"
-        auto-rotate={rotate ? "" : undefined}
-        rotation-per-second="20deg"
-        camera-controls=""
-        disable-zoom=""
-        interaction-prompt="none"
-        shadow-intensity="1"
-        exposure={String(exposure)}
-        style={{ width: "100%", height: "100%", background: "transparent" }}
-      />
+      <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />
+      {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "Le personnage tarde à charger".replace("Le personnage tarde à charger", "El personaje está tardando en cargar") : "Cargando personaje…"}</div>}
+      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
     </div>
   );
 }

@@ -30,9 +30,9 @@ export function ARFocusMission({ onComplete, onClose }: Props) {
       {() => (
         <div className="flex flex-1 flex-col">
           {/* Frame guide */}
-          <div className="pointer-events-none relative flex flex-1 items-center justify-center">
+          <div className="relative flex flex-1 items-center justify-center">
             <div
-              className={`absolute h-64 w-64 rounded-3xl border-4 transition-colors ${
+              className={`pointer-events-none absolute h-64 w-64 rounded-3xl border-4 transition-colors ${
                 focused ? "border-soul-teal/80" : "border-destructive/80"
               }`}
             />

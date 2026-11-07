@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Camera as CameraIcon } from "lucide-react";
-import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
-import { useUserStore } from "@/presentation/hooks/useUserStore";
-import { getArchetypeStyle } from "@/domain/identity/archetype";
+import { ARCompanion } from "@/presentation/components/missions/ARCompanion";
 
 interface Props {
   title: string;
@@ -122,23 +120,8 @@ export function ARMissionHost({ title, children, onClose }: Props) {
 
 interface AvatarOverlayProps {
   scale?: number;
-  /** Si no se pasa, se deriva del arquetipo del usuario */
-  glow?: string;
+  onTap?: () => void;
 }
-export function AvatarOverlay({ scale = 1, glow }: AvatarOverlayProps) {
-  const { user } = useUserStore();
-  const style = getArchetypeStyle(user.archetype);
-  return (
-    <div className="pointer-events-none flex flex-1 items-center justify-center">
-      <div className="animate-float">
-        <MiniAvatar3D
-          size={220}
-          rotate
-          scale={scale}
-          glowColor={glow ?? style.glow}
-          exposure={style.exposure}
-        />
-      </div>
-    </div>
-  );
+export function AvatarOverlay({ scale = 1, onTap }: AvatarOverlayProps) {
+  return <ARCompanion scale={scale} onTap={onTap} />;
 }
