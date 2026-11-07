@@ -72,7 +72,7 @@ export function OnboardingTour() {
         {isWelcome ? (
           <div className="text-center">
             <div className="mx-auto flex justify-center">
-              <MiniAvatar3D size={150} glowColor={style.glow} exposure={style.exposure} />
+              <MiniAvatar3D archetype={user.archetype} size={150} glowColor={style.glow} exposure={style.exposure} />
             </div>
             <h2 className="mt-4 font-cinzel text-2xl font-bold text-foreground">
               Bienvenido, {user.name}

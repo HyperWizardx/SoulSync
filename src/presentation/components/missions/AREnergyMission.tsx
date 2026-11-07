@@ -32,12 +32,7 @@ export function AREnergyMission({ onComplete, onClose }: Props) {
     <ARMissionHost title="Captura de energía" onClose={onClose}>
       {() => (
         <>
-          <button
-            onClick={handleTap}
-            className="pointer-events-auto flex flex-1 items-center justify-center"
-          >
-            <AvatarOverlay scale={scale} />
-          </button>
+          <AvatarOverlay scale={scale} onTap={handleTap} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">Carga</p>
             <p className="mt-1 text-3xl font-cinzel font-bold">
