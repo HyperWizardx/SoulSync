@@ -5,7 +5,7 @@ import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
-import { getArchetypeStyle } from "@/domain/identity/archetype";
+import { getArchetypeStyle, withAlpha } from "@/domain/identity/archetype";
 import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
 import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
 import { SEASON_COPY } from "@/domain/world/world";
@@ -31,8 +31,6 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-// Añade transparencia a un color hsl(...) del arquetipo.
-const withAlpha = (hsl: string, alpha: number) => hsl.replace(/\)$/, ` / ${alpha})`);
 
 function DashboardPage() {
   const { user } = useUserStore();
