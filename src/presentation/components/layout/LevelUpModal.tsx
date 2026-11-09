@@ -58,7 +58,7 @@ export function LevelUpModal({ level, onClose }: Props) {
           Nivel <AnimatedNumber value={level} from={Math.max(1, level - 1)} duration={900} />
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          ¡Tu energía interior crece! Nuevos retos te esperan.
+          ¡Tu héroe se hace más fuerte! Nuevas tierras y misiones te esperan.
         </p>
 
         <button

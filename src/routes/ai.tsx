@@ -13,16 +13,16 @@ import { TREND_COPY } from "@/domain/wellbeing/trend";
 export const Route = createFileRoute("/ai")({
   head: () => ({
     meta: [
-      { title: "Predicción de bienestar | SoulSync" },
+      { title: "Brújula de bienestar | SoulSync" },
       {
         name: "description",
         content:
-          "Señal preventiva exploratoria de bienestar emocional a partir de tus check-ins y patrones de uso. No es un diagnóstico.",
+          "Tu brújula de bienestar en SoulSync: un check-in diario, misiones para hoy y consejos para tu viaje. Orientativa, no es un diagnóstico.",
       },
-      { property: "og:title", content: "Predicción de bienestar | SoulSync" },
+      { property: "og:title", content: "Brújula de bienestar | SoulSync" },
       {
         property: "og:description",
-        content: "Insights preventivos explicables basados en tus check-ins diarios y tu actividad en SoulSync.",
+        content: "Un check-in diario, misiones para hoy y consejos para tu viaje en SoulSync.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -48,12 +48,12 @@ function AIPage() {
       <div className="px-4 pt-6">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-cinzel font-bold text-foreground">Predicción de bienestar</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Señal preventiva, no un diagnóstico</p>
+            <h1 className="text-2xl font-cinzel font-bold text-foreground">Brújula de bienestar</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Escucha cómo va tu viaje interior</p>
           </div>
           <button
             onClick={() => refetch()}
-            aria-label="Recalcular señal preventiva"
+            aria-label="Actualizar tu brújula"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
           >
             <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
@@ -84,42 +84,7 @@ function AIPage() {
                   onSubmit={(v) => checkin.mutate(v)}
                 />
 
-                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
-                  <section className="rounded-2xl border border-border bg-card p-4">
-                    <h2 className="font-cinzel font-semibold text-foreground">
-                      {TREND_COPY[data.prediction.trend].label}
-                    </h2>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {TREND_COPY[data.prediction.trend].body}
-                    </p>
-                    <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-xl bg-secondary/50 p-2">
-                        <dt className="text-xs text-muted-foreground">Ventana</dt>
-                        <dd className="text-xs font-semibold text-foreground">7 vs 7 días</dd>
-                      </div>
-                      <div className="rounded-xl bg-secondary/50 p-2">
-                        <dt className="text-xs text-muted-foreground">Cambio</dt>
-                        <dd className="text-xs font-semibold text-foreground">
-                          {(data.prediction.trendDelta * 100).toFixed(0)} pts
-                        </dd>
-                      </div>
-                      <div className="rounded-xl bg-secondary/50 p-2">
-                        <dt className="text-xs text-muted-foreground">Tareas</dt>
-                        <dd className="text-xs font-semibold text-foreground">
-                          {data.world ? `${data.world.tasksToday}/${data.world.dailyGoal}` : "—"}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Esta estimación es preventiva y no constituye un diagnóstico médico o psicológico.
-                    </p>
-                  </section>
-                )}
-
-                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
-                  <InsightPanel prediction={data.prediction} previous={data.previous} checkins={data.checkins} />
-                )}
-
+                {/* La brújula primero: es lo que el usuario viene a ver */}
                 {data.prediction ? (
                   <RiskCard prediction={data.prediction} />
                 ) : (
@@ -127,20 +92,41 @@ function AIPage() {
                     <div className="flex items-center gap-2">
                       <Brain className="h-4 w-4 text-primary" aria-hidden="true" />
                       <p className="text-sm text-muted-foreground">
-                        Registra tu día unas veces más para generar tu primera señal.
+                        Registra tu día un par de veces más y tu brújula empezará a orientarte.
                       </p>
                     </div>
                   </div>
                 )}
 
+                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
+                  <section className="rounded-2xl border border-border bg-card p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Rumbo de tu semana</p>
+                    <h2 className="mt-1 font-cinzel font-semibold text-foreground">
+                      {TREND_COPY[data.prediction.trend].label}
+                    </h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {TREND_COPY[data.prediction.trend].body}
+                    </p>
+                    {data.world && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Hoy llevas <span className="font-semibold text-foreground">{data.world.tasksToday} de {data.world.dailyGoal}</span> misiones de tu meta diaria.
+                      </p>
+                    )}
+                  </section>
+                )}
+
+                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
+                  <InsightPanel prediction={data.prediction} previous={data.previous} checkins={data.checkins} />
+                )}
+
                 <section>
-                  <h2 className="font-cinzel font-semibold text-foreground">Historia reciente</h2>
+                  <h2 className="font-cinzel font-semibold text-foreground">Tus últimas huellas</h2>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Tus tareas y check-ins coinciden en el tiempo con los cambios de señal.
+                    Lo que has vivido estos días en tu aventura.
                   </p>
                   <TimelineFeed entries={data.timeline} limit={5} className="mt-3" />
                   <Link to="/world" className="mt-2 inline-block text-xs font-semibold text-primary">
-                    Ver timeline completo en Mi Mundo →
+                    Ver toda tu crónica en Mi Mundo →
                   </Link>
                 </section>
 
@@ -148,7 +134,7 @@ function AIPage() {
                   to="/missions"
                   className="flex min-h-11 items-center justify-center rounded-xl border border-primary/40 bg-primary/5 text-sm font-semibold text-primary transition-transform active:scale-[0.98]"
                 >
-                  Ir a misiones de autocuidado →
+                  Elegir una misión de autocuidado →
                 </Link>
 
                 {consentCard}

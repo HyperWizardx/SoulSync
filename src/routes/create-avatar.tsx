@@ -6,7 +6,7 @@ import { StarField } from "@/presentation/components/layout/StarField";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
-import { ARCHETYPE_OPTIONS, getArchetypeStyle, withAlpha } from "@/domain/identity/archetype";
+import { AFFINITY_XP_MULT, ARCHETYPE_OPTIONS, CATEGORY_LABEL, getArchetypeStyle, withAlpha } from "@/domain/identity/archetype";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/create-avatar")({
@@ -41,7 +41,7 @@ function CreateAvatarPage() {
     setSaving(true);
     try {
       await updateUser({ name: name.trim(), archetype });
-      toast.success(`¡Bienvenido, ${name.trim()}! Tu aventura como ${style.name} comienza.`, { icon: <GameIcon name={style.icon} className="h-5 w-5" style={{ color: style.accent }} />, duration: 3000 });
+      toast.success(`¡Hola, ${name.trim()}! Tu aventura como ${style.name} comienza.`, { icon: <GameIcon name={style.icon} className="h-5 w-5" style={{ color: style.accent }} />, duration: 3000 });
       navigate({ to: "/dashboard" });
     } catch {
       // El error ya se muestra vía el toast.error del propio hook
@@ -70,7 +70,7 @@ function CreateAvatarPage() {
         {step === 0 && (
           <div className="animate-fade-in">
             <h2 className="text-2xl font-cinzel font-bold text-foreground">Elige tu Arquetipo</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Será tu personaje y compañero en esta aventura</p>
+            <p className="mt-1 text-sm text-muted-foreground">Será tu compañero de aventura y marcará las misiones que más te favorecen</p>
 
             {/* Vista previa 3D del arquetipo elegido */}
             <div
@@ -88,6 +88,9 @@ function CreateAvatarPage() {
                   <p className="mt-1 flex items-center gap-2 font-cinzel text-xl font-bold text-foreground"><GameIcon name={style.icon} className="h-5 w-5" style={{ color: style.accent }} /> {style.name}</p>
                   <p className="text-sm font-medium" style={{ color: style.accent }}>{style.trait}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">{style.gear}</p>
+                  <p className="mt-2 rounded-full bg-soul-gold/10 px-3 py-1 text-xs text-soul-gold">
+                    Misiones afines: {style.affinity.map((c) => CATEGORY_LABEL[c]).join(" y ")} (+{Math.round((AFFINITY_XP_MULT - 1) * 100)} % XP)
+                  </p>
                 </>
               )}
             </div>
@@ -164,7 +167,7 @@ function CreateAvatarPage() {
       <div className="relative z-10 flex items-center justify-between py-6">
         <button
           onClick={() => setStep(0)}
-          className={`flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-all active:scale-95 ${step === 0 ? "invisible" : ""}`}
+          className={`flex min-h-11 items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground transition-all active:scale-95 ${step === 0 ? "invisible" : ""}`}
         >
           <ChevronLeft className="h-4 w-4" /> Atrás
         </button>

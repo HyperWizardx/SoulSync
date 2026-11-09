@@ -3,6 +3,7 @@
  * Orquestan reglas del dominio a través de puertos; no conocen la base de datos
  * (por eso se prueban con repositorios simulados). Principio S: un caso por acción.
  */
+import { CATEGORY_LABEL } from "@/domain/identity/archetype";
 import type {
   CheckinInput,
   ConsentRepository,
@@ -45,7 +46,7 @@ export async function registerCheckin<P>(deps: WellbeingDeps<P>, userId: string,
   await deps.events.upsertCheckin(userId, deps.today(), input);
   await deps.events.addTimeline(userId, {
     kind: "checkin",
-    title: "Check-in diario registrado",
+    title: "Check-in del día",
     detail: `Ánimo ${input.mood}/5 · Estrés ${input.stress}/5 · Energía ${input.energy}/5`,
     payload: { mood: input.mood, stress: input.stress, energy: input.energy, social: input.social },
   });
@@ -62,8 +63,8 @@ export async function recordTaskEvent<P>(deps: WellbeingDeps<P>, userId: string,
     if (input.status === "skipped") {
       await deps.events.addTimeline(userId, {
         kind: "task_skipped",
-        title: `Tarea omitida: ${input.title}`,
-        detail: `Categoría: ${input.category}`,
+        title: `Misión omitida: ${input.title}`,
+        detail: CATEGORY_LABEL[input.category] ?? input.category,
         payload: { missionId: input.missionId, category: input.category },
       });
     }

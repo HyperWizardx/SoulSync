@@ -30,9 +30,9 @@ export function FeedbackHost() {
         if (ach.rarity === "epico" || ach.rarity === "legendario") {
           fireConfetti({ particleCount: 90, spread: 75, origin: { y: 0.3 } });
         }
-        toast(`¡Logro ${RARITY_LABEL[ach.rarity]} desbloqueado!`, {
+        toast(`¡Nuevo logro ${RARITY_LABEL[ach.rarity].toLowerCase()}: ${ach.name}!`, {
           icon: <GameIcon name={ach.icon} className="h-5 w-5 text-soul-gold" />,
-          description: `${ach.name} — ${ach.description}\n${parts.join(" · ")}`,
+          description: `${ach.description} · ${parts.join(" · ")}`,
           duration: 5000,
         });
       }

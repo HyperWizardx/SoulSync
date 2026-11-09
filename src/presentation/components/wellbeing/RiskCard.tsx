@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { AlertTriangle, LifeBuoy, TrendingUp } from "lucide-react";
 import type { WellbeingPrediction } from "@/domain/wellbeing/types";
-import { DISCLAIMER, MODEL_NOTE, RECOMMENDATIONS, RISK_COPY, SAFETY_MESSAGE } from "@/domain/wellbeing/copy";
+import { DISCLAIMER, RECOMMENDATIONS, RISK_COPY, SAFETY_MESSAGE } from "@/domain/wellbeing/copy";
 
 const TONE: Record<string, { border: string; bg: string; text: string }> = {
   teal: { border: "border-soul-teal/40", bg: "bg-soul-teal/5", text: "text-soul-teal" },
@@ -26,7 +26,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
           {prediction.score !== null && (
             <div className="shrink-0 text-right">
               <p className={`text-2xl font-bold ${tone.text}`}>{Math.round(prediction.score * 100)}%</p>
-              <p className="text-xs text-muted-foreground">índice exploratorio</p>
+              <p className="text-xs text-muted-foreground">índice orientativo</p>
             </div>
           )}
         </div>
@@ -58,7 +58,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
           <div className="flex items-start gap-2">
             <LifeBuoy className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Busca acompañamiento</p>
+              <p className="text-sm font-semibold text-foreground">Pide acompañamiento</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{SAFETY_MESSAGE}</p>
             </div>
           </div>
@@ -69,7 +69,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
         <div className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h3 className="font-cinzel font-semibold text-foreground">Factores que más influyen</h3>
+            <h3 className="font-cinzel font-semibold text-foreground">Lo que más mueve tu brújula</h3>
           </div>
           <div className="mt-3 space-y-3">
             {topFactors.map((f) => (
@@ -93,9 +93,9 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
 
       {topFactors.length > 0 && (
         <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
-          <h3 className="font-cinzel font-semibold text-foreground">Autocuidado sugerido</h3>
+          <h3 className="font-cinzel font-semibold text-foreground">Consejos para tu viaje</h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Sugerencias no clínicas basadas en tus propios registros.
+            Ideas de autocuidado pensadas a partir de tus registros (no son indicaciones clínicas).
           </p>
           <ul className="mt-3 space-y-2">
             {topFactors.slice(0, 3).map((f) => (
@@ -108,19 +108,10 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
         </div>
       )}
 
-      <div className="rounded-2xl border border-border bg-card/60 p-3">
-        <div className="flex items-start gap-2">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div className="text-xs leading-relaxed text-muted-foreground">
-            <p>{MODEL_NOTE}</p>
-            <p className="mt-1 font-mono">
-              model={prediction.modelVersion} · features={prediction.featureVersion} · cobertura=
-              {Math.round(prediction.coverage * 100)}% ·{" "}
-              {new Date(prediction.generatedAt).toLocaleString("es-CO")}
-            </p>
-          </div>
-        </div>
-      </div>
+      <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        Brújula actualizada el {new Date(prediction.generatedAt).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+      </p>
     </div>
   );
 }

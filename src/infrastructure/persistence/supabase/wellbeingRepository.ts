@@ -13,6 +13,8 @@ import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features"
 import { activeModel, isExamPeriod } from "@/domain/wellbeing/inference";
 import type { RiskLevel } from "@/domain/wellbeing/types";
 import { deriveWorldState } from "@/domain/world/world";
+import { RISK_COPY } from "@/domain/wellbeing/copy";
+import { TREND_COPY } from "@/domain/wellbeing/trend";
 import type { WorldState } from "@/domain/world/world";
 import { computeAura, type AuraState } from "@/domain/gamification/aura";
 import { SELFCARE_CATEGORIES, daysBetween } from "@/domain/wellbeing/features";
@@ -350,8 +352,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         const top = prediction.explanation.slice(0, 2).map((f) => f.label).join(" · ");
         await addTimelineEvent(supabase, userId, {
           kind: "prediction_change",
-          title: `Señal ${prediction.riskLevel} · tendencia ${prediction.trend}`,
-          detail: top ? `Coincide con: ${top}` : null,
+          title: `${RISK_COPY[prediction.riskLevel].title} · ${TREND_COPY[prediction.trend].label}`,
+          detail: top ? `Lo que más influyó: ${top}` : null,
           payload: {
             riskLevel: prediction.riskLevel,
             previousRiskLevel: last?.risk_level ?? null,
@@ -364,8 +366,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
         timeline.unshift({
           id: `local-${prediction.generatedAt}`,
           kind: "prediction_change",
-          title: `Señal ${prediction.riskLevel} · tendencia ${prediction.trend}`,
-          detail: top ? `Coincide con: ${top}` : null,
+          title: `${RISK_COPY[prediction.riskLevel].title} · ${TREND_COPY[prediction.trend].label}`,
+          detail: top ? `Lo que más influyó: ${top}` : null,
           occurredAt: prediction.generatedAt,
         });
       }

@@ -45,7 +45,7 @@ export function MiniAvatar3D({
   const [slow, setSlow] = useState(false);
   useEffect(() => { setMounted(true); const t = setTimeout(() => setSlow(true), 12000); return () => clearTimeout(t); }, []);
   const style = getArchetypeStyle(archetype);
-  const fallback = <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground"><GameIcon name={style.icon} className="h-8 w-8" style={{ color: style.accent }} /><span>Personaje no disponible</span></div>;
+  const fallback = <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground"><GameIcon name={style.icon} className="h-8 w-8" style={{ color: style.accent }} /><span>Tu héroe descansa por ahora</span></div>;
 
   return (
     <div
@@ -56,7 +56,7 @@ export function MiniAvatar3D({
     >
       {/* Con isla de zona el personaje ya tiene suelo: no se dibuja la sombra de color. */}
       {!zone && <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />}
-      {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "El personaje está tardando en cargar" : "Cargando personaje…"}</div>}
+      {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "Tu héroe viene en camino…" : "Invocando a tu héroe…"}</div>}
       {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} zone={zone} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
     </div>
   );

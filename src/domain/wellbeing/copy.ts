@@ -36,35 +36,38 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
 
 export const RISK_COPY: Record<RiskLevel, { title: string; body: string; tone: string }> = {
   bajo: {
-    title: "Señal preventiva: Baja",
-    body: "Tus indicadores recientes se mantienen estables. Sigue con tus rutinas de autocuidado.",
+    title: "Brújula en calma",
+    body: "Tu camino va firme. Sigue con las rutinas de autocuidado que te están funcionando.",
     tone: "teal",
   },
   moderado: {
-    title: "Señal preventiva: Moderada",
-    body: "Algunos indicadores muestran cambios que vale la pena observar esta semana.",
+    title: "Brújula atenta",
+    body: "Algo se movió esta semana. Date un respiro y apóyate en una misión corta de autocuidado.",
     tone: "gold",
   },
   alto: {
-    title: "Señal preventiva: Alta",
-    body: "Varios indicadores cambiaron a la vez. Esto no es un diagnóstico, pero es un buen momento para buscar apoyo.",
+    title: "Brújula en alerta",
+    body: "Varias cosas cambiaron a la vez. No es un diagnóstico, pero sí un buen momento para pedir apoyo: ningún héroe viaja solo.",
     tone: "destructive",
   },
   insuficiente: {
-    title: "Datos insuficientes",
-    body: "Aún no hay suficientes check-ins para generar una señal confiable. Registra tu día unas veces más.",
+    title: "Brújula por calibrar",
+    body: "Registra tu día unas veces más y tu brújula empezará a orientarte.",
     tone: "muted",
   },
 };
 
 export const DISCLAIMER =
-  "Señal preventiva exploratoria generada por un prototipo de investigación. No es un diagnóstico, no evalúa condiciones clínicas y no sustituye la valoración de un profesional de salud mental.";
+  "Tu brújula es orientativa: forma parte de un prototipo de investigación, no es un diagnóstico, no evalúa condiciones clínicas y no reemplaza a un profesional de salud mental.";
+
+/** Versión corta del aviso para tarjetas de resumen (la completa está en Bienestar). */
+export const SHORT_DISCLAIMER = "Orientativa, no es un diagnóstico.";
 
 export const MODEL_NOTE =
-  "Baseline transparente (score logístico con pesos definidos por criterio, no entrenados con datos clínicos). La interfaz está preparada para sustituirlo por un modelo entrenado con datos reales del estudio.";
+  "La brújula funciona con reglas transparentes definidas por el equipo de investigación; no se entrenó con datos clínicos.";
 
 export const SAFETY_MESSAGE =
-  "Si te sientes sobrepasado o en riesgo, busca apoyo ahora: contacta a Bienestar Universitario de la Universidad del Sinú, a una persona de confianza o a los servicios de emergencia de tu ciudad. SoulSync complementa, no reemplaza, las herramientas institucionales de acompañamiento.";
+  "No tienes que recorrer esto en soledad. Si sientes que todo te sobrepasa o estás en riesgo, busca apoyo ahora: contacta a Bienestar Universitario de la Universidad del Sinú, a una persona de confianza o a los servicios de emergencia de tu ciudad. SoulSync complementa, no reemplaza, las herramientas institucionales de acompañamiento.";
 
 /** Recomendaciones de autocuidado NO clínicas, ligadas a misiones existentes. */
 export const RECOMMENDATIONS: Record<FeatureKey, string> = {

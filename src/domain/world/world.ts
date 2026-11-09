@@ -46,10 +46,10 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 const pct = (n: number) => Math.round(clamp01(n) * 100);
 
 const ZONE_CATALOG = [
-  { key: "valle", name: "Valle de la Calma", icon: "windmill", requiredLevel: 1, description: "Se ilumina con tus tareas completadas hoy.", categories: ["autocuidado"] as const },
-  { key: "bosque", name: "Bosque Interior", icon: "pine-tree", requiredLevel: 2, description: "Crece con tus check-ins registrados.", categories: ["reflexion", "cognitivo"] as const },
-  { key: "reino", name: "Reino de las Emociones", icon: "castle", requiredLevel: 5, description: "Crece con tu tendencia emocional reciente.", categories: ["social", "reflexion"] as const },
-  { key: "montana", name: "Montaña de Fuerza", icon: "mountains", requiredLevel: 10, description: "Se levanta con tus rachas sostenidas.", categories: ["movimiento", "ar"] as const },
+  { key: "valle", name: "Valle de la Calma", icon: "windmill", requiredLevel: 1, description: "Se ilumina con cada misión que completas hoy.", categories: ["autocuidado"] as const },
+  { key: "bosque", name: "Bosque Interior", icon: "pine-tree", requiredLevel: 2, description: "Crece con cada check-in que registras.", categories: ["reflexion", "cognitivo"] as const },
+  { key: "reino", name: "Reino de las Emociones", icon: "castle", requiredLevel: 5, description: "Florece cuando tu semana va por buen rumbo.", categories: ["social", "reflexion"] as const },
+  { key: "montana", name: "Montaña de Fuerza", icon: "mountains", requiredLevel: 10, description: "Se alza con tus rachas de días seguidos.", categories: ["movimiento", "ar"] as const },
 ] as const;
 
 /**
@@ -99,10 +99,10 @@ export function deriveWorldState(input: WorldInput): WorldState {
 }
 
 export const SEASON_COPY: Record<WorldSeason, { label: string; description: string }> = {
-  calma: { label: "Estación de calma", description: "Tu mundo se mantiene estable con tu ritmo actual." },
-  crecimiento: { label: "Estación de crecimiento", description: "Tus tareas y check-ins recientes están haciendo florecer el mundo." },
-  tormenta: { label: "Estación de tormenta", description: "Coincide con una baja en tus indicadores. Una tarea corta ayuda a despejar." },
-  niebla: { label: "Estación de niebla", description: "Faltan registros para leer el estado de tu mundo con claridad." },
+  calma: { label: "Estación de calma", description: "Tus tierras descansan en paz al ritmo que llevas." },
+  crecimiento: { label: "Estación de crecimiento", description: "¡Tus misiones y check-ins están haciendo florecer tus tierras!" },
+  tormenta: { label: "Estación de tormenta", description: "Se acercan nubes. Una misión corta puede despejar el cielo." },
+  niebla: { label: "Estación de niebla", description: "La niebla cubre tus tierras. Un check-in del día ayuda a disiparla." },
 };
 
 // Nombre e ícono de una zona (para rotular las misiones AR ambientadas en ella).

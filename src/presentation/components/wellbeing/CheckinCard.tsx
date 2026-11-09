@@ -38,8 +38,8 @@ export function CheckinCard({ today, pending, onSubmit }: Props) {
       >
         <CheckCircle2 className="h-5 w-5 text-soul-teal" aria-hidden="true" />
         <div className="flex-1">
-          <p className="text-sm font-semibold text-foreground">Check-in de hoy completado</p>
-          <p className="text-xs text-muted-foreground">Toca para editarlo</p>
+          <p className="text-sm font-semibold text-foreground">¡Check-in de hoy listo!</p>
+          <p className="text-xs text-muted-foreground">Toca si quieres ajustarlo</p>
         </div>
       </button>
     );
@@ -48,7 +48,7 @@ export function CheckinCard({ today, pending, onSubmit }: Props) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <h2 className="font-cinzel font-semibold text-foreground">Check-in de hoy</h2>
-      <p className="mt-1 text-xs text-muted-foreground">Cuatro preguntas rápidas. Alimentan tu señal preventiva.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Cuatro preguntas rápidas para que tu brújula te conozca mejor.</p>
 
       <div className="mt-4 space-y-4">
         {SCALES.map((s) => (
@@ -108,7 +108,7 @@ export function CheckinCard({ today, pending, onSubmit }: Props) {
         }}
         className="mt-4 min-h-11 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-transform active:scale-95 disabled:opacity-50"
       >
-        {pending ? "Guardando…" : "Guardar check-in"}
+        {pending ? "Guardando…" : "Guardar mi check-in"}
       </button>
     </div>
   );

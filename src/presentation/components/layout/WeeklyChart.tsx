@@ -15,15 +15,16 @@ export function WeeklyChart() {
 
   return (
     <div className="rounded-xl border border-border bg-card p-3">
-      <div className="flex h-28 items-end justify-between gap-1.5">
+      {/* items-stretch: cada columna ocupa todo el alto, así la barra puede medirse en %. */}
+      <div className="flex h-28 items-stretch justify-between gap-1.5">
         {data.map((d) => {
           const h = (d.xp / max) * 100;
-          const date = new Date(d.date);
+          const date = new Date(`${d.date}T12:00:00`); // mediodía local: evita que la zona horaria cambie el día
           const label = DAY_LABELS[date.getDay()];
           return (
             <div
               key={d.date}
-              className="flex flex-1 flex-col items-center gap-1"
+              className="flex h-full flex-1 flex-col items-center gap-1"
             >
               <div className="flex w-full flex-1 items-end">
                 <div

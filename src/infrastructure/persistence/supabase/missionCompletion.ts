@@ -7,7 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { getMissionById, missionCategory } from "@/domain/gamification/missionsData";
 import { isEffectActive } from "@/domain/gamification/progression";
-import { isAffine } from "@/domain/identity/archetype";
+import { CATEGORY_LABEL, isAffine } from "@/domain/identity/archetype";
 import { planMissionCompletion } from "@/application/gamification/completeMission";
 import { addTimelineEvent, hasActiveConsent } from "./wellbeingRepository";
 import { consumeUses, evaluateAndGrant } from "./gamificationRepository";
@@ -97,8 +97,8 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
       }),
       addTimelineEvent(db, userId, {
         kind: "task_completed",
-        title: `Tarea completada: ${mission.title}`,
-        detail: `+${plan.gainedXp} XP · categoría ${category}${plan.boosted ? " · con objeto activo" : ""}${affinity ? " · afín a tu arquetipo" : ""}`,
+        title: `Misión cumplida: ${mission.title}`,
+        detail: `+${plan.gainedXp} XP · ${CATEGORY_LABEL[category]}${plan.boosted ? " · con objeto activo" : ""}${affinity ? " · afín a tu arquetipo" : ""}`,
         payload: { missionId: mission.id, xp: plan.gainedXp, isAR, boosted: plan.boosted, affinity },
       }),
     ]);
@@ -106,7 +106,7 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
     if (plan.leveledUp) {
       await addTimelineEvent(db, userId, {
         kind: "milestone", title: `Subiste a nivel ${plan.profile.level}`,
-        detail: "Hito de gamificación alcanzado", payload: { level: plan.profile.level },
+        detail: "¡Tu héroe se hizo más fuerte!", payload: { level: plan.profile.level },
       });
     }
   };

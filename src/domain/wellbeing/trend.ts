@@ -31,19 +31,19 @@ export function computeTrend(featureSet: FeatureSet): TrendResult {
 
 export const TREND_COPY: Record<TrendDirection, { label: string; body: string }> = {
   mejorando: {
-    label: "Tendencia al alza",
-    body: "Tus check-ins y el cumplimiento de tus tareas apuntan a una semana mejor que la anterior.",
+    label: "Tu semana va en ascenso",
+    body: "Tus check-ins y tus misiones muestran una semana mejor que la anterior. ¡Sigue así!",
   },
   estable: {
-    label: "Tendencia estable",
-    body: "Tus indicadores se mantienen en un rango parecido al de la semana pasada.",
+    label: "Paso firme",
+    body: "Vas a un ritmo parecido al de la semana pasada. La constancia también es una victoria.",
   },
   empeorando: {
-    label: "Tendencia a la baja",
-    body: "Tus check-ins y tus tareas completadas coinciden con un descenso respecto a la semana anterior.",
+    label: "Terreno difícil",
+    body: "Esta semana el camino se puso más cuesta arriba que la anterior. Una misión corta puede ayudarte a recuperar el aliento.",
   },
   indeterminada: {
-    label: "Tendencia aún no estimable",
-    body: "Faltan check-ins en alguna de las dos semanas para comparar periodos.",
+    label: "Rumbo por descubrir",
+    body: "Aún faltan check-ins para comparar tus semanas. ¡Registra tu día y lo verás!",
   },
 };

@@ -5,6 +5,7 @@ import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { SEASON_COPY } from "@/domain/world/world";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
+import { RISK_COPY } from "@/domain/wellbeing/copy";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { Lock } from "lucide-react";
 import { createRef, useEffect, useMemo, useState } from "react";
@@ -24,12 +25,12 @@ export const Route = createFileRoute("/world")({
       {
         name: "description",
         content:
-          "Tu mundo evoluciona con las tareas diarias que completas, tus check-ins y la tendencia reciente de bienestar.",
+          "Tus tierras florecen con cada misión que completas y cada check-in que registras.",
       },
       { property: "og:title", content: "Mi Mundo | SoulSync" },
       {
         property: "og:description",
-        content: "Mapa emocional y timeline unificado alimentados por tu actividad real en SoulSync.",
+        content: "Explora tus zonas y la crónica de tu aventura en SoulSync.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -68,7 +69,7 @@ function WorldPage() {
       <div className="px-4 pt-6">
         <h1 className="text-2xl font-cinzel font-bold text-foreground">Mi Mundo</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Evoluciona con tus tareas completadas y tus check-ins
+          Cada misión hace florecer tus tierras
         </p>
 
         {isLoading ? (
@@ -79,8 +80,8 @@ function WorldPage() {
         ) : !data?.consent.accepted || !world ? (
           <div className="mt-6 rounded-2xl border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground">
-              Tu mundo se construye con tus tareas y check-ins. Activa el seguimiento en la
-              pestaña Bienestar para empezar a verlo evolucionar.
+              Tus tierras despiertan cuando activas tu brújula de bienestar. Actívala en la
+              pestaña Bienestar y mira cómo tu mundo crece con cada misión.
             </p>
             <Link
               to="/ai"
@@ -98,7 +99,7 @@ function WorldPage() {
                   {SEASON_COPY[world.season].label}
                 </h2>
                 <span className="text-xs text-muted-foreground">
-                  {world.tasksToday}/{world.dailyGoal} tareas hoy
+                  {world.tasksToday}/{world.dailyGoal} misiones hoy
                 </span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -116,29 +117,6 @@ function WorldPage() {
                 <Meter label="Vitalidad" value={world.vitality} tone="bg-soul-gold" />
                 <Meter label="Armonía" value={world.harmony} tone="bg-soul-teal" />
               </div>
-            </section>
-
-            {/* Señal resumida */}
-            <section className="mt-4 rounded-2xl border border-border bg-card p-4">
-              <h2 className="font-cinzel font-semibold text-foreground">Señal de bienestar</h2>
-              {prediction && prediction.riskLevel !== "insuficiente" ? (
-                <>
-                  <p className="mt-1 text-sm text-foreground">
-                    Nivel <span className="font-semibold">{prediction.riskLevel}</span> ·{" "}
-                    {TREND_COPY[prediction.trend].label}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {TREND_COPY[prediction.trend].body}
-                  </p>
-                </>
-              ) : (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Aún no hay suficientes registros para estimar tu tendencia.
-                </p>
-              )}
-              <Link to="/ai" className="mt-3 inline-block text-xs font-semibold text-primary">
-                Ver factores y detalle →
-              </Link>
             </section>
 
             {/* Zonas */}
@@ -186,12 +164,34 @@ function WorldPage() {
               />
             </section>
 
-            {/* Timeline unificado */}
+            {/* Brújula resumida */}
+            <section className="mt-6 rounded-2xl border border-border bg-card p-4">
+              <h2 className="font-cinzel font-semibold text-foreground">Tu brújula</h2>
+              {prediction && prediction.riskLevel !== "insuficiente" ? (
+                <>
+                  <p className="mt-1 text-sm text-foreground">
+                    <span className="font-semibold">{RISK_COPY[prediction.riskLevel].title}</span> ·{" "}
+                    {TREND_COPY[prediction.trend].label}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {TREND_COPY[prediction.trend].body}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Tu brújula aún se está calibrando. Haz tu check-in del día para afinarla.
+                </p>
+              )}
+              <Link to="/ai" className="mt-3 inline-block text-xs font-semibold text-primary">
+                Ver tu brújula →
+              </Link>
+            </section>
+
+            {/* Crónica de la aventura */}
             <section className="mt-8 pb-4">
-              <h2 className="font-cinzel font-semibold text-foreground">Timeline</h2>
+              <h2 className="font-cinzel font-semibold text-foreground">Crónica de tu aventura</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Check-ins, tareas, hitos y cambios de señal en una sola historia. Los elementos
-                aparecen juntos por coincidencia temporal, no como causa y efecto.
+                Tus misiones, check-ins e hitos, en el orden en que los viviste.
               </p>
               <TimelineFeed entries={timeline} className="mt-4" />
             </section>
@@ -233,7 +233,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
               className="mt-4 h-56 rounded-2xl border border-border bg-gradient-to-b from-primary/10 to-card"
             />
             {zone.unlocked && zone.progress < 100 && (
-              <p className="mt-2 text-center text-xs text-muted-foreground">Sube el progreso de la zona para que aparezcan más construcciones.</p>
+              <p className="mt-2 text-center text-xs text-muted-foreground">Completa misiones de esta zona y verás surgir nuevas construcciones.</p>
             )}
 
             {zone.unlocked ? (
@@ -249,7 +249,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
                 <h3 className="mt-6 font-cinzel font-semibold text-foreground">Misiones de esta zona</h3>
                 <div className="mt-3 space-y-2 pb-6">
                   {missions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No hay misiones asociadas todavía.</p>
+                    <p className="text-xs text-muted-foreground">Pronto llegarán misiones a estas tierras.</p>
                   ) : (
                     missions.map((m) => {
                       const locked = !!m.requiredLevel && level < m.requiredLevel;
@@ -280,8 +280,8 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
             ) : (
               <div className="mt-4 pb-6">
                 <p className="text-sm text-muted-foreground">
-                  Esta zona se desbloquea al alcanzar el nivel {zone.requiredLevel}. Vas en el nivel {level}
-                  {level < zone.requiredLevel ? ` · te faltan ${zone.requiredLevel - level} niveles` : ""}.
+                  Estas tierras te esperan en el nivel {zone.requiredLevel}. Vas en el nivel {level}
+                  {level < zone.requiredLevel ? `: te ${zone.requiredLevel - level === 1 ? "falta 1 nivel" : `faltan ${zone.requiredLevel - level} niveles`}` : ""}. ¡Cada misión te acerca!
                 </p>
                 <Link
                   to="/missions"

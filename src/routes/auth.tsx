@@ -25,6 +25,19 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+// Mensajes de error de autenticación traducidos y amables (Supabase responde en inglés).
+function friendlyAuthError(err: unknown, fallback: string): string {
+  const msg = err instanceof Error ? err.message.toLowerCase() : "";
+  if (msg.includes("invalid login credentials")) return "Correo o contraseña incorrectos. Revísalos e inténtalo de nuevo.";
+  if (msg.includes("email not confirmed")) return "Aún no confirmas tu correo. Revisa tu bandeja de entrada.";
+  if (msg.includes("already registered") || msg.includes("already been registered")) return "Ese correo ya tiene una cuenta. Inicia sesión.";
+  if (msg.includes("password should be") || msg.includes("at least 6")) return "La contraseña debe tener al menos 6 caracteres.";
+  if (msg.includes("invalid email") || msg.includes("unable to validate email")) return "Ese correo no parece válido.";
+  if (msg.includes("rate limit") || msg.includes("too many")) return "Demasiados intentos. Espera un momento y vuelve a intentarlo.";
+  if (msg.includes("network") || msg.includes("fetch")) return "No hay conexión. Revisa tu internet e inténtalo de nuevo.";
+  return fallback;
+}
+
 /** Only same-origin relative paths are accepted as post-login destinations. */
 function safeNext(next?: string) {
   if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
@@ -61,16 +74,16 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Cuenta creada", { description: "Revisa tu correo para verificar tu email." });
+        toast.success("¡Tu cuenta de héroe está lista!", { description: "Revisa tu correo para confirmarla y empieza tu aventura." });
         setTab("login");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("¡Bienvenido de vuelta!");
+        toast.success("¡Qué bueno verte de nuevo!");
         goNext();
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error de autenticación");
+      toast.error(friendlyAuthError(err, "No pudimos abrir la puerta. Inténtalo de nuevo."));
     } finally {
       setLoading(false);
     }
@@ -85,11 +98,11 @@ function AuthPage() {
       });
       if (result.error) throw result.error;
       if (!result.redirected) {
-        toast.success("¡Bienvenido!");
+        toast.success("¡Que comience la aventura!");
         goNext();
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo iniciar sesión con Google");
+      toast.error(friendlyAuthError(err, "No se pudo iniciar sesión con Google. Inténtalo de nuevo."));
       setLoading(false);
     }
   };

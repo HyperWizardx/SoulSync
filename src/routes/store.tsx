@@ -15,7 +15,7 @@ export const Route = createFileRoute("/store")({
       { title: "Tienda de objetos | SoulSync" },
       { name: "description", content: "Compra pociones y reliquias que potencian tus misiones y transforman tu mundo emocional en SoulSync." },
       { property: "og:title", content: "Tienda de objetos | SoulSync" },
-      { property: "og:description", content: "Consumibles y reliquias con efectos reales sobre misiones, atributos y el estado de tu mundo." },
+      { property: "og:description", content: "Pociones y reliquias para potenciar las misiones de tu héroe en SoulSync." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -119,7 +119,7 @@ function StorePage() {
           <h1 className="text-2xl font-cinzel font-bold text-foreground">Tienda</h1>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Los objetos afectan de verdad tus misiones, atributos y el estado de tu mundo.
+          Equipa a tu héroe: cada objeto potencia tus misiones, tus atributos o tu mundo.
         </p>
 
         <div className="mt-4 flex gap-3">

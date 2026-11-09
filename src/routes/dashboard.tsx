@@ -25,12 +25,12 @@ export const Route = createFileRoute("/dashboard")({
       {
         name: "description",
         content:
-          "Resumen de tu avance en SoulSync: métricas derivadas de tus misiones completadas, tu racha y tu señal preventiva de bienestar.",
+          "Tu campamento en SoulSync: tu héroe, tu siguiente misión, tu racha y tu brújula de bienestar.",
       },
       { property: "og:title", content: "Tu progreso diario | SoulSync" },
       {
         property: "og:description",
-        content: "Métricas reales de bienestar calculadas con tu actividad diaria en SoulSync.",
+        content: "Tu héroe, tu siguiente misión y tu brújula de bienestar en SoulSync.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -58,7 +58,7 @@ function DashboardPage() {
       <div className="px-4 pt-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Bienvenido de vuelta</p>
+            <p className="text-sm text-muted-foreground">Tu aventura continúa</p>
             <h1 className="text-xl font-cinzel font-bold text-foreground">
               {user.name} <GameIcon name={archStyle.icon} className="h-5 w-5 align-[-3px]" style={{ color: archStyle.accent }} />
             </h1>
@@ -69,13 +69,19 @@ function DashboardPage() {
         <ResourceBar streak={user.streak} coins={user.coins} gems={user.gems} className="mt-4" />
 
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
-          <AuraHalo aura={wb?.aura} color={archStyle.glow}>
+          <AuraHalo aura={wb?.aura} color={archStyle.glow} showLabel={false}>
             <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} />
           </AuraHalo>
           <p className="mt-2 font-cinzel font-semibold">{archStyle.name}</p>
+          {archStyle.trait && <p className="text-xs text-muted-foreground">{archStyle.trait}</p>}
           {archStyle.affinity.length > 0 && (
-            <p className="mt-0.5 text-center text-xs text-muted-foreground">
-              {archStyle.trait} · misiones afines: {archStyle.affinity.map((c) => CATEGORY_LABEL[c]).join(" y ")}
+            <p className="mt-2 rounded-full bg-soul-gold/10 px-3 py-1 text-center text-xs text-soul-gold">
+              Misiones afines: {archStyle.affinity.map((c) => CATEGORY_LABEL[c]).join(" y ")}
+            </p>
+          )}
+          {wb?.aura && (
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">Aura {wb.aura.name}</span> · {wb.aura.message}
             </p>
           )}
         </Reveal>
@@ -92,9 +98,9 @@ function DashboardPage() {
         <Link to="/world" className="mt-4 block rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Tu Mundo Emocional</p>
+              <p className="text-xs text-muted-foreground">Tu Mundo</p>
               <p className="font-cinzel font-semibold">
-                {world ? SEASON_COPY[world.season].label : "Aún sin datos"}
+                {world ? SEASON_COPY[world.season].label : "Tierras por despertar"}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {activeZone
@@ -108,9 +114,9 @@ function DashboardPage() {
         </Reveal>
 
         <Reveal index={4} className="mt-6">
-          <h2 className="font-cinzel font-semibold">Tu estado integral</h2>
+          <h2 className="font-cinzel font-semibold">Estado de tu héroe</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Calculado con tus misiones completadas, tu racha y tus check-ins recientes.
+            Crece con cada misión, tu racha y tus check-ins del día.
           </p>
           <div className="mt-3">
             <IntegratedStatus

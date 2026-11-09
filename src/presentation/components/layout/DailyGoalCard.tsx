@@ -50,10 +50,8 @@ export function DailyGoalCard() {
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
         {done
-          ? "¡Meta cumplida! Sigue así para mantener tu racha."
-          : `Completa ${goal - todayCount} misión${
-              goal - todayCount === 1 ? "" : "es"
-            } más hoy.`}
+          ? "¡Meta cumplida, héroe! Mañana vuelve para mantener tu racha encendida."
+          : `Completa ${goal - todayCount} ${goal - todayCount === 1 ? "misión" : "misiones"} más hoy y cumple tu meta.`}
       </p>
     </div>
   );

@@ -81,11 +81,11 @@ function SplashPage() {
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur-sm">
           <Brain className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-medium">IA Ética</span>
+          <span className="text-xs font-medium">IA ética</span>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur-sm">
           <Heart className="h-3.5 w-3.5 text-soul-gold" />
-          <span className="text-xs font-medium">Evidencia</span>
+          <span className="text-xs font-medium">Con evidencia</span>
         </div>
       </div>
     </div>

@@ -3,10 +3,10 @@ import type { TimelineEntry } from "@/service/server-functions/wellbeing.functio
 
 const KIND_META: Record<TimelineEntry["kind"], { Icon: LucideIcon; tone: string; label: string }> = {
   checkin: { Icon: NotebookPen, tone: "border-soul-teal/40", label: "Check-in" },
-  task_completed: { Icon: CheckCircle2, tone: "border-primary/40", label: "Tarea completada" },
-  task_skipped: { Icon: SkipForward, tone: "border-border", label: "Tarea omitida" },
-  prediction_change: { Icon: TrendingUp, tone: "border-soul-gold/50", label: "Cambio de señal" },
-  milestone: { Icon: Trophy, tone: "border-soul-gold/50", label: "Hito" },
+  task_completed: { Icon: CheckCircle2, tone: "border-primary/40", label: "Misión cumplida" },
+  task_skipped: { Icon: SkipForward, tone: "border-border", label: "Misión omitida" },
+  prediction_change: { Icon: TrendingUp, tone: "border-soul-gold/50", label: "Tu brújula cambió" },
+  milestone: { Icon: Trophy, tone: "border-soul-gold/50", label: "Hito de tu aventura" },
   world_change: { Icon: Globe, tone: "border-primary/30", label: "Mundo" },
 };
 
@@ -35,7 +35,7 @@ export function TimelineFeed({
     return (
       <div className={`rounded-xl border border-dashed border-border bg-card/30 p-6 text-center ${className}`}>
         <p className="text-sm text-muted-foreground">
-          Aún no hay eventos. Completa una tarea o registra tu check-in para empezar tu historia.
+          Tu crónica está por escribirse. Completa una misión o haz tu check-in para empezarla.
         </p>
       </div>
     );
@@ -56,7 +56,10 @@ export function TimelineFeed({
                 <p className="text-sm font-medium text-foreground">{e.title}</p>
                 <span className="shrink-0 text-xs text-muted-foreground">{formatWhen(e.occurredAt)}</span>
               </div>
-              <p className="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">{meta.label}</p>
+              {/* La etiqueta solo se muestra si el título no la repite ("Misión cumplida: …", "Check-in del día") */}
+              {!e.title.toLowerCase().startsWith(meta.label.toLowerCase()) && (
+                <p className="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">{meta.label}</p>
+              )}
               {e.detail && <p className="mt-1 text-xs text-muted-foreground">{e.detail}</p>}
             </div>
           </li>

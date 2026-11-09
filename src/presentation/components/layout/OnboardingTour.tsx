@@ -8,23 +8,28 @@ import { ChevronRight, X } from "lucide-react";
 
 const STEPS = [
   {
-    title: "Tu Dashboard",
-    body: "Aquí ves tus stats emocionales en tiempo real: bienestar, resiliencia, energía y claridad.",
-    icon: "histogram",
+    title: "Tu campamento",
+    body: "En Inicio ves a tu héroe, tu siguiente paso y cómo va tu energía. Es tu punto de partida cada día.",
+    icon: "camping-tent",
   },
   {
-    title: "Misiones diarias",
-    body: "Completa misiones (respiración, diario, AR…) para ganar XP, monedas y subir tus atributos.",
+    title: "Misiones",
+    body: "Respira, escribe, muévete o conecta con otros para ganar XP y monedas. Las afines a tu arquetipo dan +20 % de XP.",
     icon: "crossed-swords",
   },
   {
-    title: "Realidad aumentada",
-    body: "Las misiones AR usan la cámara de tu móvil y tu avatar 3D. Vívelas en tu espacio real.",
-    icon: "smartphone",
+    title: "Tu Mundo",
+    body: "Cada misión hace florecer tus tierras. Sube de nivel para descubrir nuevas zonas.",
+    icon: "treasure-map",
   },
   {
-    title: "Tu progreso, persistente",
-    body: "Todo se guarda en la nube. Vuelve mañana para mantener tu racha y desbloquear logros.",
+    title: "Tu brújula",
+    body: "En Bienestar haces tu check-in del día y recibes consejos para tu viaje.",
+    icon: "compass",
+  },
+  {
+    title: "Racha y logros",
+    body: "Vuelve cada día para mantener tu racha encendida y desbloquear logros.",
     icon: "flame",
   },
 ] as const;
@@ -76,7 +81,7 @@ export function OnboardingTour() {
               <MiniAvatar3D archetype={user.archetype} size={150} glowColor={style.glow} exposure={style.exposure} />
             </div>
             <h2 className="mt-4 font-cinzel text-2xl font-bold text-foreground">
-              Bienvenido, {user.name}
+              ¡Te damos la bienvenida, {user.name}!
             </h2>
             <p className="mt-2 text-sm text-muted-foreground italic px-2">{welcome}</p>
           </div>
@@ -116,7 +121,7 @@ export function OnboardingTour() {
               onClick={() => setStep(step + 1)}
               className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition active:scale-95 hover:brightness-110 min-h-11"
             >
-              {isWelcome ? "Empezar tour" : "Siguiente"}
+              {isWelcome ? "Conocer mi aventura" : "Siguiente"}
               <ChevronRight className="h-4 w-4" />
             </button>
           ) : (

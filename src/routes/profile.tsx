@@ -1,7 +1,7 @@
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck, ChevronRight } from "lucide-react";
+import { Settings, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck, ChevronRight } from "lucide-react";
 import { useAdminAccess } from "@/presentation/hooks/useAdmin";
 import { useUserStore, useProfileSummary } from "@/presentation/hooks/useUserStore";
 import { useState } from "react";
@@ -23,7 +23,6 @@ import {
 import { getItem, getItemByName } from "@/domain/gamification/items";
 import { XP_PER_LEVEL } from "@/domain/gamification/progression";
 import { attributeSourceCategory } from "@/domain/gamification/missionsData";
-import { CATEGORY_LABEL } from "@/domain/identity/archetype";
 import type { TaskCategoryName, UserAttributes } from "@/domain/gamification/rewards";
 
 export const Route = createFileRoute("/profile")({
@@ -31,9 +30,9 @@ export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "Tu perfil de héroe | SoulSync" },
-      { name: "description", content: "Consulta tus trofeos, atributos RPG, logros y objetos reales derivados de tus misiones completadas en SoulSync." },
+      { name: "description", content: "Tu héroe en SoulSync: trofeos, atributos, logros y mochila." },
       { property: "og:title", content: "Tu perfil de héroe | SoulSync" },
-      { property: "og:description", content: "Trofeos, atributos y logros calculados con tu actividad real de bienestar." },
+      { property: "og:description", content: "Trofeos, atributos y logros de tu héroe en SoulSync." },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -56,14 +55,14 @@ function ProfilePage() {
   const ctx = (summary?.context as AchievementContext | undefined) ?? null;
 
   const trophies = [
-    { icon: "star-formation", label: "Nivel", value: summary?.trophies.level ?? user.level },
-    { icon: "flame", label: "Racha", value: summary?.trophies.streak ?? user.streak },
-    { icon: "archery-target", label: "Misiones", value: summary?.trophies.missions ?? user.missionHistory.length },
-    { icon: "smartphone", label: "Misiones AR", value: summary?.trophies.missionsAR ?? 0 },
-    { icon: "book-cover", label: "Check-ins", value: summary?.trophies.checkins ?? 0 },
-    { icon: "treasure-map", label: "Zonas", value: summary?.trophies.zonesUnlocked ?? 0 },
-    { icon: "calendar", label: "Días activos (30 d)", value: summary?.trophies.activeDays30 ?? 0 },
-    { icon: "sparkles", label: "XP (30 d)", value: summary?.trophies.xp30 ?? 0 },
+    { icon: "star-formation", label: "Nivel", value: summary?.trophies?.level ?? user.level },
+    { icon: "flame", label: "Racha", value: summary?.trophies?.streak ?? user.streak },
+    { icon: "archery-target", label: "Misiones", value: summary?.trophies?.missions ?? user.missionHistory.length },
+    { icon: "smartphone", label: "Misiones AR", value: summary?.trophies?.missionsAR ?? 0 },
+    { icon: "book-cover", label: "Check-ins", value: summary?.trophies?.checkins ?? 0 },
+    { icon: "treasure-map", label: "Zonas", value: summary?.trophies?.zonesUnlocked ?? 0 },
+    { icon: "calendar", label: "Días activos (30 d)", value: summary?.trophies?.activeDays30 ?? 0 },
+    { icon: "sparkles", label: "XP (30 d)", value: summary?.trophies?.xp30 ?? 0 },
     { icon: "trophy-cup", label: "Logros", value: unlocked.size },
   ];
 
@@ -78,6 +77,11 @@ function ProfilePage() {
     navigate({ to: "/auth", search: { mode: "login" } });
   };
 
+  // Cómo nombrar cada tipo de misión dentro de una frase ("misiones sociales", "de reflexión"...).
+  const CATEGORY_PHRASE: Record<TaskCategoryName, [singular: string, plural: string]> = {
+    autocuidado: ["de autocuidado", "de autocuidado"], reflexion: ["de reflexión", "de reflexión"], movimiento: ["de movimiento", "de movimiento"],
+    social: ["social", "sociales"], cognitivo: ["cognitiva", "cognitivas"], ar: ["de realidad aumentada", "de realidad aumentada"],
+  };
   // La categoría que hace crecer cada atributo se calcula con las recompensas del catálogo de misiones.
   const ATTRIBUTE_NAMES: [keyof UserAttributes, string][] = [
     ["resiliencia", "Resiliencia"], ["empatia", "Empatía"], ["mindfulness", "Mindfulness"],
@@ -85,7 +89,7 @@ function ProfilePage() {
   ];
   const attributes = ATTRIBUTE_NAMES.map(([key, name]) => {
     const category: TaskCategoryName = attributeSourceCategory(key) ?? "autocuidado";
-    return { name, value: user.attributes[key], category, categoryLabel: CATEGORY_LABEL[category].toLowerCase() };
+    return { name, value: user.attributes[key], category, phrase: CATEGORY_PHRASE[category] };
   });
 
   const handleSaveName = () => {
@@ -262,7 +266,7 @@ function ProfilePage() {
               className="mt-3 group flex items-center gap-1 hover:text-primary transition-colors"
             >
               <h2 className="text-lg font-cinzel font-bold text-foreground group-hover:text-primary transition-colors">{user.name}</h2>
-              <Edit2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Edit2 className="h-3.5 w-3.5 text-muted-foreground opacity-70 group-hover:opacity-100 transition-opacity" aria-label="Cambiar nombre" />
             </button>
           )}
 
@@ -275,16 +279,22 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Evolución semanal */}
-        <div className="mt-6">
-          <h2 className="font-cinzel font-semibold text-foreground mb-3">Evolución semanal</h2>
-          <WeeklyChart />
+        {/* Accesos rápidos */}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <Link to="/store" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
+            <ShoppingBag className="h-5 w-5 text-soul-gold" />
+            <span className="text-xs text-muted-foreground">Tienda</span>
+          </Link>
+          <Link to="/community" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
+            <Users className="h-5 w-5 text-soul-teal" />
+            <span className="text-xs text-muted-foreground">Comunidad</span>
+          </Link>
         </div>
 
-        {/* Trofeos reales */}
+        {/* Trofeos */}
         <div className="mt-6">
           <h2 className="font-cinzel font-semibold text-foreground">Trofeos</h2>
-          <p className="text-xs text-muted-foreground">Calculados con tu actividad real registrada.</p>
+          <p className="text-xs text-muted-foreground">Las hazañas que llevas acumuladas en tu aventura.</p>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {trophies.map((t) => (
               <div key={t.label} className="rounded-xl border border-border bg-card p-3 text-center">
@@ -296,43 +306,79 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Quick Links */}
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <Link to="/store" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
-            <ShoppingBag className="h-5 w-5 text-soul-gold" />
-            <span className="text-xs text-muted-foreground">Tienda</span>
-          </Link>
-          <Link to="/community" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
-            <Users className="h-5 w-5 text-soul-teal" />
-            <span className="text-xs text-muted-foreground">Comunidad</span>
-          </Link>
-          <Link to="/achievements" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
-            <Trophy className="h-5 w-5 text-primary" />
-            <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length} logros</span>
-          </Link>
-        </div>
+        {/* Logros: resumen aquí y la lista completa en su propia pantalla (formato de la Tienda) */}
+        <Link
+          to="/achievements"
+          className="mt-6 block rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 active:scale-[0.98]"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="font-cinzel font-semibold text-foreground">Logros</h2>
+            <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+              {unlocked.size}/{ACHIEVEMENTS.length} <ChevronRight className="h-4 w-4" aria-hidden />
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className="h-full rounded-full bg-soul-gold transition-all duration-700" style={{ width: `${(unlocked.size / ACHIEVEMENTS.length) * 100}%` }} />
+          </div>
+          {nextAchievement ? (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <GameIcon name={nextAchievement.icon} className="h-4 w-4 text-primary" />
+              Próximo: <span className="font-semibold text-foreground">{nextAchievement.name}</span> · {nextAchievement.description}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">¡Desbloqueaste todos los logros!</p>
+          )}
+        </Link>
 
-        {adminAccess?.isAdmin && (
-          <Link
-            to={adminAccess.psicologo ? "/admin" : "/admin/metricas"}
-            className="mt-3 flex items-center gap-3 rounded-xl border border-primary/40 bg-primary/10 p-3 transition-all hover:border-primary active:scale-95"
-          >
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm font-semibold text-foreground">Panel de administración</p>
-              <p className="text-xs text-muted-foreground">
-                {adminAccess.psicologo ? "Seguimiento de estudiantes" : "Métricas de la población"}
-              </p>
-            </div>
-          </Link>
-        )}
+        {/* Attributes */}
+        <div className="mt-6">
+          <h2 className="font-cinzel font-semibold text-foreground">Atributos de tu héroe</h2>
+          <p className="text-xs text-muted-foreground">Entrena cada atributo con el tipo de misión que lo hace crecer. Toca uno para ver cómo.</p>
+          <div className="mt-3 space-y-3">
+            {attributes.map((attr) => {
+              const c30 = summary?.categories30?.[attr.category] ?? 0;
+              const c7 = summary?.categories7?.[attr.category] ?? 0;
+              const cPrev = summary?.categoriesPrev7?.[attr.category] ?? 0;
+              const delta = c7 - cPrev;
+              return (
+                <button
+                  key={attr.name}
+                  onClick={() => setExpandedAttr(expandedAttr === attr.name ? null : attr.name)}
+                  className={`w-full text-left rounded-xl p-2 transition-all duration-300 ${
+                    expandedAttr === attr.name ? "bg-card border border-primary/30" : "hover:bg-card/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-foreground">{attr.name}</span>
+                    <span className="text-muted-foreground">{attr.value}/100</span>
+                  </div>
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-secondary">
+                    <div className="h-full rounded-full bg-primary transition-all duration-1000" style={{ width: `${attr.value}%` }} />
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {c30} {c30 === 1 ? `misión ${attr.phrase[0]}` : `misiones ${attr.phrase[1]}`} este mes ·{" "}
+                    <span className={delta > 0 ? "text-soul-teal" : delta < 0 ? "text-destructive" : ""}>
+                      {delta > 0 ? `+${delta}` : delta} vs. la semana pasada
+                    </span>
+                  </p>
+                  {expandedAttr === attr.name && (
+                    <p className="mt-2 text-xs text-muted-foreground animate-fade-in">
+                      Sube completando misiones {attr.phrase[1]}. Nivel actual:{" "}
+                      {attr.value < 40 ? "Principiante" : attr.value < 70 ? "Intermedio" : "Avanzado"}.
+                    </p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Inventario */}
         <div className="mt-6">
           <h2 className="font-cinzel font-semibold text-foreground">Mochila</h2>
           {user.items.length === 0 ? (
             <p className="mt-2 text-xs text-muted-foreground">
-              Aún no tienes objetos. <Link to="/store" className="text-primary underline">Visita la tienda</Link> para potenciar tus misiones.
+              Tu mochila está vacía. <Link to="/store" className="text-primary underline">Pasa por la tienda</Link> y equípate para tus próximas misiones.
             </p>
           ) : (
             <div className="mt-3 space-y-2">
@@ -379,73 +425,26 @@ function ProfilePage() {
           )}
         </div>
 
-        {/* Attributes */}
+        {/* Evolución semanal */}
         <div className="mt-6">
-          <h2 className="font-cinzel font-semibold text-foreground">Atributos RPG</h2>
-          <p className="text-xs text-muted-foreground">Cada atributo crece con las misiones que realmente completas.</p>
-          <div className="mt-3 space-y-3">
-            {attributes.map((attr) => {
-              const c30 = summary?.categories30?.[attr.category] ?? 0;
-              const c7 = summary?.categories7?.[attr.category] ?? 0;
-              const cPrev = summary?.categoriesPrev7?.[attr.category] ?? 0;
-              const delta = c7 - cPrev;
-              return (
-                <button
-                  key={attr.name}
-                  onClick={() => setExpandedAttr(expandedAttr === attr.name ? null : attr.name)}
-                  className={`w-full text-left rounded-xl p-2 transition-all duration-300 ${
-                    expandedAttr === attr.name ? "bg-card border border-primary/30" : "hover:bg-card/50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground">{attr.name}</span>
-                    <span className="text-muted-foreground">{attr.value}/100</span>
-                  </div>
-                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-secondary">
-                    <div className="h-full rounded-full bg-primary transition-all duration-1000" style={{ width: `${attr.value}%` }} />
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {c30} misiones de {attr.categoryLabel} (30 d) ·{" "}
-                    <span className={delta > 0 ? "text-soul-teal" : delta < 0 ? "text-destructive" : ""}>
-                      {delta > 0 ? `+${delta}` : delta} vs. semana previa
-                    </span>
-                  </p>
-                  {expandedAttr === attr.name && (
-                    <p className="mt-2 text-xs text-muted-foreground animate-fade-in">
-                      Sube completando misiones de {attr.categoryLabel}. Nivel actual:{" "}
-                      {attr.value < 40 ? "Principiante" : attr.value < 70 ? "Intermedio" : "Avanzado"}.
-                    </p>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          <h2 className="font-cinzel font-semibold text-foreground mb-3">Tu semana de aventura</h2>
+          <WeeklyChart />
         </div>
 
-        {/* Logros: resumen aquí y la lista completa en su propia pantalla (formato de la Tienda) */}
-        <Link
-          to="/achievements"
-          className="mt-6 block rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 active:scale-[0.98]"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="font-cinzel font-semibold text-foreground">Logros</h2>
-            <span className="flex items-center gap-1 text-xs font-semibold text-primary">
-              {unlocked.size}/{ACHIEVEMENTS.length} <ChevronRight className="h-4 w-4" aria-hidden />
-            </span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-soul-gold transition-all duration-700" style={{ width: `${(unlocked.size / ACHIEVEMENTS.length) * 100}%` }} />
-          </div>
-          {nextAchievement ? (
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <GameIcon name={nextAchievement.icon} className="h-4 w-4 text-primary" />
-              Próximo: <span className="font-semibold text-foreground">{nextAchievement.name}</span> · {nextAchievement.description}
-            </p>
-          ) : (
-            <p className="mt-2 text-xs text-muted-foreground">¡Desbloqueaste todos los logros!</p>
-          )}
-        </Link>
-
+        {adminAccess?.isAdmin && (
+          <Link
+            to={adminAccess.psicologo ? "/admin" : "/admin/metricas"}
+            className="mt-6 flex items-center gap-3 rounded-xl border border-primary/40 bg-primary/10 p-3 transition-all hover:border-primary active:scale-95"
+          >
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Panel de administración</p>
+              <p className="text-xs text-muted-foreground">
+                {adminAccess.psicologo ? "Seguimiento de estudiantes" : "Métricas de la población"}
+              </p>
+            </div>
+          </Link>
+        )}
       </div>
     </MobileLayout>
   );

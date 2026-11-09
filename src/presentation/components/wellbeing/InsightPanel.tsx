@@ -2,11 +2,13 @@
 import { Link } from "@tanstack/react-router";
 import { Sparkles, ShieldCheck } from "lucide-react";
 import type { CheckinRecord, RiskLevel, WellbeingPrediction } from "@/domain/wellbeing/types";
-import { CONFIDENCE_COPY, SAFETY_FLAG_COPY } from "@/domain/wellbeing/decision";
+import { SAFETY_FLAG_COPY } from "@/domain/wellbeing/decision";
 import { suggestMissions } from "@/domain/wellbeing/recommendations";
 import { MoodStressChart } from "@/presentation/components/admin/DashboardCharts";
 
-const LEVEL_LABEL: Record<RiskLevel, string> = { bajo: "Bajo", moderado: "Moderado", alto: "Alto", insuficiente: "Sin datos" };
+const LEVEL_LABEL: Record<RiskLevel, string> = { bajo: "en calma", moderado: "atenta", alto: "en alerta", insuficiente: "por calibrar" };
+// Cómo de afinada está la brújula (versión para el estudiante de CONFIDENCE_COPY).
+const CONFIDENCE_LABEL: Record<"alta" | "media" | "baja", string> = { alta: "Brújula bien afinada", media: "Brújula casi afinada", baja: "Brújula en calibración" };
 
 export function InsightPanel({ prediction, previous, checkins }: {
   prediction: WellbeingPrediction;
@@ -24,21 +26,21 @@ export function InsightPanel({ prediction, previous, checkins }: {
         <div className="flex flex-wrap items-center gap-2">
           {prediction.confidence && (
             <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prediction.confidence === "baja" ? "bg-secondary text-muted-foreground" : "bg-primary/15 text-primary"}`}>
-              {CONFIDENCE_COPY[prediction.confidence]}
+              {CONFIDENCE_LABEL[prediction.confidence]}
             </span>
           )}
           {previous && (
             <span className="text-xs text-muted-foreground">
-              Antes: {LEVEL_LABEL[previous.riskLevel]}
+              La vez anterior estaba {LEVEL_LABEL[previous.riskLevel]}
               {delta !== null && ` · ${delta > 0 ? "+" : ""}${delta} pts`}
             </span>
           )}
         </div>
         {prediction.confidence === "baja" && (
-          <p className="mt-2 text-xs text-muted-foreground">Señal preliminar: registra tu día varias veces más para que sea más precisa.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Tu brújula aún se está calibrando: registra tu día unas veces más para afinarla.</p>
         )}
         {(prediction.safetyFlags ?? []).length > 0 && (
-          <p className="mt-2 text-xs text-destructive">Notamos: {(prediction.safetyFlags ?? []).map((f) => SAFETY_FLAG_COPY[f]).join(" · ")}.</p>
+          <p className="mt-2 text-xs text-destructive">Ojo, notamos: {(prediction.safetyFlags ?? []).map((f) => SAFETY_FLAG_COPY[f]).join(" · ")}.</p>
         )}
         {(prediction.protectiveFactors ?? []).length > 0 && (
           <p className="mt-2 flex items-start gap-1.5 text-xs text-soul-teal">

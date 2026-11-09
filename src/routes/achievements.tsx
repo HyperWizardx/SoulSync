@@ -23,7 +23,7 @@ export const Route = createFileRoute("/achievements")({
   head: () => ({
     meta: [
       { title: "Logros | SoulSync" },
-      { name: "description", content: "Logros que se desbloquean con tus misiones reales en SoulSync." },
+      { name: "description", content: "Las hazañas de tu héroe en SoulSync y las recompensas que te esperan." },
       { property: "og:title", content: "Logros | SoulSync" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -105,7 +105,7 @@ function AchievementsPage() {
           <h1 className="text-2xl font-cinzel font-bold text-foreground">Logros</h1>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Se desbloquean solos con tus misiones, tu racha y tu mundo. Cada uno da su recompensa una sola vez.
+          Cada hazaña de tu aventura tiene su recompensa. ¡A por todas!
         </p>
 
         <div className="mt-4 flex gap-3">
