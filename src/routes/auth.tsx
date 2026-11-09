@@ -131,7 +131,7 @@ function AuthPage() {
           Continuar con Google
         </button>
 
-        <div className="my-4 flex items-center gap-3 text-[10px] text-muted-foreground">
+        <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
           <div className="h-px flex-1 bg-border" />
           O CON EMAIL
           <div className="h-px flex-1 bg-border" />

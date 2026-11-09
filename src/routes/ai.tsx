@@ -90,23 +90,23 @@ function AIPage() {
                     </p>
                     <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
                       <div className="rounded-xl bg-secondary/50 p-2">
-                        <dt className="text-[10px] text-muted-foreground">Ventana</dt>
+                        <dt className="text-xs text-muted-foreground">Ventana</dt>
                         <dd className="text-xs font-semibold text-foreground">7 vs 7 días</dd>
                       </div>
                       <div className="rounded-xl bg-secondary/50 p-2">
-                        <dt className="text-[10px] text-muted-foreground">Cambio</dt>
+                        <dt className="text-xs text-muted-foreground">Cambio</dt>
                         <dd className="text-xs font-semibold text-foreground">
                           {(data.prediction.trendDelta * 100).toFixed(0)} pts
                         </dd>
                       </div>
                       <div className="rounded-xl bg-secondary/50 p-2">
-                        <dt className="text-[10px] text-muted-foreground">Tareas</dt>
+                        <dt className="text-xs text-muted-foreground">Tareas</dt>
                         <dd className="text-xs font-semibold text-foreground">
                           {data.world ? `${data.world.tasksToday}/${data.world.dailyGoal}` : "—"}
                         </dd>
                       </div>
                     </dl>
-                    <p className="mt-3 text-[10px] text-muted-foreground">
+                    <p className="mt-3 text-xs text-muted-foreground">
                       Esta estimación es preventiva y no constituye un diagnóstico médico o psicológico.
                     </p>
                   </section>

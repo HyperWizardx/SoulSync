@@ -42,7 +42,7 @@ export function LevelUpModal({ level, onClose }: Props) {
         className="relative max-w-sm w-full rounded-3xl border-2 border-primary/40 bg-gradient-to-b from-card via-card to-primary/10 p-6 text-center shadow-2xl shadow-primary/30 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-soul-gold px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-soul-gold px-4 py-1 text-xs font-bold uppercase tracking-wider text-background">
           ¡Nivel arriba!
         </div>
 

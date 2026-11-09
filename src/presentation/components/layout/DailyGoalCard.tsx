@@ -48,7 +48,7 @@ export function DailyGoalCard() {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">
+      <p className="mt-2 text-xs text-muted-foreground">
         {done
           ? "¡Meta cumplida! Sigue así para mantener tu racha."
           : `Completa ${goal - todayCount} misión${

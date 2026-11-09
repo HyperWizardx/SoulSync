@@ -110,7 +110,7 @@ export function ARMissionHost({ title, children, onClose, zone = null }: Props) 
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-4 py-3">
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-white/70">Misión AR</p>
+          <p className="text-xs uppercase tracking-wider text-white/70">Misión AR</p>
           <h2 className="font-cinzel text-base font-semibold text-white drop-shadow">{title}</h2>
           {zone && <ZoneChip zone={zone} />}
         </div>
@@ -143,7 +143,7 @@ export function AvatarOverlay({ scale = 1, onTap, tapLabel, celebrate, zone }: A
 export function ZoneChip({ zone }: { zone: ZoneKey }) {
   const info = zoneInfo(zone);
   return (
-    <span className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur" style={{ backgroundColor: withAlpha(ZONE_ACCENT[zone], 0.55) }}>
+    <span className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-white backdrop-blur" style={{ backgroundColor: withAlpha(ZONE_ACCENT[zone], 0.55) }}>
       <GameIcon name={info.icon} className="h-3.5 w-3.5" /> {info.name}
     </span>
   );

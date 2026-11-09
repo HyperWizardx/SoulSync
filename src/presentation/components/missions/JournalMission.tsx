@@ -69,7 +69,7 @@ export function JournalMission({ onComplete, onClose }: Props) {
           rows={5}
           className="mt-2 w-full resize-none rounded-lg border border-border bg-background p-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
-        <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <div className="mt-1 flex justify-between text-xs text-muted-foreground">
           <span>{text.trim().length} / {minChars} mín.</span>
           <span>{valid ? "✓ Listo" : "Sigue escribiendo"}</span>
         </div>

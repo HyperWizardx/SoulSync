@@ -42,7 +42,7 @@ export function ARAuraMission({ onComplete, onClose, zone }: Props) {
         <>
           <AvatarOverlay scale={phase.scale} celebrate={cycle >= CYCLES} zone={zone} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
-            <p className="text-[10px] uppercase tracking-wider text-white/60">
+            <p className="text-xs uppercase tracking-wider text-white/60">
               Ciclo {Math.min(cycle + 1, CYCLES)} / {CYCLES}
             </p>
             <p className="mt-1 text-3xl font-cinzel font-bold">{phase.label}</p>

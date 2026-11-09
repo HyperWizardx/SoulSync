@@ -150,7 +150,7 @@ export function ARCompanion({ scale = 1, walking = false, celebrate = false, onT
           </div>
         </div>
         {hint && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-black/55 px-3 py-1 text-[11px] text-white backdrop-blur">
+          <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-black/55 px-3 py-1 text-xs text-white backdrop-blur">
             Toca, arrastra o usa dos dedos para girar y acercar a tu {who}
           </p>
         )}

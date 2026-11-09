@@ -116,7 +116,7 @@ function CreateAvatarPage() {
                       <GameIcon name={a.icon} className="h-5 w-5" style={{ color: a.accent }} />
                     </span>
                     <span className="font-cinzel font-semibold text-foreground">{a.name}</span>
-                    <span className="text-[11px] leading-tight text-muted-foreground">{a.trait}</span>
+                    <span className="text-xs leading-tight text-muted-foreground">{a.trait}</span>
                     {selected && (
                       <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full text-background" style={{ backgroundColor: a.accent }}>
                         <Check className="h-3 w-3" />
@@ -144,7 +144,7 @@ function CreateAvatarPage() {
                 autoFocus
                 className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
-              <p className="mt-1 text-right text-[10px] text-muted-foreground">{name.length}/20</p>
+              <p className="mt-1 text-right text-xs text-muted-foreground">{name.length}/20</p>
 
               {/* Resumen del héroe */}
               <div className="mt-4 flex items-center gap-3 rounded-xl border-2 bg-card p-3 transition-all duration-500" style={{ borderColor: name ? withAlpha(style.accent, 0.6) : undefined }}>
@@ -152,7 +152,7 @@ function CreateAvatarPage() {
                 <div>
                   <p className="font-cinzel text-lg font-semibold text-foreground">{name.trim() || "Héroe"}</p>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground"><GameIcon name={style.icon} className="h-3.5 w-3.5" style={{ color: style.accent }} /> {style.name} • Nivel 1</p>
-                  <p className="text-[11px]" style={{ color: style.accent }}>{style.trait}</p>
+                  <p className="text-xs" style={{ color: style.accent }}>{style.trait}</p>
                 </div>
               </div>
             </div>

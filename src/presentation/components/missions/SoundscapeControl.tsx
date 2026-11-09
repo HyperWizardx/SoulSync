@@ -37,7 +37,7 @@ export function SoundscapeControl({ stopped = false }: { stopped?: boolean }) {
           className="mt-2 w-full accent-primary"
         />
       )}
-      {binaural && <p className="mt-1 text-[10px] text-muted-foreground">Usa audífonos para percibir el tono binaural.</p>}
+      {binaural && <p className="mt-1 text-xs text-muted-foreground">Usa audífonos para percibir el tono binaural.</p>}
     </div>
   );
 }

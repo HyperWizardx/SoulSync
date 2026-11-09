@@ -64,16 +64,16 @@ function StorePage() {
       >
         <div className="flex items-center justify-between">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-soul-gold/10 text-soul-gold"><GameIcon name={item.icon} className="h-7 w-7" /></span>
-          <span className={`text-[9px] rounded-full px-1.5 py-0.5 font-medium ${RARITY_CLASS[item.rarity]}`}>
+          <span className={`text-xs rounded-full px-1.5 py-0.5 font-medium ${RARITY_CLASS[item.rarity]}`}>
             {item.rarity}
           </span>
         </div>
         <p className="mt-2 text-sm font-semibold text-foreground">{item.name}</p>
-        <p className="text-[10px] text-muted-foreground">{item.desc}</p>
-        <p className="mt-1 text-[10px] leading-snug text-muted-foreground/80">{item.detail}</p>
+        <p className="text-xs text-muted-foreground">{item.desc}</p>
+        <p className="mt-1 text-xs leading-snug text-muted-foreground/80">{item.detail}</p>
 
         {qty > 0 && (
-          <p className="mt-2 text-[10px] font-medium text-soul-teal">
+          <p className="mt-2 text-xs font-medium text-soul-teal">
             {item.kind === "consumable" ? `En tu mochila: ${qty}` : inv?.equipped ? "Equipado" : "En tu mochila"}
           </p>
         )}
@@ -123,14 +123,14 @@ function StorePage() {
             <Coins className="h-5 w-5 text-soul-gold" />
             <div>
               <p className="text-lg font-bold text-foreground">{user.coins}</p>
-              <p className="text-[10px] text-muted-foreground">Monedas</p>
+              <p className="text-xs text-muted-foreground">Monedas</p>
             </div>
           </div>
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card p-3">
             <Gem className="h-5 w-5 text-primary" />
             <div>
               <p className="text-lg font-bold text-foreground">{user.gems}</p>
-              <p className="text-[10px] text-muted-foreground">Gemas</p>
+              <p className="text-xs text-muted-foreground">Gemas</p>
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ function StorePage() {
             </p>
             <ul className="mt-2 space-y-1">
               {activeEffects.map((e) => (
-                <li key={e.id} className="text-[11px] text-muted-foreground">
+                <li key={e.id} className="text-xs text-muted-foreground">
                   <GameIcon name={e.icon} className="mr-1 h-3.5 w-3.5 align-[-2px]" />{e.name} ·{" "}
                   {e.uses_left !== null
                     ? `${e.uses_left} misión(es) restantes`
@@ -159,7 +159,7 @@ function StorePage() {
         <div className="mt-2 grid grid-cols-2 gap-3">{consumables.map(renderItem)}</div>
 
         <h2 className="mt-6 text-sm font-semibold text-foreground">
-          Reliquias permanentes <span className="text-[10px] font-normal text-muted-foreground">(máx. {MAX_EQUIPPED} equipadas)</span>
+          Reliquias permanentes <span className="text-xs font-normal text-muted-foreground">(máx. {MAX_EQUIPPED} equipadas)</span>
         </h2>
         <div className="mt-2 grid grid-cols-2 gap-3">{permanents.map(renderItem)}</div>
       </div>

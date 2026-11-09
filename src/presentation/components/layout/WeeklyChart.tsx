@@ -32,14 +32,14 @@ export function WeeklyChart() {
                   title={`${d.xp} XP`}
                 />
               </div>
-              <span className="text-[10px] font-semibold text-muted-foreground">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {label}
               </span>
             </div>
           );
         })}
       </div>
-      <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>Últimos 7 días</span>
         <span className="font-semibold text-soul-gold">
           {data.reduce((a, b) => a + b.xp, 0)} XP totales

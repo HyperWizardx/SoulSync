@@ -72,8 +72,8 @@ export function IntegratedStatus({
               ? "Check-in de hoy registrado"
               : "Aún no has hecho tu check-in de hoy · regístralo en Predicción de bienestar"}
           </p>
-          {prediction && <p className="mt-2 text-[10px] text-muted-foreground">{TREND_COPY[prediction.trend].label}</p>}
-          <p className="mt-2 text-[10px] text-muted-foreground">{DISCLAIMER}</p>
+          {prediction && <p className="mt-2 text-xs text-muted-foreground">{TREND_COPY[prediction.trend].label}</p>}
+          <p className="mt-2 text-xs text-muted-foreground">{DISCLAIMER}</p>
         </Link>
       )}
 
@@ -89,7 +89,7 @@ export function IntegratedStatus({
               {m.value === null ? (
                 <>
                   <p className="mt-1 text-sm font-semibold text-muted-foreground">Sin datos aún</p>
-                  <Link to="/missions" className="mt-2 inline-block text-[10px] font-semibold text-primary">
+                  <Link to="/missions" className="mt-2 inline-block text-xs font-semibold text-primary">
                     Completa una misión →
                   </Link>
                 </>
@@ -99,7 +99,7 @@ export function IntegratedStatus({
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
                     <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${m.value}%` }} />
                   </div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">{m.source}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{m.source}</p>
                 </>
               )}
             </div>
@@ -127,10 +127,10 @@ export function IntegratedStatus({
                   <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-soul-teal" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">{h.title}</p>
-                    <p className="text-[10px] text-muted-foreground">{h.date}</p>
+                    <p className="text-xs text-muted-foreground">{h.date}</p>
                   </div>
-                  {stat && <span className="text-[10px] text-muted-foreground">{stat}</span>}
-                  <span className="text-[10px] font-bold text-soul-gold">+{h.xp} XP</span>
+                  {stat && <span className="text-xs text-muted-foreground">{stat}</span>}
+                  <span className="text-xs font-bold text-soul-gold">+{h.xp} XP</span>
                 </div>
               );
             })

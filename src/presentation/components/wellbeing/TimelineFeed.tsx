@@ -54,9 +54,9 @@ export function TimelineFeed({
             <div className={`flex-1 rounded-xl border bg-card p-3 ${meta.tone}`}>
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-medium text-foreground">{e.title}</p>
-                <span className="shrink-0 text-[10px] text-muted-foreground">{formatWhen(e.occurredAt)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{formatWhen(e.occurredAt)}</span>
               </div>
-              <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{meta.label}</p>
+              <p className="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">{meta.label}</p>
               {e.detail && <p className="mt-1 text-xs text-muted-foreground">{e.detail}</p>}
             </div>
           </li>

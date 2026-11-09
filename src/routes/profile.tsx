@@ -213,7 +213,7 @@ function ProfilePage() {
             </button>
 
             {/* Créditos de los recursos gráficos (CC0 y CC BY 3.0) */}
-            <p className="border-t border-border pt-3 text-[11px] leading-relaxed text-muted-foreground">
+            <p className="border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
               Créditos: personajes y escenarios de <a className="underline" href="https://kaylousberg.com" target="_blank" rel="noreferrer">KayKit</a> (CC0).
               Íconos de <a className="underline" href="https://game-icons.net" target="_blank" rel="noreferrer">game-icons.net</a> por Lorc, Delapouite y colaboradores (CC BY 3.0)
               y <a className="underline" href="https://lucide.dev" target="_blank" rel="noreferrer">Lucide</a> (ISC).
@@ -232,7 +232,7 @@ function ProfilePage() {
           </div>
           </AuraHalo>
           {wellbeing.data?.aura && (
-            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+            <p className="mt-3 text-center text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">Aura {wellbeing.data.aura.name}</span> · {wellbeing.data.aura.message}
             </p>
           )}
@@ -283,13 +283,13 @@ function ProfilePage() {
         {/* Trofeos reales */}
         <div className="mt-6">
           <h2 className="font-cinzel font-semibold text-foreground">Trofeos</h2>
-          <p className="text-[11px] text-muted-foreground">Calculados con tu actividad real registrada.</p>
+          <p className="text-xs text-muted-foreground">Calculados con tu actividad real registrada.</p>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {trophies.map((t) => (
               <div key={t.label} className="rounded-xl border border-border bg-card p-3 text-center">
                 <GameIcon name={t.icon} className="mx-auto h-5 w-5 text-soul-gold" />
                 <p className="text-base font-bold text-foreground">{t.value}</p>
-                <p className="text-[9px] leading-tight text-muted-foreground">{t.label}</p>
+                <p className="text-xs leading-tight text-muted-foreground">{t.label}</p>
               </div>
             ))}
           </div>
@@ -299,15 +299,15 @@ function ProfilePage() {
         <div className="mt-4 grid grid-cols-3 gap-3">
           <Link to="/store" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
             <ShoppingBag className="h-5 w-5 text-soul-gold" />
-            <span className="text-[10px] text-muted-foreground">Tienda</span>
+            <span className="text-xs text-muted-foreground">Tienda</span>
           </Link>
           <Link to="/community" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
             <Users className="h-5 w-5 text-soul-teal" />
-            <span className="text-[10px] text-muted-foreground">Comunidad</span>
+            <span className="text-xs text-muted-foreground">Comunidad</span>
           </Link>
           <Link to="/missions" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
             <Trophy className="h-5 w-5 text-primary" />
-            <span className="text-[10px] text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length} logros</span>
+            <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length} logros</span>
           </Link>
         </div>
 
@@ -319,7 +319,7 @@ function ProfilePage() {
             <ShieldCheck className="h-5 w-5 text-primary" />
             <div>
               <p className="text-sm font-semibold text-foreground">Panel de administración</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {adminAccess.psicologo ? "Seguimiento de estudiantes" : "Métricas de la población"}
               </p>
             </div>
@@ -343,9 +343,9 @@ function ProfilePage() {
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-soul-gold/10 text-soul-gold"><GameIcon name={item?.icon ?? "present"} className="h-6 w-6" /></span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-foreground">{inv.item_name}</p>
-                      <p className="truncate text-[10px] text-muted-foreground">{item?.desc ?? ""}</p>
+                      <p className="truncate text-xs text-muted-foreground">{item?.desc ?? ""}</p>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {inv.kind === "permanent" ? (inv.equipped ? "Equipado" : "Disponible") : `x${inv.quantity}`}
                     </span>
                     {item && inv.kind === "consumable" && (
@@ -354,7 +354,7 @@ function ProfilePage() {
                           const ok = await applyItem(item.key);
                           if (ok) toast.success(`${item.name} activado`, { icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
                         }}
-                        className="rounded-lg bg-soul-teal/15 px-2 py-1 text-[11px] font-semibold text-soul-teal active:scale-95"
+                        className="rounded-lg bg-soul-teal/15 px-2 py-1 text-xs font-semibold text-soul-teal active:scale-95"
                       >
                         Usar
                       </button>
@@ -365,12 +365,12 @@ function ProfilePage() {
                           const ok = await toggleEquip(item.key);
                           if (ok) toast.success(`${item.name} actualizado`, { icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
                         }}
-                        className="rounded-lg bg-soul-gold/15 px-2 py-1 text-[11px] font-semibold text-soul-gold active:scale-95"
+                        className="rounded-lg bg-soul-gold/15 px-2 py-1 text-xs font-semibold text-soul-gold active:scale-95"
                       >
                         {inv.equipped ? "Quitar" : "Equipar"}
                       </button>
                     )}
-                    {active && <span className="text-[10px] text-primary">activo</span>}
+                    {active && <span className="text-xs text-primary">activo</span>}
                   </div>
                 );
               })}
@@ -381,7 +381,7 @@ function ProfilePage() {
         {/* Attributes */}
         <div className="mt-6">
           <h2 className="font-cinzel font-semibold text-foreground">Atributos RPG</h2>
-          <p className="text-[11px] text-muted-foreground">Cada atributo crece con las misiones que realmente completas.</p>
+          <p className="text-xs text-muted-foreground">Cada atributo crece con las misiones que realmente completas.</p>
           <div className="mt-3 space-y-3">
             {attributes.map((attr) => {
               const c30 = summary?.categories30?.[attr.category] ?? 0;
@@ -403,14 +403,14 @@ function ProfilePage() {
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-secondary">
                     <div className="h-full rounded-full bg-primary transition-all duration-1000" style={{ width: `${attr.value}%` }} />
                   </div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {c30} misiones de {attr.categoryLabel} (30 d) ·{" "}
                     <span className={delta > 0 ? "text-soul-teal" : delta < 0 ? "text-destructive" : ""}>
                       {delta > 0 ? `+${delta}` : delta} vs. semana previa
                     </span>
                   </p>
                   {expandedAttr === attr.name && (
-                    <p className="mt-2 text-[10px] text-muted-foreground animate-fade-in">
+                    <p className="mt-2 text-xs text-muted-foreground animate-fade-in">
                       Sube completando misiones de {attr.categoryLabel}. Nivel actual:{" "}
                       {attr.value < 40 ? "Principiante" : attr.value < 70 ? "Intermedio" : "Avanzado"}.
                     </p>
@@ -425,14 +425,14 @@ function ProfilePage() {
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="font-cinzel font-semibold text-foreground">Logros</h2>
-            <span className="text-[11px] text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length}</span>
+            <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length}</span>
           </div>
           <div className="mt-2 flex gap-2">
             {(["todos", "desbloqueados", "pendientes"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`rounded-full px-3 py-1 text-[11px] capitalize transition-all ${
+                className={`rounded-full px-3 py-1 text-xs capitalize transition-all ${
                   filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
                 }`}
               >
@@ -458,13 +458,13 @@ function ProfilePage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate text-sm font-medium text-foreground">{a.name}</p>
-                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] ${cls.badge}`}>
+                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs ${cls.badge}`}>
                           {RARITY_LABEL[a.rarity]}
                         </span>
                       </div>
-                      <p className="truncate text-[10px] text-muted-foreground">{a.description}</p>
+                      <p className="truncate text-xs text-muted-foreground">{a.description}</p>
                     </div>
-                    <span className="shrink-0 text-[10px] text-soul-gold">
+                    <span className="shrink-0 text-xs text-soul-gold">
                       +{reward.xp} XP · +{reward.coins} <Coins className="inline h-3 w-3 align-[-1px]" />{reward.gems ? <> · +{reward.gems} <Gem className="inline h-3 w-3 align-[-1px]" /></> : null}
                     </span>
                   </div>
@@ -473,7 +473,7 @@ function ProfilePage() {
                       <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
                         <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${prog.ratio * 100}%` }} />
                       </div>
-                      <p className="mt-1 text-[9px] text-muted-foreground">{prog.value}/{prog.target}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{prog.value}/{prog.target}</p>
                     </div>
                   )}
                 </div>

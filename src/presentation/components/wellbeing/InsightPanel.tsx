@@ -23,12 +23,12 @@ export function InsightPanel({ prediction, previous, checkins }: {
       <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-center gap-2">
           {prediction.confidence && (
-            <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${prediction.confidence === "baja" ? "bg-secondary text-muted-foreground" : "bg-primary/15 text-primary"}`}>
+            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prediction.confidence === "baja" ? "bg-secondary text-muted-foreground" : "bg-primary/15 text-primary"}`}>
               {CONFIDENCE_COPY[prediction.confidence]}
             </span>
           )}
           {previous && (
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               Antes: {LEVEL_LABEL[previous.riskLevel]}
               {delta !== null && ` · ${delta > 0 ? "+" : ""}${delta} pts`}
             </span>
@@ -68,7 +68,7 @@ export function InsightPanel({ prediction, previous, checkins }: {
                 >
                   <span>
                     <span className="block text-sm font-semibold text-foreground">{s.title}</span>
-                    <span className="block text-[11px] text-muted-foreground">{s.reason}</span>
+                    <span className="block text-xs text-muted-foreground">{s.reason}</span>
                   </span>
                   <span className="text-xs font-semibold text-primary">Empezar →</span>
                 </Link>

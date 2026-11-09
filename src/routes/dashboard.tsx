@@ -89,7 +89,7 @@ function DashboardPage() {
               <p className="font-cinzel font-semibold">
                 {world ? SEASON_COPY[world.season].label : "Aún sin datos"}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {activeZone
                   ? `${activeZone.name} · ${activeZone.progress}%`
                   : "Completa una misión para activar tus zonas"}
@@ -125,11 +125,11 @@ function DashboardPage() {
             <span className="text-sm font-bold text-soul-gold">{user.streak}d</span>
           </div>
           <div className="rounded-xl border border-border bg-card p-2 text-center">
-            <p className="text-[10px] text-muted-foreground">Monedas</p>
+            <p className="text-xs text-muted-foreground">Monedas</p>
             <p className="text-sm font-bold"><AnimatedNumber value={user.coins} /></p>
           </div>
           <div className="rounded-xl border border-border bg-card p-2 text-center">
-            <p className="text-[10px] text-muted-foreground">Gemas</p>
+            <p className="text-xs text-muted-foreground">Gemas</p>
             <p className="text-sm font-bold text-primary"><AnimatedNumber value={user.gems} /></p>
           </div>
         </div>

@@ -75,7 +75,7 @@ export function TimerMission({ title, icon, durationSec, description, onComplete
           <span className="font-cinzel text-3xl font-bold text-foreground">
             {done ? "✓" : `${mm}:${ss}`}
           </span>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {done ? "Completado" : running ? "En curso" : "Pausado"}
           </span>
         </div>

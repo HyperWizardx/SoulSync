@@ -88,22 +88,22 @@ export function WhatIfSimulator({ participants }: Props) {
           <div className="mb-3 grid grid-cols-3 gap-2">
             <div className="rounded-xl border border-border p-3">
               <p className="text-xl font-bold capitalize text-foreground">{result.riskLevel}</p>
-              <p className="text-[10px] text-muted-foreground">Nivel</p>
+              <p className="text-xs text-muted-foreground">Nivel</p>
             </div>
             <div className="rounded-xl border border-border p-3">
               <p className="text-xl font-bold text-foreground">{result.score === null ? "—" : result.score.toFixed(2)}</p>
-              <p className="text-[10px] text-muted-foreground">Puntaje</p>
+              <p className="text-xs text-muted-foreground">Puntaje</p>
             </div>
             <div className="rounded-xl border border-border p-3">
               <p className="text-xl font-bold text-foreground">{Math.round(result.coverage * 100)}%</p>
-              <p className="text-[10px] text-muted-foreground">Cobertura</p>
+              <p className="text-xs text-muted-foreground">Cobertura</p>
             </div>
           </div>
           {result.insufficientReason && <p className="mb-2 text-xs text-muted-foreground">{result.insufficientReason}</p>}
           <div className="space-y-1.5">
             {result.explanation.map((f) => (
               <div key={f.key}>
-                <div className="flex justify-between text-[11px] text-muted-foreground">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{f.label}</span>
                   <span>{(f.contribution * 100).toFixed(1)}%</span>
                 </div>

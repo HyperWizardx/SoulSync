@@ -85,7 +85,7 @@ export function AdminShell({
       ) : (
         <>
           {children}
-          <p className="mt-10 border-t border-border pt-4 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-10 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
             Señal preventiva exploratoria: no constituye diagnóstico clínico ni sustituye la valoración de un
             profesional de salud mental. Datos tratados bajo consentimiento informado.
           </p>

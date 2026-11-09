@@ -41,7 +41,7 @@ export function AuraHalo({ aura, color, children, showLabel = true }: Props) {
         <div className="relative">{children}</div>
       </div>
       {showLabel && aura && (
-        <p className="mt-3 text-center text-[11px] text-muted-foreground">
+        <p className="mt-3 text-center text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">Aura {aura.name}</span> · {aura.message}
         </p>
       )}

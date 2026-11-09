@@ -66,7 +66,7 @@ export function DailyChallengeMission({ onComplete, onClose }: Props) {
         </button>
       </div>
 
-      <p className="mt-4 text-center text-[11px] text-muted-foreground max-w-xs">
+      <p className="mt-4 text-center text-xs text-muted-foreground max-w-xs">
         Hazlo ahora mismo o durante el día. Marca cumplido cuando lo logres.
       </p>
     </div>

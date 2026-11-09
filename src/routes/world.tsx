@@ -167,10 +167,10 @@ function WorldPage() {
                             style={{ width: `${z.progress}%` }}
                           />
                         </div>
-                        <p className="mt-1 text-[10px] text-muted-foreground">{z.progress}% · {z.description}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{z.progress}% · {z.description}</p>
                       </>
                     ) : (
-                      <p className="mt-1 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+                      <p className="mt-1 flex items-center justify-center gap-1 text-xs text-muted-foreground">
                         <Lock className="h-3 w-3" aria-hidden="true" /> Nivel {z.requiredLevel}
                         {user.level ? ` (vas en ${user.level})` : ""}
                       </p>
@@ -233,7 +233,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
               className="mt-4 h-56 rounded-2xl border border-border bg-gradient-to-b from-primary/10 to-card"
             />
             {zone.unlocked && zone.progress < 100 && (
-              <p className="mt-2 text-center text-[11px] text-muted-foreground">Sube el progreso de la zona para que aparezcan más construcciones.</p>
+              <p className="mt-2 text-center text-xs text-muted-foreground">Sube el progreso de la zona para que aparezcan más construcciones.</p>
             )}
 
             {zone.unlocked ? (
@@ -261,7 +261,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
                             <p className="text-xs text-muted-foreground">{m.desc}</p>
                           </div>
                           {locked ? (
-                            <span className="text-[10px] text-muted-foreground">Nivel {m.requiredLevel}</span>
+                            <span className="text-xs text-muted-foreground">Nivel {m.requiredLevel}</span>
                           ) : (
                             <Link
                               to="/missions"

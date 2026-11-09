@@ -21,7 +21,7 @@ export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onC
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-soul-teal" aria-hidden="true" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">Consentimiento activo</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               Versión {CONSENT_VERSION}
               {acceptedAt ? ` · aceptado el ${new Date(acceptedAt).toLocaleDateString("es-CO")}` : ""}
             </p>
@@ -57,8 +57,8 @@ export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onC
             También se registra la hora de tu check-in y cuánto tardas en responderlo (para detectar trasnocho o cambios de rutina). No se recogen textos libres ni información clínica. Puedes revocar el consentimiento cuando quieras y tus
             datos del módulo se eliminan.
           </p>
-          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{DISCLAIMER}</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{MODEL_NOTE}</p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{DISCLAIMER}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{MODEL_NOTE}</p>
 
           <label className="mt-3 flex min-h-11 items-center gap-2 text-xs text-foreground">
             <input

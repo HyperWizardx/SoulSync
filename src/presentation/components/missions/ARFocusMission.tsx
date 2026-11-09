@@ -42,7 +42,7 @@ export function ARFocusMission({ onComplete, onClose, zone }: Props) {
           </div>
 
           <div className="pointer-events-auto mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
-            <p className="text-[10px] uppercase tracking-wider text-white/60">Mantén el avatar centrado</p>
+            <p className="text-xs uppercase tracking-wider text-white/60">Mantén el avatar centrado</p>
             <p className="mt-1 text-3xl font-cinzel font-bold">{elapsed}s / {TOTAL}s</p>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div

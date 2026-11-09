@@ -26,13 +26,13 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
           {prediction.score !== null && (
             <div className="shrink-0 text-right">
               <p className={`text-2xl font-bold ${tone.text}`}>{Math.round(prediction.score * 100)}%</p>
-              <p className="text-[10px] text-muted-foreground">índice exploratorio</p>
+              <p className="text-xs text-muted-foreground">índice exploratorio</p>
             </div>
           )}
         </div>
 
         {prediction.insufficientReason && (
-          <p className="mt-2 text-[11px] text-muted-foreground">{prediction.insufficientReason}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{prediction.insufficientReason}</p>
         )}
 
         {prediction.score !== null && (
@@ -50,7 +50,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
           </div>
         )}
 
-        <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">{DISCLAIMER}</p>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{DISCLAIMER}</p>
       </div>
 
       {prediction.riskLevel === "alto" && (
@@ -76,7 +76,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
               <div key={f.key}>
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-medium text-foreground">{f.label}</p>
-                  <span className="text-[10px] text-muted-foreground">{Math.round(f.contribution * 100)}%</span>
+                  <span className="text-xs text-muted-foreground">{Math.round(f.contribution * 100)}%</span>
                 </div>
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
                   <div
@@ -84,7 +84,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
                     style={{ width: `${Math.round(f.contribution * 100)}%` }}
                   />
                 </div>
-                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{f.description}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.description}</p>
               </div>
             ))}
           </div>
@@ -94,7 +94,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
       {topFactors.length > 0 && (
         <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
           <h3 className="font-cinzel font-semibold text-foreground">Autocuidado sugerido</h3>
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Sugerencias no clínicas basadas en tus propios registros.
           </p>
           <ul className="mt-3 space-y-2">
@@ -111,7 +111,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
       <div className="rounded-2xl border border-border bg-card/60 p-3">
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div className="text-[10px] leading-relaxed text-muted-foreground">
+          <div className="text-xs leading-relaxed text-muted-foreground">
             <p>{MODEL_NOTE}</p>
             <p className="mt-1 font-mono">
               model={prediction.modelVersion} · features={prediction.featureVersion} · cobertura=

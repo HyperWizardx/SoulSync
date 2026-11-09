@@ -61,7 +61,7 @@ function CheckinChart({ checkins }: { checkins: { date: string; mood: number; st
           </div>
         </div>
       ))}
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {checkins[0]?.date} → {checkins[checkins.length - 1]?.date}
       </p>
     </div>

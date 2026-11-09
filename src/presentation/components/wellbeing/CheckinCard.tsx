@@ -71,7 +71,7 @@ export function CheckinCard({ today, pending, onSubmit }: Props) {
                 </button>
               ))}
             </div>
-            <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
               <span>{s.low}</span>
               <span>{s.high}</span>
             </div>

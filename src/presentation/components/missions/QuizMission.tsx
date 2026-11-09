@@ -76,7 +76,7 @@ export function QuizMission({ onComplete, onClose }: Props) {
                   style={{ width: `${((idx + 1) / QUESTIONS.length) * 100}%` }}
                 />
               </div>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {idx + 1}/{QUESTIONS.length}
               </span>
             </div>
