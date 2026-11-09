@@ -1,13 +1,16 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { ChevronRight, Flame, Shield } from "lucide-react";
+import { ChevronRight, Flame } from "lucide-react";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
+import { NextStepCard } from "@/presentation/components/layout/NextStepCard";
+import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
 import { Reveal } from "@/presentation/components/motion/Reveal";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
-import { getArchetypeStyle, withAlpha } from "@/domain/identity/archetype";
+import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
 import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
 import { SEASON_COPY } from "@/domain/world/world";
@@ -40,6 +43,8 @@ function DashboardPage() {
   const archStyle = getArchetypeStyle(user.archetype);
 
   const world = wb?.world ?? null;
+  const today = new Date().toDateString();
+  const completedToday = useMemo(() => new Set(user.missionHistory.filter((m) => m.date === today).map((m) => m.id)), [user.missionHistory, today]);
   const activeZone = world?.zones.filter((z) => z.unlocked).sort((a, b) => b.progress - a.progress)[0] ?? null;
 
   if (isLoading) return <MobileLayout><PageSkeleton variant="dashboard" /></MobileLayout>;
@@ -54,19 +59,7 @@ function DashboardPage() {
               {user.name} {archStyle.emoji}
             </h1>
           </div>
-          {/* Escudo heráldico del arquetipo con el nivel: acceso al Perfil. */}
-          <Link
-            to="/profile"
-            aria-label={`Ver perfil: ${archStyle.name}, nivel ${user.level}`}
-            className="relative flex h-12 w-12 items-center justify-center rounded-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            style={{ filter: `drop-shadow(0 0 8px ${withAlpha(archStyle.glow, 0.45)})` }}
-          >
-            <Shield aria-hidden className="absolute inset-0 h-12 w-12" strokeWidth={1.75} style={{ color: archStyle.accent, fill: withAlpha(archStyle.accent, 0.15) }} />
-            <span aria-hidden className="relative -mt-1 text-lg">{archStyle.emoji}</span>
-            <span aria-hidden className="absolute -bottom-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
-              {user.level}
-            </span>
-          </Link>
+          <ArchetypeCrest archetype={user.archetype} level={user.level} />
         </div>
 
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
@@ -77,10 +70,14 @@ function DashboardPage() {
         </Reveal>
 
         <Reveal index={1} className="mt-4">
+          <NextStepCard zones={world?.zones ?? null} completedToday={completedToday} level={user.level} />
+        </Reveal>
+
+        <Reveal index={2} className="mt-4">
           <DailyGoalCard />
         </Reveal>
 
-        <Reveal index={2}>
+        <Reveal index={3}>
         <Link to="/world" className="mt-4 block rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -99,7 +96,7 @@ function DashboardPage() {
         </Link>
         </Reveal>
 
-        <Reveal index={3} className="mt-6">
+        <Reveal index={4} className="mt-6">
           <h2 className="font-cinzel font-semibold">Tu estado integral</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Calculado con tus misiones completadas, tu racha y tus check-ins recientes.

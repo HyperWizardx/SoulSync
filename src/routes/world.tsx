@@ -6,11 +6,12 @@ import { SEASON_COPY } from "@/domain/world/world";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { Lock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { MISSIONS } from "@/domain/gamification/missionsData";
 import { missionBelongsToZone } from "@/domain/world/missionZones";
 import type { WorldSeason, WorldZone } from "@/domain/world/world";
+import { DIORAMAS, type ZoneKey } from "@/domain/world/dioramas";
 import { WorldDiorama } from "@/presentation/components/world/WorldDiorama";
 import { Reveal } from "@/presentation/components/motion/Reveal";
 
@@ -32,15 +33,29 @@ export const Route = createFileRoute("/world")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  // zone: abre directamente el detalle de esa zona (al volver de una de sus misiones).
+  validateSearch: (search: Record<string, unknown>): { zone?: ZoneKey } => ({
+    zone: typeof search.zone === "string" && Object.prototype.hasOwnProperty.call(DIORAMAS, search.zone) ? (search.zone as ZoneKey) : undefined,
+  }),
   component: WorldPage,
 });
 
 function WorldPage() {
   const { data, isLoading } = useWellbeing();
   const { user } = useUserStore();
-  const [zone, setZone] = useState<WorldZone | null>(null);
+  // Se guarda la clave: así el detalle muestra el progreso actualizado cuando llegan datos nuevos.
+  const [zoneKey, setZoneKey] = useState<ZoneKey | null>(null);
+  const { zone: zoneParam } = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   const world = data?.world ?? null;
+  const zone: WorldZone | null = world?.zones.find((z) => z.key === zoneKey) ?? null;
+  useEffect(() => {
+    if (!zoneParam || !world) return;
+    const target = world.zones.find((z) => z.key === zoneParam);
+    if (target) setZoneKey(target.key);
+    void navigate({ search: {}, replace: true });
+  }, [zoneParam, world, navigate]);
   const prediction = data?.prediction ?? null;
   const timeline = data?.timeline ?? [];
 
@@ -129,7 +144,7 @@ function WorldPage() {
                 {world.zones.map((z, i) => (
                   <Reveal key={z.key} index={i}>
                   <button
-                    onClick={() => setZone(z)}
+                    onClick={() => setZoneKey(z.key)}
                     className={`w-full overflow-hidden rounded-2xl border-2 p-3 text-center transition-all active:scale-95 ${
                       z.unlocked ? "border-primary/40 bg-primary/5" : "border-border bg-card"
                     }`}
@@ -171,7 +186,7 @@ function WorldPage() {
         )}
       </div>
 
-      <ZoneSheet zone={zone} level={user.level} archetype={user.archetype} season={world?.season ?? "calma"} onClose={() => setZone(null)} />
+      <ZoneSheet zone={zone} level={user.level} archetype={user.archetype} season={world?.season ?? "calma"} onClose={() => setZoneKey(null)} />
     </MobileLayout>
   );
 }
@@ -237,7 +252,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
                           ) : (
                             <Link
                               to="/missions"
-                              search={{ mission: m.id }}
+                              search={{ mission: m.id, from: zone.key }}
                               className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
                             >
                               Iniciar

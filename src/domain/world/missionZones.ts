@@ -24,3 +24,20 @@ export function missionBelongsToZone(mission: Pick<Mission, "type" | "isAR">, zo
   if (arZone) return arZone === zone.key;
   return zone.categories.includes(MISSION_CATEGORY[mission.type]);
 }
+
+// "Tu siguiente paso": una misión de la zona desbloqueada con menos progreso que el usuario
+// todavía no hizo hoy y que su nivel permite. Si esa zona no tiene, se busca en las demás.
+export function nextStepMission(
+  zones: (ZoneCategories & { unlocked: boolean; progress: number })[],
+  missions: Mission[],
+  completedToday: ReadonlySet<string>,
+  level: number,
+): { mission: Mission; zone: ZoneKey } | null {
+  const available = (m: Mission) => !completedToday.has(m.id) && (!m.requiredLevel || level >= m.requiredLevel);
+  const ordered = zones.filter((z) => z.unlocked).sort((a, b) => a.progress - b.progress);
+  for (const zone of ordered) {
+    const mission = missions.find((m) => available(m) && missionBelongsToZone(m, zone));
+    if (mission) return { mission, zone: zone.key };
+  }
+  return null;
+}
