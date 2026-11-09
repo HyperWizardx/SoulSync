@@ -4,7 +4,8 @@ import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { useEffect, useMemo, useState } from "react";
-import { Lock, Flame, Coins, Gem, Sparkles, Camera } from "lucide-react";
+import { Lock, Coins, Gem, Sparkles, Camera } from "lucide-react";
+import { ResourceBar } from "@/presentation/components/layout/ResourceBar";
 import { toast } from "sonner";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
@@ -98,8 +99,8 @@ function MissionsPage() {
   };
   if (isLoading) return <MobileLayout><PageSkeleton variant="missions" /></MobileLayout>;
   return <MobileLayout><div className="px-4 pt-6">
-    <div className="flex items-start justify-between"><div className="flex items-center gap-3"><ArchetypeCrest archetype={user.archetype} level={user.level} size={40} /><div><h1 className="text-2xl font-cinzel font-bold">Misiones</h1><p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p></div></div><div className="flex items-center gap-1 rounded-full border border-soul-gold/30 bg-soul-gold/10 px-2.5 py-1"><Flame className="h-3.5 w-3.5 text-soul-gold" /><span className="text-xs font-bold text-soul-gold">{user.streak}d</span></div></div>
-    <div className="mt-4 grid grid-cols-3 gap-2"><div className="rounded-xl border border-border bg-card p-2 text-center"><p className="text-xs text-muted-foreground">XP</p><p className="text-sm font-bold text-soul-gold"><AnimatedNumber value={user.xp} /></p></div><div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-2"><Coins className="h-3.5 w-3.5 text-soul-gold" /><span className="text-sm font-bold"><AnimatedNumber value={user.coins} /></span></div><div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-2"><Gem className="h-3.5 w-3.5 text-primary" /><span className="text-sm font-bold"><AnimatedNumber value={user.gems} /></span></div></div>
+    <div className="flex items-start justify-between"><div className="flex items-center gap-3"><ArchetypeCrest archetype={user.archetype} level={user.level} size={40} /><div><h1 className="text-2xl font-cinzel font-bold">Misiones</h1><p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p></div></div><div className="rounded-full border border-soul-gold/30 bg-soul-gold/10 px-2.5 py-1 text-xs font-bold text-soul-gold"><AnimatedNumber value={user.xp} /> XP</div></div>
+    <ResourceBar streak={user.streak} coins={user.coins} gems={user.gems} className="mt-4" />
     <div className="mt-5 flex rounded-xl bg-card p-1">{tabs.map((t) => { const count = t === "Activas" ? activas.length : t === "AR" ? ar.length : t === "Completadas" ? completadas.length : bloqueadas.length; return <button key={t} onClick={() => setTab(t)} className={`flex-1 rounded-lg py-2 text-xs font-semibold ${tab === t ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"}`}>{t === "AR" && <Camera className="mr-0.5 inline h-3 w-3" />}{t} <span className="opacity-70">({count})</span></button>; })}</div>
     <div className="mt-4 space-y-3">{tab === "Activas" && (activas.length === 0 ? <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." /> : activas.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} onStart={() => setActive(m)} onSkip={skipped.has(m.id) ? undefined : () => skipMission(m)} skipped={skipped.has(m.id)} /></Reveal>))}
     {tab === "AR" && <>{<div className="flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> Las misiones AR usan la cámara de tu móvil + un mini avatar 3D para experiencias inmersivas.</div>}{ar.length === 0 ? <EmptyState text="Ya completaste las misiones AR de hoy." /> : ar.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} onStart={() => setActive(m)} ar /></Reveal>)}</>}

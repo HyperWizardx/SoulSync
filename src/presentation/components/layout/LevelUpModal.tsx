@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import confetti from "canvas-confetti";
+import { fireConfetti } from "@/shared/confetti";
 import { Sparkles } from "lucide-react";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
@@ -19,7 +19,7 @@ export function LevelUpModal({ level, onClose }: Props) {
   useEffect(() => {
     hapticLevelUp();
     const burst = (x: number) =>
-      confetti({
+      fireConfetti({
         particleCount: 60,
         spread: 70,
         origin: { x, y: 0.4 },

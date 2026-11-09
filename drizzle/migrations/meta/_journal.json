@@ -15,6 +15,13 @@
       "when": 1793713296894,
       "tag": "0001_follow_ups_academic_calendar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794252754209,
+      "tag": "0002_performance_indexes",
+      "breakpoints": true
     }
   ]
 }

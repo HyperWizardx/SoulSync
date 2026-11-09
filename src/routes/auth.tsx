@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { StarField } from "@/presentation/components/layout/StarField";
 
-const searchSchema = z.object({
-  mode: z.enum(["login", "signup"]).optional().default("login"),
-  next: z.string().optional(),
+// Validación manual de la búsqueda: evita cargar zod en el paquete inicial del navegador.
+type AuthSearch = { mode: "login" | "signup"; next?: string };
+const parseSearch = (s: Record<string, unknown>): AuthSearch => ({
+  mode: s.mode === "signup" ? "signup" : "login",
+  next: typeof s.next === "string" ? s.next : undefined,
 });
 
 export const Route = createFileRoute("/auth")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/auth")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
-  validateSearch: (s) => searchSchema.parse(s),
+  validateSearch: parseSearch,
   component: AuthPage,
 });
 

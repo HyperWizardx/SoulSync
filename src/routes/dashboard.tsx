@@ -2,13 +2,13 @@ import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { ChevronRight, Flame } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { ResourceBar } from "@/presentation/components/layout/ResourceBar";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
 import { NextStepCard } from "@/presentation/components/layout/NextStepCard";
-import { AnimatedNumber } from "@/presentation/components/motion/AnimatedNumber";
 import { useDailyGreeting } from "@/presentation/hooks/useDailyGreeting";
 import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
 import { Reveal } from "@/presentation/components/motion/Reveal";
@@ -66,6 +66,8 @@ function DashboardPage() {
           <ArchetypeCrest archetype={user.archetype} level={user.level} />
         </div>
 
+        <ResourceBar streak={user.streak} coins={user.coins} gems={user.gems} className="mt-4" />
+
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
           <AuraHalo aura={wb?.aura} color={archStyle.glow}>
             <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} />
@@ -118,21 +120,6 @@ function DashboardPage() {
             />
           </div>
         </Reveal>
-
-        <div className="mt-6 grid grid-cols-3 gap-2">
-          <div className="flex items-center justify-center gap-1 rounded-xl border border-soul-gold/30 bg-soul-gold/5 p-2">
-            <Flame className="h-4 w-4 text-soul-gold" aria-hidden="true" />
-            <span className="text-sm font-bold text-soul-gold">{user.streak}d</span>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-2 text-center">
-            <p className="text-xs text-muted-foreground">Monedas</p>
-            <p className="text-sm font-bold"><AnimatedNumber value={user.coins} /></p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-2 text-center">
-            <p className="text-xs text-muted-foreground">Gemas</p>
-            <p className="text-sm font-bold text-primary"><AnimatedNumber value={user.gems} /></p>
-          </div>
-        </div>
       </div>
     </MobileLayout>
   );

@@ -1,6 +1,6 @@
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useEffect } from "react";
-import confetti from "canvas-confetti";
+import { fireConfetti } from "@/shared/confetti";
 import { onFeedback } from "@/shared/feedback";
 import { getAchievement, REWARD_BY_RARITY, RARITY_LABEL } from "@/domain/gamification/achievements";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export function FeedbackHost() {
         const parts = [`+${reward.xp} XP`, `+${reward.coins} monedas`];
         if (reward.gems > 0) parts.push(`+${reward.gems} gemas`);
         if (ach.rarity === "epico" || ach.rarity === "legendario") {
-          confetti({ particleCount: 90, spread: 75, origin: { y: 0.3 } });
+          fireConfetti({ particleCount: 90, spread: 75, origin: { y: 0.3 } });
         }
         toast(`¡Logro ${RARITY_LABEL[ach.rarity]} desbloqueado!`, {
           icon: <GameIcon name={ach.icon} className="h-5 w-5 text-soul-gold" />,

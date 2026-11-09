@@ -305,10 +305,15 @@ function ProfilePage() {
             <Users className="h-5 w-5 text-soul-teal" />
             <span className="text-xs text-muted-foreground">Comunidad</span>
           </Link>
-          <Link to="/missions" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
+          {/* Lleva a la sección Logros de esta misma pantalla (antes enviaba a Misiones). */}
+          <button
+            type="button"
+            onClick={() => document.getElementById("logros")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]"
+          >
             <Trophy className="h-5 w-5 text-primary" />
             <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length} logros</span>
-          </Link>
+          </button>
         </div>
 
         {adminAccess?.isAdmin && (
@@ -422,7 +427,7 @@ function ProfilePage() {
         </div>
 
         {/* Achievements */}
-        <div className="mt-6">
+        <div id="logros" className="mt-6 scroll-mt-4">
           <div className="flex items-center justify-between">
             <h2 className="font-cinzel font-semibold text-foreground">Logros</h2>
             <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length}</span>

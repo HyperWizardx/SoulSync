@@ -2,6 +2,7 @@ import { Moon } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
+import { BackButton } from "@/presentation/components/layout/BackButton";
 import { MapPin, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,7 +29,10 @@ function CommunityPage() {
   return (
     <MobileLayout>
       <div className="px-4 pt-6">
-        <h1 className="text-2xl font-cinzel font-bold text-foreground">Comunidad</h1>
+        <div className="flex items-center gap-1">
+          <BackButton />
+          <h1 className="text-2xl font-cinzel font-bold text-foreground">Comunidad</h1>
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">Conexiones cerca de ti</p>
 
         {/* Map placeholder */}

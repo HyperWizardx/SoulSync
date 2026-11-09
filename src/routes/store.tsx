@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
+import { BackButton } from "@/presentation/components/layout/BackButton";
 import { Coins, Gem, Sparkles } from "lucide-react";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { STORE_ITEMS, RARITY_CLASS, MAX_EQUIPPED, getItem, type StoreItem } from "@/domain/gamification/items";
@@ -113,7 +114,10 @@ function StorePage() {
   return (
     <MobileLayout>
       <div className="px-4 pt-6">
-        <h1 className="text-2xl font-cinzel font-bold text-foreground">Tienda</h1>
+        <div className="flex items-center gap-1">
+          <BackButton />
+          <h1 className="text-2xl font-cinzel font-bold text-foreground">Tienda</h1>
+        </div>
         <p className="mt-1 text-xs text-muted-foreground">
           Los objetos afectan de verdad tus misiones, atributos y el estado de tu mundo.
         </p>
