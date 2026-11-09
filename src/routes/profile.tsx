@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
-import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { WeeklyChart } from "@/presentation/components/layout/WeeklyChart";
 import {
@@ -198,9 +197,6 @@ function ProfilePage() {
             <MiniAvatar3D archetype={user.archetype} size={140} glowColor={archStyle.glow} exposure={archStyle.exposure} />
             <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-lg">
               {user.level}
-            </span>
-            <span className="absolute -top-1 -left-1 rounded-full ring-4 ring-card">
-              <AvatarIcon index={user.avatar} size={34} />
             </span>
           </div>
           </AuraHalo>
