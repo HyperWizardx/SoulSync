@@ -6,6 +6,6 @@
 
 # Avatar y misiones AR
 
-- [ ] Unificar el personaje de Inicio y Perfil y eliminar el astronauta.
-- [ ] Diferenciar personajes 3D por arquetipo, con movimiento y acompañamiento durante misiones AR.
+- [x] Unificar el personaje de Inicio y Perfil y eliminar el astronauta.
+- [x] Diferenciar personajes 3D por arquetipo, con movimiento y acompañamiento durante misiones AR.
 - [ ] Verificar selección, controles y presentación en móvil y escritorio.

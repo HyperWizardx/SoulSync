@@ -1,5 +1,6 @@
 // Mapeo visual del avatar según el arquetipo elegido.
-// Como usamos un único modelo .glb, diferenciamos al personaje mediante:
+// Cada arquetipo tiene su propio modelo .glb (ver avatarMotion.archetypeModelKey);
+// aquí se define lo que lo acompaña en Inicio, Perfil y misiones AR:
 //  - color del aura/glow
 //  - exposición (luz) del modelo
 //  - emoji y nombre legible
