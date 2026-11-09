@@ -49,6 +49,9 @@ export function useMissionActions(level: number) {
     onSuccess: () => {
       invalidate();
       qc.invalidateQueries({ queryKey: ["wellbeing"] });
+      // Trofeos y gráfica semanal de Perfil dependen de las misiones completadas.
+      qc.invalidateQueries({ queryKey: ["profile-summary"] });
+      qc.invalidateQueries({ queryKey: ["weekly-stats"] });
     },
   });
 

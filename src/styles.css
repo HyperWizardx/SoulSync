@@ -31,23 +31,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
   --color-soul-teal: var(--soul-teal);
   --color-soul-gold: var(--soul-gold);
-  --color-soul-purple: var(--soul-purple);
-  --color-soul-surface: var(--soul-surface);
 }
 
 :root {
@@ -71,23 +56,8 @@
   --border: oklch(0.30 0.04 270);
   --input: oklch(0.25 0.04 270);
   --ring: oklch(0.55 0.25 280);
-  --chart-1: oklch(0.55 0.25 280);
-  --chart-2: oklch(0.75 0.18 175);
-  --chart-3: oklch(0.82 0.16 90);
-  --chart-4: oklch(0.60 0.24 25);
-  --chart-5: oklch(0.65 0.20 330);
-  --sidebar: oklch(0.15 0.03 270);
-  --sidebar-foreground: oklch(0.95 0.01 270);
-  --sidebar-primary: oklch(0.55 0.25 280);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.04 270);
-  --sidebar-accent-foreground: oklch(0.95 0.01 270);
-  --sidebar-border: oklch(0.30 0.04 270);
-  --sidebar-ring: oklch(0.55 0.25 280);
   --soul-teal: oklch(0.80 0.16 175);
   --soul-gold: oklch(0.85 0.16 85);
-  --soul-purple: oklch(0.55 0.25 280);
-  --soul-surface: oklch(0.18 0.03 270);
 }
 
 @layer base {
@@ -107,9 +77,6 @@
     font-family: 'Cinzel', serif;
   }
 
-  .font-nunito {
-    font-family: 'Nunito', sans-serif;
-  }
 
   @keyframes orb-spin {
     0% { transform: rotate(0deg) scale(1); }
@@ -127,10 +94,6 @@
     50% { transform: translateY(-10px); }
   }
 
-  @keyframes pulse-ring {
-    0% { transform: scale(0.9); opacity: 1; }
-    100% { transform: scale(1.5); opacity: 0; }
-  }
 
   @keyframes star-twinkle {
     0%, 100% { opacity: 0.2; }
@@ -147,10 +110,6 @@
 
   .animate-float {
     animation: float 3s ease-in-out infinite;
-  }
-
-  .animate-pulse-ring {
-    animation: pulse-ring 2s ease-out infinite;
   }
 
   .animate-star-twinkle {
@@ -172,10 +131,6 @@
   --muted-foreground: oklch(0.45 0.02 270);
   --border: oklch(0.88 0.02 270);
   --input: oklch(0.92 0.02 270);
-  --sidebar: oklch(0.96 0.01 270);
-  --sidebar-foreground: oklch(0.18 0.02 270);
-  --sidebar-border: oklch(0.88 0.02 270);
-  --soul-surface: oklch(1 0 0);
 }
 
 /* Reducir movimiento: lo activa MotionProvider según el ajuste del usuario o del sistema. */

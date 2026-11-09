@@ -33,6 +33,15 @@ export const Route = createFileRoute("/ai")({
 
 function AIPage() {
   const { data, isLoading, isError, error, checkin, consent, refetch, isFetching } = useWellbeing();
+  const consentCard = data && (
+    <ConsentCard
+      accepted={data.consent.accepted}
+      acceptedAt={data.consent.acceptedAt}
+      wearablesOptIn={data.consent.wearablesOptIn}
+      pending={consent.isPending}
+      onChange={(accepted, wearablesOptIn) => consent.mutate({ accepted, wearablesOptIn })}
+    />
+  );
 
   return (
     <MobileLayout>
@@ -64,13 +73,8 @@ function AIPage() {
           </div>
         ) : (
           <div className="mt-6 space-y-4">
-            <ConsentCard
-              accepted={data.consent.accepted}
-              acceptedAt={data.consent.acceptedAt}
-              wearablesOptIn={data.consent.wearablesOptIn}
-              pending={consent.isPending}
-              onChange={(accepted, wearablesOptIn) => consent.mutate({ accepted, wearablesOptIn })}
-            />
+            {/* Sin consentimiento, lo primero es aceptarlo; con él, el check-in diario va arriba y el consentimiento al final. */}
+            {!data.consent.accepted && consentCard}
 
             {data.consent.accepted && (
               <>
@@ -146,6 +150,8 @@ function AIPage() {
                 >
                   Ir a misiones de autocuidado →
                 </Link>
+
+                {consentCard}
               </>
             )}
           </div>

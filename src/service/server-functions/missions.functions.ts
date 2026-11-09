@@ -86,30 +86,35 @@ export const completeMissionServer = createServerFn({ method: "POST" })
     ]);
     const err = results.find((r) => r.error)?.error;
     if (err) throw new Error(err.message);
-    await consumeUses(supabase, plan.effectsToConsume);
-
-    // 4. Telemetría de bienestar: solo con consentimiento de investigación.
-    if (await hasActiveConsent(supabase, userId)) {
-      await supabase.from("task_events").insert({
-        user_id: userId, mission_id: data.missionId, title: data.title, category, status: "completed",
-        duration_seconds: data.durationSeconds, is_ar: data.isAR, occurred_date: plan.today,
-      });
-      await addTimelineEvent(supabase, userId, {
-        kind: "task_completed",
-        title: `Tarea completada: ${data.title}`,
-        detail: `+${plan.gainedXp} XP · categoría ${category}${plan.boosted ? " · con objeto activo" : ""}`,
-        payload: { missionId: data.missionId, xp: plan.gainedXp, isAR: data.isAR, boosted: plan.boosted },
-      });
+    // 4. Telemetría de bienestar (solo con consentimiento de investigación) y logros.
+    // Son independientes entre sí (tablas distintas), así que corren en paralelo.
+    const recordTelemetry = async () => {
+      const [, consented] = await Promise.all([consumeUses(supabase, plan.effectsToConsume), hasActiveConsent(supabase, userId)]);
+      if (!consented) return;
+      await Promise.all([
+        supabase.from("task_events").insert({
+          user_id: userId, mission_id: data.missionId, title: data.title, category, status: "completed",
+          duration_seconds: data.durationSeconds, is_ar: data.isAR, occurred_date: plan.today,
+        }),
+        addTimelineEvent(supabase, userId, {
+          kind: "task_completed",
+          title: `Tarea completada: ${data.title}`,
+          detail: `+${plan.gainedXp} XP · categoría ${category}${plan.boosted ? " · con objeto activo" : ""}`,
+          payload: { missionId: data.missionId, xp: plan.gainedXp, isAR: data.isAR, boosted: plan.boosted },
+        }),
+      ]);
+      // El hito va después de la tarea para que el historial los muestre en orden.
       if (plan.leveledUp) {
         await addTimelineEvent(supabase, userId, {
           kind: "milestone", title: `Subiste a nivel ${plan.profile.level}`,
           detail: "Hito de gamificación alcanzado", payload: { level: plan.profile.level },
         });
       }
-    }
-
-    // 5. Logros.
-    const unlocked = await evaluateAndGrant(supabase, userId, { level: plan.profile.level, streak: plan.profile.streak });
+    };
+    const [unlocked] = await Promise.all([
+      evaluateAndGrant(supabase, userId, { level: plan.profile.level, streak: plan.profile.streak }),
+      recordTelemetry(),
+    ]);
     return {
       leveledUp: plan.leveledUp,
       newLevel: plan.profile.level,

@@ -10,13 +10,16 @@ import { applyXp } from "@/domain/gamification/progression";
 
 export type Db = SupabaseClient<Database>;
 
-/** Descuenta un uso a los efectos consumibles y borra los agotados. */
+/** Descuenta un uso a los efectos consumibles y borra los agotados (en paralelo: filas independientes). */
 export async function consumeUses(db: Db, rows: Array<{ id: string; uses_left: number | null }>) {
-  for (const r of rows) {
-    const left = (r.uses_left ?? 1) - 1;
-    if (left <= 0) await db.from("item_effects").delete().eq("id", r.id);
-    else await db.from("item_effects").update({ uses_left: left }).eq("id", r.id);
-  }
+  await Promise.all(
+    rows.map((r) => {
+      const left = (r.uses_left ?? 1) - 1;
+      return left <= 0
+        ? db.from("item_effects").delete().eq("id", r.id)
+        : db.from("item_effects").update({ uses_left: left }).eq("id", r.id);
+    }),
+  );
 }
 
 /** Reúne el contexto real del usuario para evaluar los logros. */

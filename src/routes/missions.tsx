@@ -3,7 +3,7 @@ import { SkipForward } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Lock, Coins, Gem, Sparkles, Camera } from "lucide-react";
 import { ResourceBar } from "@/presentation/components/layout/ResourceBar";
 import { toast } from "sonner";
@@ -12,17 +12,6 @@ import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { MISSIONS, MISSION_CATEGORY, getMissionById, type Mission } from "@/domain/gamification/missionsData";
 import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
 import type { ZoneKey } from "@/domain/world/dioramas";
-import { BreathingMission } from "@/presentation/components/missions/BreathingMission";
-import { JournalMission } from "@/presentation/components/missions/JournalMission";
-import { TimerMission } from "@/presentation/components/missions/TimerMission";
-import { GratitudeMission } from "@/presentation/components/missions/GratitudeMission";
-import { QuizMission } from "@/presentation/components/missions/QuizMission";
-import { ARAuraMission } from "@/presentation/components/missions/ARAuraMission";
-import { AREnergyMission } from "@/presentation/components/missions/AREnergyMission";
-import { ARFocusMission } from "@/presentation/components/missions/ARFocusMission";
-import { MeditationMission } from "@/presentation/components/missions/MeditationMission";
-import { DailyChallengeMission } from "@/presentation/components/missions/DailyChallengeMission";
-import { ARWalkMission } from "@/presentation/components/missions/ARWalkMission";
 import { arZoneFor } from "@/domain/world/missionZones";
 import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
 import { Reveal } from "@/presentation/components/motion/Reveal";
@@ -30,6 +19,38 @@ import { playSound } from "@/shared/sound";
 import { emitFeedback } from "@/shared/feedback";
 import { AnimatedNumber } from "@/presentation/components/motion/AnimatedNumber";
 import { success as hapticSuccess } from "@/shared/haptics";
+
+// Las misiones se abren de a una: cada pantalla de misión se descarga aparte y se precarga
+// cuando el navegador queda libre, para que la lista aparezca antes y abrirlas siga siendo inmediato.
+const missionLoaders = {
+  BreathingMission: () => import("@/presentation/components/missions/BreathingMission").then((m) => ({ default: m.BreathingMission })),
+  JournalMission: () => import("@/presentation/components/missions/JournalMission").then((m) => ({ default: m.JournalMission })),
+  TimerMission: () => import("@/presentation/components/missions/TimerMission").then((m) => ({ default: m.TimerMission })),
+  GratitudeMission: () => import("@/presentation/components/missions/GratitudeMission").then((m) => ({ default: m.GratitudeMission })),
+  QuizMission: () => import("@/presentation/components/missions/QuizMission").then((m) => ({ default: m.QuizMission })),
+  ARAuraMission: () => import("@/presentation/components/missions/ARAuraMission").then((m) => ({ default: m.ARAuraMission })),
+  AREnergyMission: () => import("@/presentation/components/missions/AREnergyMission").then((m) => ({ default: m.AREnergyMission })),
+  ARFocusMission: () => import("@/presentation/components/missions/ARFocusMission").then((m) => ({ default: m.ARFocusMission })),
+  MeditationMission: () => import("@/presentation/components/missions/MeditationMission").then((m) => ({ default: m.MeditationMission })),
+  DailyChallengeMission: () => import("@/presentation/components/missions/DailyChallengeMission").then((m) => ({ default: m.DailyChallengeMission })),
+  ARWalkMission: () => import("@/presentation/components/missions/ARWalkMission").then((m) => ({ default: m.ARWalkMission })),
+};
+const BreathingMission = lazy(missionLoaders.BreathingMission);
+const JournalMission = lazy(missionLoaders.JournalMission);
+const TimerMission = lazy(missionLoaders.TimerMission);
+const GratitudeMission = lazy(missionLoaders.GratitudeMission);
+const QuizMission = lazy(missionLoaders.QuizMission);
+const ARAuraMission = lazy(missionLoaders.ARAuraMission);
+const AREnergyMission = lazy(missionLoaders.AREnergyMission);
+const ARFocusMission = lazy(missionLoaders.ARFocusMission);
+const MeditationMission = lazy(missionLoaders.MeditationMission);
+const DailyChallengeMission = lazy(missionLoaders.DailyChallengeMission);
+const ARWalkMission = lazy(missionLoaders.ARWalkMission);
+function preloadMissions() {
+  const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+  const run = () => { for (const load of Object.values(missionLoaders)) void load(); };
+  if (w.requestIdleCallback) w.requestIdleCallback(run, { timeout: 3000 }); else setTimeout(run, 1200);
+}
 
 const ZONE_KEYS: ZoneKey[] = ["valle", "bosque", "reino", "montana"];
 
@@ -60,6 +81,7 @@ function MissionsPage() {
   const { mission: missionParam, from: fromParam } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [fromZone, setFromZone] = useState<ZoneKey | null>(null);
+  useEffect(() => { preloadMissions(); }, []);
   useEffect(() => {
     if (!missionParam) return;
     const m = getMissionById(missionParam);
@@ -106,6 +128,7 @@ function MissionsPage() {
     {tab === "AR" && <>{<div className="flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> Las misiones AR usan la cámara de tu móvil + un mini avatar 3D para experiencias inmersivas.</div>}{ar.length === 0 ? <EmptyState text="Ya completaste las misiones AR de hoy." /> : ar.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} onStart={() => setActive(m)} ar /></Reveal>)}</>}
     {tab === "Completadas" && (completadas.length === 0 ? <EmptyState text="Aún no has completado misiones hoy." /> : completadas.map((m) => <div key={m.id} className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4"><CheckCircle2 className="h-6 w-6 shrink-0 text-soul-teal" /><div className="flex-1"><p className="font-semibold line-through opacity-80">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p></div><span className="text-xs font-bold text-soul-gold">+{m.reward.xp} XP</span></div>))}
     {tab === "Bloqueadas" && (bloqueadas.length === 0 ? <EmptyState text="No hay misiones bloqueadas." /> : bloqueadas.map((m) => <button key={m.id} onClick={() => toast.error(`Requiere nivel ${m.requiredLevel}`, { icon: <Lock className="h-4 w-4" /> })} className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70"><div className="flex items-center gap-3"><Lock className="h-6 w-6 text-muted-foreground" /><div><p className="font-semibold">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p><span className="mt-1 inline-block rounded-full bg-primary/20 px-2 py-0.5 text-xs text-primary">{m.rarity} • Requiere nivel {m.requiredLevel}</span></div></div></button>))}</div>
+    <Suspense fallback={<MissionLoading />}>
     {active?.type === "breathing" && <BreathingMission cycles={active.id === "deep-breath" ? 8 : active.id === "breath-box" || active.id === "breath-night" ? 6 : 4} onComplete={() => finishMission(active, "Respiración completada")} onClose={closeMission} />}
     {(active?.type === "journal" || active?.type === "social") && <JournalMission onComplete={(_t, mood) => finishMission(active, `Mood: ${mood}`)} onClose={closeMission} />}
     {active?.type === "timer" && <TimerMission title={active.title} icon={active.icon} durationSec={active.durationSec || 30} description={active.desc} onComplete={() => finishMission(active)} onClose={closeMission} />}
@@ -117,6 +140,7 @@ function MissionsPage() {
     {active?.type === "meditation" && <MeditationMission durationSec={active.durationSec || 120} onComplete={() => finishMission(active, "Meditación completada")} onClose={closeMission} />}
     {active?.type === "daily-challenge" && <DailyChallengeMission onComplete={(title) => finishMission(active, title)} onClose={closeMission} />}
     {active?.type === "ar-walk" && <ARWalkMission zone={arZoneFor(active)} goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada")} onClose={closeMission} />}
+    </Suspense>
   </div></MobileLayout>;
 }
 
@@ -124,4 +148,5 @@ function MissionCard({ mission, onStart, ar, onSkip, skipped }: { mission: Missi
   const rarityColor = mission.rarity === "Legendaria" ? "bg-soul-gold/20 text-soul-gold" : mission.rarity === "Épica" ? "bg-primary/20 text-primary" : mission.rarity === "Raro" ? "bg-soul-teal/20 text-soul-teal" : "bg-secondary text-muted-foreground";
   return <div className="relative"><button onClick={onStart} className={`w-full rounded-xl border bg-card p-4 text-left ${ar ? "border-primary/40" : "border-border"}`}><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><GameIcon name={mission.icon} className="h-7 w-7" /></span><div className="flex-1"><div className="flex items-center justify-between gap-2"><p className="font-semibold">{mission.title}</p><span className={`rounded-full px-2 py-0.5 text-xs ${rarityColor}`}>{mission.rarity}</span></div><p className="mt-0.5 text-xs text-muted-foreground">{mission.desc}</p><div className="mt-2 flex flex-wrap items-center gap-2">{mission.reward.xp ? <span className="text-xs font-bold text-soul-gold">+{mission.reward.xp} XP</span> : null}{mission.reward.coins ? <span className="flex items-center gap-0.5 text-xs"><Coins className="h-3 w-3 text-soul-gold" />{mission.reward.coins}</span> : null}{mission.reward.gems ? <span className="flex items-center gap-0.5 text-xs"><Gem className="h-3 w-3 text-primary" />{mission.reward.gems}</span> : null}{mission.reward.stats && <span className="flex items-center gap-0.5 rounded-full bg-soul-teal/10 px-1.5 py-0.5 text-xs text-soul-teal"><Sparkles className="h-2.5 w-2.5" />{Object.keys(mission.reward.stats).length} stats</span>}{ar && <span className="flex items-center gap-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-xs text-primary"><Camera className="h-2.5 w-2.5" />AR</span>}</div><p className="mt-2 text-xs font-semibold text-primary">Toca para iniciar →</p></div></div></button>{onSkip && <button onClick={onSkip} aria-label={`Omitir ${mission.title} hoy`} className="absolute bottom-3 right-3 min-h-8 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground">Omitir hoy</button>}{skipped && <span className="absolute bottom-3 right-3 rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">Omitida</span>}</div>;
 }
+function MissionLoading() { return <div role="status" aria-label="Cargando misión" className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"><div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>; }
 function EmptyState({ text }: { text: string }) { return <div className="rounded-xl border border-dashed border-border bg-card/30 p-6 text-center"><p className="text-sm text-muted-foreground">{text}</p></div>; }

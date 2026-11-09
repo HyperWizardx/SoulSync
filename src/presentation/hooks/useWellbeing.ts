@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { withTimeout } from "@/presentation/components/common/QueryStatus";
 import { getWellbeing, logTaskEvent, saveCheckin, setResearchConsent } from "@/service/server-functions/wellbeing.functions";
 import type { WellbeingPayload } from "@/service/server-functions/wellbeing.functions";
+import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 
 export function useWellbeing() {
   const qc = useQueryClient();
@@ -11,12 +12,15 @@ export function useWellbeing() {
   const checkinFn = useServerFn(saveCheckin);
   const consentFn = useServerFn(setResearchConsent);
   const taskEventFn = useServerFn(logTaskEvent);
+  const { hasSession } = useAuthSession();
 
   const query = useQuery<WellbeingPayload>({
     queryKey: ["wellbeing"],
     queryFn: () => withTimeout(fetchWellbeing()),
     staleTime: 60_000,
     retry: 1,
+    // Sin sesión no se consulta: evita una petición 401 mientras se comprueba el inicio de sesión.
+    enabled: hasSession,
   });
 
   const setPayload = (data: WellbeingPayload) => qc.setQueryData(["wellbeing"], data);

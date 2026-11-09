@@ -78,7 +78,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
         supabase.from("user_attributes").select("*").eq("user_id", uid).maybeSingle(),
       ]);
 
-    const checkins: CheckinRecord[] = (checkinRes.data ?? []).map((c: any) => ({
+    const checkins: CheckinRecord[] = (checkinRes.data ?? []).map((c) => ({
       date: c.checkin_date,
       mood: c.mood,
       stress: c.stress,
@@ -89,18 +89,18 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
       responseSeconds: c.response_seconds ?? null,
     }));
 
-    const { user_id: _omit, updated_at: _omit2, ...attrs } = (attrRes.data ?? {}) as Record<string, any>;
+    const { user_id: _omit, updated_at: _omit2, ...attrs } = (attrRes.data ?? {}) as Record<string, unknown>;
 
     return {
       checkins,
-      predictions: (predRes.data ?? []).map((p: any) => ({
+      predictions: (predRes.data ?? []).map((p) => ({
         generatedAt: p.generated_at,
         riskLevel: p.risk_level,
         trend: p.trend,
         score: p.score === null ? null : Number(p.score),
         coverage: Number(p.coverage ?? 0),
       })),
-      missions: (missionRes.data ?? []).map((m: any) => ({
+      missions: (missionRes.data ?? []).map((m) => ({
         title: m.title,
         completedAt: m.completed_at,
         xp: m.xp_earned,
@@ -108,14 +108,14 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
         category: m.category,
       })),
       tasks: taskRes.data ?? [],
-      timeline: (timelineRes.data ?? []).map((t: any) => ({
+      timeline: (timelineRes.data ?? []).map((t) => ({
         id: t.id,
         kind: t.kind,
         title: t.title,
         detail: t.detail,
         occurredAt: t.occurred_at,
       })),
-      scales: (scaleRes.data ?? []).map((s: any) => ({
+      scales: (scaleRes.data ?? []).map((s) => ({
         code: s.scale_code,
         raw: Number(s.raw_score),
         max: Number(s.max_score),

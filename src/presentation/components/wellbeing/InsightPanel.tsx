@@ -1,4 +1,4 @@
-/** Panel de la pantalla IA: confianza, cambios desde la última señal, misiones sugeridas y gráfico de 14 días. */
+/** Panel de la pantalla Bienestar: confianza, cambios desde la última señal, misiones sugeridas y gráfico de 14 días. */
 import { Link } from "@tanstack/react-router";
 import { Sparkles, ShieldCheck } from "lucide-react";
 import type { CheckinRecord, RiskLevel, WellbeingPrediction } from "@/domain/wellbeing/types";

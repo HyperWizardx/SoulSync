@@ -80,13 +80,13 @@ function WorldPage() {
           <div className="mt-6 rounded-2xl border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground">
               Tu mundo se construye con tus tareas y check-ins. Activa el seguimiento en la
-              sección de predicción para empezar a verlo evolucionar.
+              pestaña Bienestar para empezar a verlo evolucionar.
             </p>
             <Link
               to="/ai"
               className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-primary/40 bg-primary/5 px-4 text-sm font-semibold text-primary"
             >
-              Ir a Predicción de bienestar →
+              Ir a Bienestar →
             </Link>
           </div>
         ) : (

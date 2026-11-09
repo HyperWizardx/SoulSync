@@ -70,7 +70,7 @@ export function IntegratedStatus({
           <p className="mt-1 text-xs text-muted-foreground">
             {todayCheckin
               ? "Check-in de hoy registrado"
-              : "Aún no has hecho tu check-in de hoy · regístralo en Predicción de bienestar"}
+              : "Aún no has hecho tu check-in de hoy · toca aquí para registrarlo"}
           </p>
           {prediction && <p className="mt-2 text-xs text-muted-foreground">{TREND_COPY[prediction.trend].label}</p>}
           <p className="mt-2 text-xs text-muted-foreground">{DISCLAIMER}</p>
