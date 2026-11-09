@@ -1,16 +1,17 @@
 // Renderiza una copia independiente del personaje medieval del arquetipo y reproduce
 // sus animaciones reales (reposo, caminar, celebrar). Modelos: KayKit Adventurers (CC0).
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls, useAnimations, useGLTF } from "@react-three/drei";
-import { Box3, Group, LoopOnce, LoopRepeat, Vector3 } from "three";
+import { Box3, Group, LoopOnce, LoopRepeat, MathUtils, Vector3 } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { archetypeModelKey, avatarAnimation } from "@/domain/identity/avatarMotion";
 
 const MODEL_URL = (key: ReturnType<typeof archetypeModelKey>) => `/models/${key}.glb`;
-interface Props { archetype?: number | null; rotate?: boolean; interactive?: boolean; walking?: boolean; celebrating?: boolean; exposure?: number; onReady?: () => void }
+// facing: giro del personaje en grados elegido por el usuario (misiones AR).
+interface Props { archetype?: number | null; rotate?: boolean; interactive?: boolean; walking?: boolean; celebrating?: boolean; facing?: number; exposure?: number; onReady?: () => void }
 
-function Character({ archetype, walking, celebrating, reducedMotion, onReady }: Props & { reducedMotion: boolean }) {
+function Character({ archetype, walking, celebrating, facing = 0, reducedMotion, onReady }: Props & { reducedMotion: boolean }) {
   const { scene, animations } = useGLTF(MODEL_URL(archetypeModelKey(archetype)));
   const group = useRef<Group>(null);
   const character = useMemo(() => {
@@ -27,6 +28,13 @@ function Character({ archetype, walking, celebrating, reducedMotion, onReady }: 
   const name = avatarAnimation({ walking, celebrating, reducedMotion });
 
   useEffect(() => { onReady?.(); }, [onReady]);
+  // Gira suavemente hacia la orientación pedida (directo si se prefiere movimiento reducido).
+  useFrame((_, delta) => {
+    if (!group.current) return;
+    const target = MathUtils.degToRad(facing);
+    const current = group.current.rotation.y;
+    group.current.rotation.y = reducedMotion ? target : current + (target - current) * (1 - Math.exp(-8 * Math.min(delta, 0.05)));
+  });
   useEffect(() => {
     const action = actions[name];
     if (!action) return;

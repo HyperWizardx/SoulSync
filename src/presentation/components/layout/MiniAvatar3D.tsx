@@ -20,6 +20,7 @@ interface Props {
   interactive?: boolean;
   walking?: boolean;
   celebrating?: boolean;
+  facing?: number;
 }
 
 export function MiniAvatar3D({
@@ -33,6 +34,7 @@ export function MiniAvatar3D({
   interactive = true,
   walking = false,
   celebrating = false,
+  facing = 0,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
@@ -50,7 +52,7 @@ export function MiniAvatar3D({
     >
       <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />
       {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "El personaje está tardando en cargar" : "Cargando personaje…"}</div>}
-      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
+      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
     </div>
   );
 }

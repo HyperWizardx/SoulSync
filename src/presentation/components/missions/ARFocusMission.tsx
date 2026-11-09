@@ -14,7 +14,7 @@ export function ARFocusMission({ onComplete, onClose }: Props) {
 
   useEffect(() => {
     if (elapsed >= TOTAL) {
-      const t = setTimeout(onComplete, 500);
+      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
       return () => clearTimeout(t);
     }
     const id = setInterval(() => {
@@ -36,7 +36,7 @@ export function ARFocusMission({ onComplete, onClose }: Props) {
                 focused ? "border-soul-teal/80" : "border-destructive/80"
               }`}
             />
-            <AvatarOverlay scale={1 + progress * 0.2} />
+            <AvatarOverlay scale={1 + progress * 0.2} celebrate={elapsed >= TOTAL} />
           </div>
 
           <div className="pointer-events-auto mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">

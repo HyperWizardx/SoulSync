@@ -118,10 +118,13 @@ export function ARMissionHost({ title, children, onClose }: Props) {
   );
 }
 
+// Personaje 3D del arquetipo sobre la cámara; ver ARCompanion para la interacción.
 interface AvatarOverlayProps {
   scale?: number;
   onTap?: () => void;
+  tapLabel?: string;
+  celebrate?: boolean;
 }
-export function AvatarOverlay({ scale = 1, onTap }: AvatarOverlayProps) {
-  return <ARCompanion scale={scale} onTap={onTap} />;
+export function AvatarOverlay({ scale = 1, onTap, tapLabel, celebrate }: AvatarOverlayProps) {
+  return <ARCompanion scale={scale} onTap={onTap} tapLabel={tapLabel} celebrate={celebrate} />;
 }

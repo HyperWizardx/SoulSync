@@ -82,7 +82,7 @@ export function ARWalkMission({ goal = 30, onComplete, onClose }: Props) {
     if (steps >= goal && !completedRef.current) {
       completedRef.current = true;
       success();
-      const t = setTimeout(onComplete, 800);
+      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
       return () => clearTimeout(t);
     }
   }, [steps, goal, onComplete]);
@@ -121,7 +121,7 @@ export function ARWalkMission({ goal = 30, onComplete, onClose }: Props) {
         {motionOk === false && <p className="mt-2 text-xs text-soul-gold">Sensor no disponible. Registro manual de pasos.</p>}
         {cameraOk === false && <p className="mt-2 text-xs text-muted-foreground">Sin cámara. Caminata sin vista AR.</p>}
       </div>
-      <ARCompanion walking={walking} />
+      <ARCompanion walking={walking} celebrate={steps >= goal} />
       <div className="relative z-10 mx-4 mb-6 rounded-lg bg-card/90 p-3 text-center backdrop-blur-sm">
         <p className="text-sm text-foreground">Caminata consciente</p>
         <p className="mt-1 text-xs text-muted-foreground">Camina en un lugar seguro, lejos del tráfico.</p>

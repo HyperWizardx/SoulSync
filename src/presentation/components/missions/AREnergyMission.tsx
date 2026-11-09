@@ -14,7 +14,7 @@ export function AREnergyMission({ onComplete, onClose }: Props) {
 
   useEffect(() => {
     if (taps >= TARGET) {
-      const t = setTimeout(onComplete, 700);
+      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
       return () => clearTimeout(t);
     }
   }, [taps, onComplete]);
@@ -32,7 +32,7 @@ export function AREnergyMission({ onComplete, onClose }: Props) {
     <ARMissionHost title="Captura de energía" onClose={onClose}>
       {() => (
         <>
-          <AvatarOverlay scale={scale} onTap={handleTap} />
+          <AvatarOverlay scale={scale} onTap={handleTap} tapLabel="Cargar energía de tu personaje" celebrate={taps >= TARGET} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">Carga</p>
             <p className="mt-1 text-3xl font-cinzel font-bold">
@@ -44,7 +44,7 @@ export function AREnergyMission({ onComplete, onClose }: Props) {
                 style={{ width: `${charge * 100}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-white/70">Toca al avatar para cargarlo de energía ⚡</p>
+            <p className="mt-2 text-xs text-white/70">Toca a tu personaje para cargarlo de energía ⚡</p>
           </div>
         </>
       )}

@@ -19,7 +19,7 @@ export function ARAuraMission({ onComplete, onClose }: Props) {
 
   useEffect(() => {
     if (cycle >= CYCLES) {
-      const t = setTimeout(onComplete, 600);
+      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
       return () => clearTimeout(t);
     }
     const phase = PHASES[phaseIdx];
@@ -38,7 +38,7 @@ export function ARAuraMission({ onComplete, onClose }: Props) {
     <ARMissionHost title="Aura serena" onClose={onClose}>
       {() => (
         <>
-          <AvatarOverlay scale={phase.scale} />
+          <AvatarOverlay scale={phase.scale} celebrate={cycle >= CYCLES} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">
               Ciclo {Math.min(cycle + 1, CYCLES)} / {CYCLES}
@@ -50,7 +50,7 @@ export function ARAuraMission({ onComplete, onClose }: Props) {
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-white/70">Respira al ritmo del aura del avatar</p>
+            <p className="mt-2 text-xs text-white/70">Respira al ritmo de tu personaje</p>
           </div>
         </>
       )}
