@@ -5,7 +5,8 @@ import { getAchievement, REWARD_BY_RARITY, RARITY_LABEL } from "@/domain/gamific
 import { toast } from "sonner";
 import { useState } from "react";
 import { LevelUpModal } from "@/presentation/components/layout/LevelUpModal";
-import { success as hapticSuccess } from "@/shared/haptics";
+import { success as hapticSuccess, levelUp as hapticLevelUp } from "@/shared/haptics";
+import { playSound } from "@/shared/sound";
 
 export function FeedbackHost() {
   const [levelUp, setLevelUp] = useState<number | null>(null);
@@ -13,11 +14,14 @@ export function FeedbackHost() {
   useEffect(() => {
     return onFeedback((e) => {
       if (e.type === "levelup") {
+        playSound("levelup");
+        hapticLevelUp();
         setLevelUp(e.level);
       } else if (e.type === "achievement") {
         const ach = getAchievement(e.code);
         if (!ach) return;
         hapticSuccess();
+        playSound("coin");
         const reward = REWARD_BY_RARITY[ach.rarity];
         const parts = [`+${reward.xp} XP`, `+${reward.coins} 🪙`];
         if (reward.gems > 0) parts.push(`+${reward.gems} 💎`);

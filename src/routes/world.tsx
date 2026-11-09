@@ -12,6 +12,7 @@ import { MISSIONS } from "@/domain/gamification/missionsData";
 import { missionBelongsToZone } from "@/domain/world/missionZones";
 import type { WorldSeason, WorldZone } from "@/domain/world/world";
 import { WorldDiorama } from "@/presentation/components/world/WorldDiorama";
+import { Reveal } from "@/presentation/components/motion/Reveal";
 
 export const Route = createFileRoute("/world")({
   head: () => ({
@@ -125,11 +126,11 @@ function WorldPage() {
             <section className="mt-6">
               <h2 className="font-cinzel font-semibold text-foreground">Zonas</h2>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                {world.zones.map((z) => (
+                {world.zones.map((z, i) => (
+                  <Reveal key={z.key} index={i}>
                   <button
-                    key={z.key}
                     onClick={() => setZone(z)}
-                    className={`overflow-hidden rounded-2xl border-2 p-3 text-center transition-all active:scale-95 ${
+                    className={`w-full overflow-hidden rounded-2xl border-2 p-3 text-center transition-all active:scale-95 ${
                       z.unlocked ? "border-primary/40 bg-primary/5" : "border-border bg-card"
                     }`}
                   >
@@ -152,6 +153,7 @@ function WorldPage() {
                       </p>
                     )}
                   </button>
+                  </Reveal>
                 ))}
               </div>
             </section>

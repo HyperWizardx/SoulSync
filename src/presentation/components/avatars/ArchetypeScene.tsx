@@ -6,6 +6,7 @@ import { Environment, Lightformer, OrbitControls, useAnimations, useGLTF } from 
 import { Box3, Group, LoopOnce, LoopRepeat, MathUtils, Vector3, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { archetypeModelKey, avatarAnimation } from "@/domain/identity/avatarMotion";
+import { isMotionReduced } from "@/shared/devicePrefs";
 import { AR_PLATFORMS, type ZoneKey } from "@/domain/world/dioramas";
 import { WORLD_KIT_URL, cloneKitPiece } from "@/presentation/components/world/worldKit";
 
@@ -90,7 +91,7 @@ function ZonePlatform({ zone, facing = 0, reducedMotion }: { zone: ZoneKey; faci
 
 export default function ArchetypeScene(props: Props) {
   const [reducedMotion, setReducedMotion] = useState(false);
-  useEffect(() => { setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
+  useEffect(() => { setReducedMotion(isMotionReduced()); }, []);
   const character = <Suspense fallback={null}><ArchetypeCharacter {...props} reducedMotion={reducedMotion} /></Suspense>;
   return (
     // Con isla, la cámara mira un poco desde arriba para que se vea la loseta y sus adornos.

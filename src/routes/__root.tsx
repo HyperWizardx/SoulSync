@@ -1,3 +1,4 @@
+import { MotionProvider } from "@/presentation/components/motion/MotionProvider";
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
@@ -81,9 +82,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSessionProvider>
-        <Outlet />
-        <AuthedShell />
-        <Toaster position="top-center" richColors closeButton />
+        <MotionProvider>
+          <Outlet />
+          <AuthedShell />
+          <Toaster position="top-center" richColors closeButton visibleToasts={1} />
+        </MotionProvider>
       </AuthSessionProvider>
     </QueryClientProvider>
   );

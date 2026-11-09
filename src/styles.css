@@ -177,3 +177,13 @@
   --sidebar-border: oklch(0.88 0.02 270);
   --soul-surface: oklch(1 0 0);
 }
+
+/* Reducir movimiento: lo activa MotionProvider según el ajuste del usuario o del sistema. */
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { BottomNav } from "@/presentation/components/layout/BottomNav";
+import { PageTransition } from "@/presentation/components/motion/PageTransition";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 
 export function MobileLayout({ children }: { children: React.ReactNode }) {
@@ -24,7 +25,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto min-h-screen max-w-[430px] bg-background pb-20">
-      {children}
+      <PageTransition>{children}</PageTransition>
       <BottomNav />
     </div>
   );

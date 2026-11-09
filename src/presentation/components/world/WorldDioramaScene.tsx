@@ -6,6 +6,7 @@ import { OrbitControls, useGLTF } from "@react-three/drei";
 import { Color, Fog, type Object3D } from "three";
 import { DIORAMAS, hexToWorld, visiblePieces, type HexCoord, type ZoneKey } from "@/domain/world/dioramas";
 import type { WorldSeason } from "@/domain/world/world";
+import { isMotionReduced } from "@/shared/devicePrefs";
 import { ArchetypeCharacter } from "@/presentation/components/avatars/ArchetypeScene";
 import { WORLD_KIT_URL, cloneKitPiece } from "@/presentation/components/world/worldKit";
 
@@ -67,7 +68,7 @@ interface Props {
 
 export default function WorldDioramaScene(props: Props) {
   const [reducedMotion, setReducedMotion] = useState(false);
-  useEffect(() => { setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches); }, []);
+  useEffect(() => { setReducedMotion(isMotionReduced()); }, []);
   const ambience = AMBIENCE[props.season];
   return (
     <Canvas

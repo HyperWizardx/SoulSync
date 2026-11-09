@@ -19,6 +19,10 @@ import { MeditationMission } from "@/presentation/components/missions/Meditation
 import { DailyChallengeMission } from "@/presentation/components/missions/DailyChallengeMission";
 import { ARWalkMission } from "@/presentation/components/missions/ARWalkMission";
 import { arZoneFor } from "@/domain/world/missionZones";
+import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
+import { Reveal } from "@/presentation/components/motion/Reveal";
+import { playSound } from "@/shared/sound";
+import { success as hapticSuccess } from "@/shared/haptics";
 
 export const Route = createFileRoute("/missions")({
   head: () => ({ meta: [
@@ -37,7 +41,7 @@ export const Route = createFileRoute("/missions")({
 const tabs = ["Activas", "AR", "Completadas", "Bloqueadas"] as const;
 
 function MissionsPage() {
-  const { user, completeMission } = useUserStore();
+  const { user, completeMission, isLoading } = useUserStore();
   const { logTask } = useWellbeing();
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<typeof tabs[number]>("Activas");
@@ -69,14 +73,17 @@ function MissionsPage() {
   const finishMission = async (m: Mission, extraNote?: string) => {
     setActive(null);
     await completeMission(m.id, m.title, m.reward, m.isAR ?? false, { category: MISSION_CATEGORY[m.type] });
+    playSound("complete");
+    hapticSuccess();
     toast.success(`¡${m.title} completada! +${m.reward.xp} XP`, { icon: "🎉", description: extraNote });
   };
+  if (isLoading) return <MobileLayout><PageSkeleton variant="missions" /></MobileLayout>;
   return <MobileLayout><div className="px-4 pt-6">
     <div className="flex items-start justify-between"><div className="flex items-center gap-3"><AvatarIcon index={user.avatar} size={40} /><div><h1 className="text-2xl font-cinzel font-bold">Misiones</h1><p className="mt-1 text-sm text-muted-foreground">Tu camino de crecimiento</p></div></div><div className="flex items-center gap-1 rounded-full border border-soul-gold/30 bg-soul-gold/10 px-2.5 py-1"><Flame className="h-3.5 w-3.5 text-soul-gold" /><span className="text-xs font-bold text-soul-gold">{user.streak}d</span></div></div>
     <div className="mt-4 grid grid-cols-3 gap-2"><div className="rounded-xl border border-border bg-card p-2 text-center"><p className="text-[10px] text-muted-foreground">XP</p><p className="text-sm font-bold text-soul-gold">{user.xp}</p></div><div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-2"><Coins className="h-3.5 w-3.5 text-soul-gold" /><span className="text-sm font-bold">{user.coins}</span></div><div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-2"><Gem className="h-3.5 w-3.5 text-primary" /><span className="text-sm font-bold">{user.gems}</span></div></div>
     <div className="mt-5 flex rounded-xl bg-card p-1">{tabs.map((t) => { const count = t === "Activas" ? activas.length : t === "AR" ? ar.length : t === "Completadas" ? completadas.length : bloqueadas.length; return <button key={t} onClick={() => setTab(t)} className={`flex-1 rounded-lg py-2 text-[11px] font-semibold ${tab === t ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"}`}>{t === "AR" && <Camera className="mr-0.5 inline h-3 w-3" />}{t} <span className="opacity-70">({count})</span></button>; })}</div>
-    <div className="mt-4 space-y-3">{tab === "Activas" && (activas.length === 0 ? <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." /> : activas.map((m) => <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} onSkip={skipped.has(m.id) ? undefined : () => skipMission(m)} skipped={skipped.has(m.id)} />))}
-    {tab === "AR" && <>{<div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">✨ Las misiones AR usan la cámara de tu móvil + un mini avatar 3D para experiencias inmersivas.</div>}{ar.length === 0 ? <EmptyState text="Ya completaste las misiones AR de hoy." /> : ar.map((m) => <MissionCard key={m.id} mission={m} onStart={() => setActive(m)} ar />)}</>}
+    <div className="mt-4 space-y-3">{tab === "Activas" && (activas.length === 0 ? <EmptyState text="¡Has completado todas las misiones de hoy! Vuelve mañana." /> : activas.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} onStart={() => setActive(m)} onSkip={skipped.has(m.id) ? undefined : () => skipMission(m)} skipped={skipped.has(m.id)} /></Reveal>))}
+    {tab === "AR" && <>{<div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">✨ Las misiones AR usan la cámara de tu móvil + un mini avatar 3D para experiencias inmersivas.</div>}{ar.length === 0 ? <EmptyState text="Ya completaste las misiones AR de hoy." /> : ar.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} onStart={() => setActive(m)} ar /></Reveal>)}</>}
     {tab === "Completadas" && (completadas.length === 0 ? <EmptyState text="Aún no has completado misiones hoy." /> : completadas.map((m) => <div key={m.id} className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4"><span className="text-2xl">✅</span><div className="flex-1"><p className="font-semibold line-through opacity-80">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p></div><span className="text-[10px] font-bold text-soul-gold">+{m.reward.xp} XP</span></div>))}
     {tab === "Bloqueadas" && (bloqueadas.length === 0 ? <EmptyState text="No hay misiones bloqueadas." /> : bloqueadas.map((m) => <button key={m.id} onClick={() => toast.error(`Requiere nivel ${m.requiredLevel}`, { icon: "🔒" })} className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70"><div className="flex items-center gap-3"><Lock className="h-6 w-6 text-muted-foreground" /><div><p className="font-semibold">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p><span className="mt-1 inline-block rounded-full bg-primary/20 px-2 py-0.5 text-[10px] text-primary">{m.rarity} • Requiere nivel {m.requiredLevel}</span></div></div></button>))}</div>
     {active?.type === "breathing" && <BreathingMission cycles={active.id === "deep-breath" ? 8 : active.id === "breath-box" || active.id === "breath-night" ? 6 : 4} onComplete={() => finishMission(active, "Respiración completada")} onClose={() => setActive(null)} />}

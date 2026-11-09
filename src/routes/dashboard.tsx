@@ -4,6 +4,8 @@ import { ChevronRight, Flame, Shield } from "lucide-react";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
+import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
+import { Reveal } from "@/presentation/components/motion/Reveal";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
 import { getArchetypeStyle, withAlpha } from "@/domain/identity/archetype";
 import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
@@ -33,12 +35,14 @@ export const Route = createFileRoute("/dashboard")({
 
 
 function DashboardPage() {
-  const { user } = useUserStore();
+  const { user, isLoading } = useUserStore();
   const { data: wb, isLoading: wbLoading } = useWellbeing();
   const archStyle = getArchetypeStyle(user.archetype);
 
   const world = wb?.world ?? null;
   const activeZone = world?.zones.filter((z) => z.unlocked).sort((a, b) => b.progress - a.progress)[0] ?? null;
+
+  if (isLoading) return <MobileLayout><PageSkeleton variant="dashboard" /></MobileLayout>;
 
   return (
     <MobileLayout>
@@ -65,17 +69,18 @@ function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
+        <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
           <AuraHalo aura={wb?.aura} color={archStyle.glow}>
             <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} />
           </AuraHalo>
           <p className="mt-2 font-cinzel font-semibold">{archStyle.name}</p>
-        </div>
+        </Reveal>
 
-        <div className="mt-4">
+        <Reveal index={1} className="mt-4">
           <DailyGoalCard />
-        </div>
+        </Reveal>
 
+        <Reveal index={2}>
         <Link to="/world" className="mt-4 block rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -92,8 +97,9 @@ function DashboardPage() {
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </div>
         </Link>
+        </Reveal>
 
-        <div className="mt-6">
+        <Reveal index={3} className="mt-6">
           <h2 className="font-cinzel font-semibold">Tu estado integral</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Calculado con tus misiones completadas, tu racha y tus check-ins recientes.
@@ -110,7 +116,7 @@ function DashboardPage() {
               prediction={wb?.prediction ?? null}
             />
           </div>
-        </div>
+        </Reveal>
 
         <div className="mt-6 grid grid-cols-3 gap-2">
           <div className="flex items-center justify-center gap-1 rounded-xl border border-soul-gold/30 bg-soul-gold/5 p-2">
