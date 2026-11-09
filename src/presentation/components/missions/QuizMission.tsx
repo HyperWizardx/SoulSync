@@ -12,6 +12,8 @@ interface Question {
 interface Props {
   onComplete: (score: number, total: number) => void;
   onClose: () => void;
+  title?: string;
+  icon?: string;
 }
 
 const QUESTIONS: Question[] = [
@@ -35,7 +37,7 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-export function QuizMission({ onComplete, onClose }: Props) {
+export function QuizMission({ onComplete, onClose, title = "Quiz de sabiduría", icon = "brain" }: Props) {
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
@@ -55,13 +57,14 @@ export function QuizMission({ onComplete, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/95 backdrop-blur-sm animate-fade-in sm:items-center">
-      <div className="w-full max-w-md rounded-t-2xl border border-border bg-card p-5 sm:rounded-2xl">
+    <div className="fixed inset-0 z-[58] flex items-end justify-center bg-background/95 backdrop-blur-sm animate-fade-in sm:items-center">
+      <div className="max-h-[100dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-card p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl">
         <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 font-cinzel text-lg font-bold text-foreground"><GameIcon name="brain" className="h-5 w-5 text-primary" /> Quiz de sabiduría</h3>
+          <h3 className="flex min-w-0 items-center gap-2 font-cinzel text-lg font-bold text-foreground"><GameIcon name={icon} className="h-5 w-5 shrink-0 text-primary" /> <span className="truncate">{title}</span></h3>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-muted-foreground hover:text-foreground active:scale-90 transition-all"
+            aria-label="Cerrar misión"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground active:scale-90 transition-all"
           >
             <X className="h-5 w-5" />
           </button>

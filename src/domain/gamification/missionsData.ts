@@ -131,3 +131,21 @@ export function attributeSourceCategory(attribute: AttributeKey, missions: reado
   const best = (Object.entries(totals) as [TaskCategoryName, number][]).sort((a, b) => b[1] - a[1])[0];
   return best ? best[0] : null;
 }
+
+/** Preguntas guía de las misiones de escritura (diario y sociales); sin entrada, se usa el Diario emocional. */
+export const WRITING_PROMPTS: Record<string, readonly string[]> = {
+  "journal-worry": ["¿Qué te está pesando hoy? Escríbelo sin filtros y déjalo aquí.", "Si esa preocupación fuera una mochila, ¿qué sacarías primero?"],
+  "journal-win": ["¿Qué victoria, por pequeña que sea, lograste hoy?", "¿Qué hiciste hoy de lo que te sientas orgulloso u orgullosa?"],
+  "journal-future": ["Escríbele a tu yo de dentro de un mes: ¿qué quieres recordarle?", "¿Qué esperas haber conquistado cuando leas esta carta?"],
+  reframe: ["Escribe un pensamiento que te pese y luego reescríbelo de forma más amable y realista.", "¿Qué le dirías a un buen amigo que tuviera ese mismo pensamiento?"],
+  "social-message": ["¿A quién le escribiste y qué le dijiste? ¿Cómo te sentiste al hacerlo?"],
+  "social-thanks": ["¿A quién le diste las gracias y cómo reaccionó? ¿Qué sentiste tú?"],
+  "social-ask-help": ["¿Con quién compartiste lo que te cuesta? ¿Cómo te sentiste después?"],
+  "social-listen": ["¿A quién escuchaste hoy sin interrumpir? ¿Qué descubriste en esa conversación?"],
+};
+
+/** Indicación de las variantes de gratitud. */
+export const GRATITUDE_HINTS: Record<string, string> = {
+  "gratitude-people": "Escribe tres personas que te sumaron esta semana y por qué.",
+  "gratitude-self": "Escribe tres cosas que agradeces de ti: tus fuerzas, tus logros, tu forma de ser.",
+};

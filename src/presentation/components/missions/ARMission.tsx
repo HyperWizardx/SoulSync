@@ -73,7 +73,7 @@ export function ARMissionHost({ title, children, onClose, zone = null }: Props) 
   }, [stream]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-[58] flex flex-col bg-black">
       {stream ? (
         <video
           ref={videoRef}

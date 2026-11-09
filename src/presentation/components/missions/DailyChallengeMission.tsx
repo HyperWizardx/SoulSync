@@ -32,7 +32,7 @@ export function DailyChallengeMission({ onComplete, onClose }: Props) {
   const [done, setDone] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in px-6">
+    <div className="fixed inset-0 z-[58] flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in px-6">
       <button
         onClick={onClose}
         aria-label="Cerrar reto"

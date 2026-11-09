@@ -51,7 +51,7 @@ export function BreathingMission({ cycles = 4, onComplete, onClose }: Props) {
   const phase = PHASES[phaseIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[58] flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 rounded-full bg-card p-2 text-muted-foreground hover:text-foreground active:scale-90 transition-all"

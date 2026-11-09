@@ -4,30 +4,33 @@ import { X, Sparkles } from "lucide-react";
 interface Props {
   onComplete: (items: string[]) => void;
   onClose: () => void;
+  title?: string;
+  hint?: string;
 }
 
-export function GratitudeMission({ onComplete, onClose }: Props) {
+export function GratitudeMission({ onComplete, onClose, title = "3 Gratitudes", hint = "Escribe tres cosas, personas o momentos por los que te sientas agradecido hoy." }: Props) {
   const [items, setItems] = useState<string[]>(["", "", ""]);
 
   const valid = items.every((i) => i.trim().length >= 3);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/95 backdrop-blur-sm animate-fade-in sm:items-center">
-      <div className="w-full max-w-md rounded-t-2xl border border-border bg-card p-5 sm:rounded-2xl">
+    <div className="fixed inset-0 z-[58] flex items-end justify-center bg-background/95 backdrop-blur-sm animate-fade-in sm:items-center">
+      <div className="max-h-[100dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-card p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl">
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 font-cinzel text-lg font-bold text-foreground">
-            <Sparkles className="h-5 w-5 text-soul-gold" /> 3 Gratitudes
+            <Sparkles className="h-5 w-5 text-soul-gold" /> {title}
           </h3>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-muted-foreground hover:text-foreground active:scale-90 transition-all"
+            aria-label="Cerrar misión"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground active:scale-90 transition-all"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <p className="mt-2 text-xs text-muted-foreground">
-          Escribe tres cosas, personas o momentos por los que estés agradecido hoy.
+          {hint}
         </p>
 
         <div className="mt-4 space-y-3">

@@ -59,7 +59,7 @@ export function MeditationMission({ durationSec = 120, onComplete, onClose }: Pr
   const pct = ((durationSec - remaining) / durationSec) * 100;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in px-6">
+    <div className="fixed inset-0 z-[58] flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-fade-in px-6">
       <button
         onClick={() => { try { window.speechSynthesis?.cancel(); } catch { /* noop */ } onClose(); }}
         aria-label="Cerrar meditación"

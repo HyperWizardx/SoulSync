@@ -93,7 +93,7 @@ export function ARWalkMission({ goal = 30, onComplete, onClose, zone }: Props) {
   const pct = (steps / goal) * 100;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+    <div className="fixed inset-0 z-[58] flex flex-col bg-background">
       {cameraOk === false ? (
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-soul-teal/20" />
       ) : (
