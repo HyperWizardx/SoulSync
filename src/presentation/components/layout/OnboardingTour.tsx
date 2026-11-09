@@ -30,7 +30,7 @@ const STEPS = [
 
 const WELCOMES = [
   "Tu fuerza despierta, Caballero. Que cada batalla te haga más fuerte.",
-  "La calma te guía, Druida. Lleva paz a donde vayas.",
+  "Tu energía es imparable, Bárbaro. Enfréntate a cada reto con coraje.",
   "El camino te llama, Pícaro. Descubre nuevos horizontes interiores.",
   "El conocimiento es tu aliado, Mago. Reflexiona y crece.",
 ];

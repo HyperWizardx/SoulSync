@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { archetypeModelKey, avatarAnimation, avatarPosition } from "./avatarMotion";
 describe("Compañero AR", () => {
   it("usa el personaje de cada arquetipo elegido", () => {
-    expect([0, 1, 2, 3].map(archetypeModelKey)).toEqual(["warrior", "healer", "explorer", "sage"]);
+    expect([0, 1, 2, 3].map(archetypeModelKey)).toEqual(["warrior", "barbarian", "explorer", "sage"]);
   });
   it("conserva un personaje para perfiles sin arquetipo", () => {
     expect(archetypeModelKey(null)).toBe("explorer");

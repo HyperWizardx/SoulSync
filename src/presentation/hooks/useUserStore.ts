@@ -8,7 +8,7 @@ import { useInventoryActions } from './user/useInventoryActions';
 export type { UserStats, UserAttributes, TaskCategoryName, MissionReward, UserSettings, UserData } from './user/userState';
 export { useProfileSummary, useWeeklyStats } from './user/useProgressQueries';
 
-const ARCHETYPES = ['Caballero', 'Druida', 'Pícaro', 'Mago'];
+const ARCHETYPES = ['Caballero', 'Bárbaro', 'Pícaro', 'Mago'];
 export function useUserStore() {
   const { data, isLoading, hasSession } = useProgressQuery();
   const user = toUserData(data);

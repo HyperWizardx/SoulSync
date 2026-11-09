@@ -17,8 +17,8 @@ export interface ArchetypeStyle {
 const STYLES: ArchetypeStyle[] = [
   // 0 - Caballero: rojo/ámbar intenso
   { name: "Caballero",  emoji: "⚔️", glow: "hsl(15 85% 55%)",  exposure: 1.25, accent: "hsl(15 85% 55%)" },
-  // 1 - Druida: verde vital
-  { name: "Druida",     emoji: "🌿", glow: "hsl(150 70% 55%)", exposure: 1.15, accent: "hsl(150 70% 55%)" },
+  // 1 - Bárbaro: ámbar fogoso
+  { name: "Bárbaro",    emoji: "🪓", glow: "hsl(38 92% 55%)",  exposure: 1.15, accent: "hsl(38 92% 55%)" },
   // 2 - Pícaro: turquesa/cyan
   { name: "Pícaro",     emoji: "🗡️", glow: "hsl(190 80% 55%)", exposure: 1.20, accent: "hsl(190 80% 55%)" },
   // 3 - Mago: violeta místico

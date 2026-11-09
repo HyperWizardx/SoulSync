@@ -3,9 +3,9 @@ export function avatarPosition(x: number, y: number) {
   return { x: Math.max(20, Math.min(80, x)), y: Math.max(25, Math.min(75, y)) };
 }
 
-// 0 Caballero (espada y escudo), 1 Druida (bastón), 2 Pícaro (encapuchado con ballesta), 3 Mago (sombrero y libro).
+// 0 Caballero (espada y escudo), 1 Bárbaro (hacha a dos manos), 2 Pícaro (encapuchado con ballesta), 3 Mago (sombrero y libro).
 export function archetypeModelKey(archetype: number | null | undefined) {
-  return (["warrior", "healer", "explorer", "sage"] as const)[archetype ?? -1] ?? "explorer";
+  return (["warrior", "barbarian", "explorer", "sage"] as const)[archetype ?? -1] ?? "explorer";
 }
 
 // Nombres de las animaciones incluidas en los modelos KayKit recortados (public/models).

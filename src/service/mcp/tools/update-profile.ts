@@ -6,11 +6,11 @@ export default defineTool({
   name: "update_profile",
   title: "Update player profile",
   description:
-    "Update the signed-in SoulSync player's display name, avatar index or archetype (0 Caballero, 1 Druida, 2 Pícaro, 3 Mago).",
+    "Update the signed-in SoulSync player's display name, avatar index or archetype (0 Caballero, 1 Bárbaro, 2 Pícaro, 3 Mago).",
   inputSchema: {
     name: z.string().describe("Display name, 1-40 characters.").optional(),
     avatar: z.number().int().describe("Avatar index, 0-5.").optional(),
-    archetype: z.number().int().describe("Archetype index: 0 Caballero, 1 Druida, 2 Pícaro, 3 Mago.").optional(),
+    archetype: z.number().int().describe("Archetype index: 0 Caballero, 1 Bárbaro, 2 Pícaro, 3 Mago.").optional(),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   handler: async (input, ctx) => {

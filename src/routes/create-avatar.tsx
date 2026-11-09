@@ -20,7 +20,7 @@ export const Route = createFileRoute("/create-avatar")({
 
 const archetypes = [
   { name: "Caballero", desc: "Fuerza y resiliencia", emoji: "⚔️" },
-  { name: "Druida", desc: "Empatía y cuidado", emoji: "🌿" },
+  { name: "Bárbaro", desc: "Coraje y energía", emoji: "🪓" },
   { name: "Pícaro", desc: "Curiosidad y aventura", emoji: "🗡️" },
   { name: "Mago", desc: "Reflexión y conocimiento", emoji: "📖" },
 ];
