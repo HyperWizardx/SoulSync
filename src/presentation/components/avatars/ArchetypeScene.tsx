@@ -11,7 +11,8 @@ const MODEL_URL = (key: ReturnType<typeof archetypeModelKey>) => `/models/${key}
 // facing: giro del personaje en grados elegido por el usuario (misiones AR).
 interface Props { archetype?: number | null; rotate?: boolean; interactive?: boolean; walking?: boolean; celebrating?: boolean; facing?: number; exposure?: number; onReady?: () => void }
 
-function Character({ archetype, walking, celebrating, facing = 0, reducedMotion, onReady }: Props & { reducedMotion: boolean }) {
+// También lo usan los dioramas del Mundo para colocar al personaje dentro de la zona.
+export function ArchetypeCharacter({ archetype, walking, celebrating, facing = 0, reducedMotion, onReady }: Props & { reducedMotion: boolean }) {
   const { scene, animations } = useGLTF(MODEL_URL(archetypeModelKey(archetype)));
   const group = useRef<Group>(null);
   const character = useMemo(() => {
@@ -58,7 +59,7 @@ export default function ArchetypeScene(props: Props) {
         <Lightformer intensity={2} position={[0, 4, 2]} scale={[8, 8, 1]} />
         <Lightformer intensity={1} position={[-4, 1, 0]} rotation-y={Math.PI / 2} scale={[8, 4, 1]} />
       </Environment>
-      <Suspense fallback={null}><Character {...props} reducedMotion={reducedMotion} /></Suspense>
+      <Suspense fallback={null}><ArchetypeCharacter {...props} reducedMotion={reducedMotion} /></Suspense>
       <OrbitControls enablePan={false} enableZoom={false} enableRotate={props.interactive !== false} autoRotate={props.rotate && !props.walking && !reducedMotion} autoRotateSpeed={1} minPolarAngle={Math.PI / 3} maxPolarAngle={Math.PI / 2} />
     </Canvas>
   );

@@ -9,7 +9,8 @@ import { Lock } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { MISSIONS, MISSION_CATEGORY } from "@/domain/gamification/missionsData";
-import type { WorldZone } from "@/domain/world/world";
+import type { WorldSeason, WorldZone } from "@/domain/world/world";
+import { WorldDiorama } from "@/presentation/components/world/WorldDiorama";
 
 export const Route = createFileRoute("/world")({
   head: () => ({
@@ -127,12 +128,12 @@ function WorldPage() {
                   <button
                     key={z.key}
                     onClick={() => setZone(z)}
-                    className={`rounded-2xl border-2 p-4 text-center transition-all active:scale-95 ${
-                      z.unlocked ? "border-primary/40 bg-primary/5" : "border-border bg-card opacity-60"
+                    className={`overflow-hidden rounded-2xl border-2 p-3 text-center transition-all active:scale-95 ${
+                      z.unlocked ? "border-primary/40 bg-primary/5" : "border-border bg-card"
                     }`}
                   >
-                    <span className="inline-block text-4xl">{z.unlocked ? z.emoji : "🔒"}</span>
-                    <p className="mt-2 text-sm font-semibold text-foreground">{z.name}</p>
+                    <WorldDiorama zone={z.key} emoji={z.emoji} progress={z.progress} unlocked={z.unlocked} season={world.season} className="-mx-3 -mt-3 h-28" />
+                    <p className="mt-2 text-sm font-semibold text-foreground">{z.emoji} {z.name}</p>
                     {z.unlocked ? (
                       <>
                         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -167,12 +168,12 @@ function WorldPage() {
         )}
       </div>
 
-      <ZoneSheet zone={zone} level={user.level} onClose={() => setZone(null)} />
+      <ZoneSheet zone={zone} level={user.level} archetype={user.archetype} season={world?.season ?? "calma"} onClose={() => setZone(null)} />
     </MobileLayout>
   );
 }
 
-function ZoneSheet({ zone, level, onClose }: { zone: WorldZone | null; level: number; onClose: () => void }) {
+function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZone | null; level: number; archetype: number | null; season: WorldSeason; onClose: () => void }) {
   const missions = zone
     ? MISSIONS.filter((m) => zone.categories.includes(MISSION_CATEGORY[m.type]))
     : [];
@@ -187,6 +188,22 @@ function ZoneSheet({ zone, level, onClose }: { zone: WorldZone | null; level: nu
               </SheetTitle>
               <SheetDescription>{zone.description}</SheetDescription>
             </SheetHeader>
+
+            {/* Diorama de la zona: se puede girar y muestra a tu personaje si está desbloqueada */}
+            <WorldDiorama
+              zone={zone.key}
+              emoji={zone.emoji}
+              progress={zone.progress}
+              unlocked={zone.unlocked}
+              season={season}
+              archetype={archetype}
+              showHero
+              interactive
+              className="mt-4 h-56 rounded-2xl border border-border bg-gradient-to-b from-primary/10 to-card"
+            />
+            {zone.unlocked && zone.progress < 100 && (
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">Sube el progreso de la zona para que aparezcan más construcciones.</p>
+            )}
 
             {zone.unlocked ? (
               <div className="mt-4">

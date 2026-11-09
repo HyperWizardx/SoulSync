@@ -1,4 +1,5 @@
 import type { RiskLevel, TrendDirection } from "@/domain/wellbeing/types";
+import type { ZoneKey } from "@/domain/world/dioramas";
 
 export type WorldSeason = "calma" | "crecimiento" | "tormenta" | "niebla";
 
@@ -18,7 +19,7 @@ export interface WorldInput {
 }
 
 export interface WorldZone {
-  key: string;
+  key: ZoneKey;
   name: string;
   emoji: string;
   /** Nivel requerido para desbloquear */
@@ -47,7 +48,7 @@ const pct = (n: number) => Math.round(clamp01(n) * 100);
 const ZONE_CATALOG = [
   { key: "valle", name: "Valle de la Calma", emoji: "🏔️", requiredLevel: 1, description: "Se ilumina con tus tareas completadas hoy.", categories: ["autocuidado"] as const },
   { key: "bosque", name: "Bosque Interior", emoji: "🌲", requiredLevel: 2, description: "Crece con tus check-ins registrados.", categories: ["reflexion", "cognitivo"] as const },
-  { key: "mar", name: "Mar de Emociones", emoji: "🌊", requiredLevel: 5, description: "Refleja tu tendencia emocional reciente.", categories: ["social", "reflexion"] as const },
+  { key: "reino", name: "Reino de las Emociones", emoji: "🏰", requiredLevel: 5, description: "Crece con tu tendencia emocional reciente.", categories: ["social", "reflexion"] as const },
   { key: "montana", name: "Montaña de Fuerza", emoji: "⛰️", requiredLevel: 10, description: "Se levanta con tus rachas sostenidas.", categories: ["movimiento", "ar"] as const },
 ] as const;
 
@@ -80,7 +81,7 @@ export function deriveWorldState(input: WorldInput): WorldState {
     if (unlocked) {
       if (z.key === "valle") progress = pct(dayRatio);
       else if (z.key === "bosque") progress = pct(input.checkinToday ? Math.max(0.35, weekRatio) : weekRatio);
-      else if (z.key === "mar") progress = index === null ? 0 : pct(index);
+      else if (z.key === "reino") progress = index === null ? 0 : pct(index);
       else progress = pct(input.streak / 14);
     }
     return { ...z, unlocked, progress };

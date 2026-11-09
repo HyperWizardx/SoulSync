@@ -157,7 +157,7 @@ describe("estado del Mundo derivado de la actividad real", () => {
     const l10 = deriveWorldState({ ...base, level: 10, tasksToday: 1, tasksLast7: 5 });
     expect(l1.zonesUnlocked).toBe(1);
     expect(l10.zonesUnlocked).toBe(4);
-    expect(l1.zones.find((z) => z.key === "mar")?.unlocked).toBe(false);
+    expect(l1.zones.find((z) => z.key === "reino")?.unlocked).toBe(false);
   });
 
   it("cambia de estación según señal y tendencia", () => {
