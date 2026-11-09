@@ -5,6 +5,7 @@
  */
 import { computeEffectBonuses } from "@/domain/gamification/items";
 import { applyDeltas, applyXp, isoDay, nextStreak } from "@/domain/gamification/progression";
+import { AFFINITY_XP_MULT } from "@/domain/identity/archetype";
 
 export type Stats = { bienestar: number; resiliencia: number; energia: number; claridad: number };
 export type Attributes = {
@@ -28,17 +29,21 @@ export interface MissionReward {
 /** Efecto activo de un objeto (id y usos para poder consumirlo después). */
 export interface ActiveEffectRow { id: string; item_key: string; effect: string; magnitude: number; uses_left: number | null }
 
-/** Calcula el resultado completo de completar una misión. */
+/**
+ * Calcula el resultado completo de completar una misión.
+ * affinity: la misión es afín al arquetipo del jugador (+20 % de XP).
+ */
 export function planMissionCompletion(
   state: PlayerState,
   reward: MissionReward,
   effects: ActiveEffectRow[],
   equippedKeys: string[],
   now = Date.now(),
+  affinity = false,
 ) {
-  // Multiplicadores y bonus de objetos (tienda) activos/equipados.
+  // Multiplicadores y bonus de objetos (tienda) activos/equipados, más la afinidad del arquetipo.
   const { xpMult, coinMult, attrBonus, hasShield } = computeEffectBonuses(effects, equippedKeys);
-  const gainedXp = Math.round(reward.xp * xpMult);
+  const gainedXp = Math.round(reward.xp * xpMult * (affinity ? AFFINITY_XP_MULT : 1));
   const gainedCoins = Math.round(reward.coins * coinMult);
   const boosted = xpMult > 1 || coinMult > 1 || Object.keys(attrBonus).length > 0;
 
@@ -54,7 +59,7 @@ export function planMissionCompletion(
   );
 
   return {
-    today, gainedXp, gainedCoins, boosted, leveledUp, shieldUsed, effectsToConsume,
+    today, gainedXp, gainedCoins, boosted, affinity, leveledUp, shieldUsed, effectsToConsume,
     profile: { xp, level, streak, coins: state.coins + gainedCoins, gems: state.gems + reward.gems, last_mission_date: today },
     stats: applyDeltas(state.stats, reward.stats),
     attributes: applyDeltas(state.attributes, reward.attributes, attrBonus),

@@ -5,49 +5,29 @@ import { useServerFn } from '@tanstack/react-start';
 import { toast } from 'sonner';
 import { completeMissionServer } from '@/service/server-functions/missions.functions';
 import { emitFeedback } from '@/shared/feedback';
-import type { MissionReward, TaskCategoryName, UserStats, UserAttributes } from './userState';
+
+/** Resultado que devuelve el servidor (la recompensa real sale del catálogo de misiones). */
+export interface MissionResult {
+  ok: boolean;
+  leveledUp: boolean;
+  newLevel: number;
+  unlockedAchievements: string[];
+  gainedXp: number;
+  gainedCoins: number;
+  gainedGems: number;
+  boosted: boolean;
+  affinity: boolean;
+}
+
 export function useMissionActions(level: number) {
   const qc = useQueryClient();
   const completeMissionFn = useServerFn(completeMissionServer);
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['progress'] });
   const completeMissionMut = useMutation({
-    mutationFn: (payload: {
-      missionId: string;
-      title: string;
-      isAR?: boolean;
-      category?: TaskCategoryName;
-      durationSeconds?: number;
-      xp?: number;
-      coins?: number;
-      gems?: number;
-      stats?: Partial<UserStats>;
-      attributes?: Partial<UserAttributes>;
-    }) =>
-      completeMissionFn({
-        data: {
-          missionId: payload.missionId,
-          title: payload.title,
-          isAR: payload.isAR ?? false,
-          category: payload.category ?? "autocuidado",
-          durationSeconds: payload.durationSeconds ?? 0,
-          xp: payload.xp ?? 0,
-          coins: payload.coins ?? 0,
-          gems: payload.gems ?? 0,
-          stats: payload.stats ?? {},
-          attributes: payload.attributes
-            ? {
-                resiliencia: payload.attributes.resiliencia,
-                empatia: payload.attributes.empatia,
-                mindfulness: payload.attributes.mindfulness,
-                autoconocimiento: payload.attributes.autoconocimiento,
-                conexion_social: payload.attributes.conexionSocial,
-                creatividad: payload.attributes.creatividad,
-              }
-            : {},
-        },
-      }),
+    // Solo se envía qué misión fue y cuánto duró: el servidor calcula la recompensa.
+    mutationFn: (payload: { missionId: string; durationSeconds?: number }) =>
+      completeMissionFn({ data: { missionId: payload.missionId, durationSeconds: payload.durationSeconds ?? 0 } }),
     onSuccess: () => {
-      invalidate();
+      qc.invalidateQueries({ queryKey: ['progress'] });
       qc.invalidateQueries({ queryKey: ["wellbeing"] });
       // Trofeos y gráfica semanal de Perfil dependen de las misiones completadas.
       qc.invalidateQueries({ queryKey: ["profile-summary"] });
@@ -56,36 +36,19 @@ export function useMissionActions(level: number) {
   });
 
   const completeMission = useCallback(
-    async (
-      missionId: string,
-      missionTitle: string,
-      reward: MissionReward,
-      isAR = false,
-      options?: { category?: TaskCategoryName; durationSeconds?: number }
-    ) => {
+    async (missionId: string, options?: { durationSeconds?: number }): Promise<MissionResult> => {
       try {
-        const res = await completeMissionMut.mutateAsync({
-          missionId,
-          title: missionTitle,
-          isAR,
-          category: options?.category,
-          durationSeconds: options?.durationSeconds,
-          xp: reward.xp,
-          coins: reward.coins,
-          gems: reward.gems,
-          stats: reward.stats,
-          attributes: reward.attributes,
-        });
+        const res = await completeMissionMut.mutateAsync({ missionId, durationSeconds: options?.durationSeconds });
         if (res.leveledUp) {
           emitFeedback({ type: "levelup", level: res.newLevel });
         }
         for (const code of res.unlockedAchievements ?? []) {
           emitFeedback({ type: "achievement", code });
         }
-        return res;
+        return { ok: true, ...res };
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Error guardando misión");
-        return { leveledUp: false, newLevel: level, unlockedAchievements: [] as string[] };
+        return { ok: false, leveledUp: false, newLevel: level, unlockedAchievements: [], gainedXp: 0, gainedCoins: 0, gainedGems: 0, boosted: false, affinity: false };
       }
     },
     [completeMissionMut, level]

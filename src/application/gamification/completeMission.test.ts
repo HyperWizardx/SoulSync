@@ -24,6 +24,10 @@ describe("completar misión", () => {
     expect(r.gainedXp).toBe(200);
     expect(r.effectsToConsume.map((e) => e.id)).toEqual(["e1"]);
   });
+  it("una misión afín al arquetipo da 20 % más de XP", () => {
+    expect(planMissionCompletion(state, reward, [], [], now, true).gainedXp).toBe(120);
+    expect(planMissionCompletion(state, reward, [], [], now, false).gainedXp).toBe(100);
+  });
   it("el escudo no se consume si la racha no estaba en riesgo", () => {
     const fx = [{ id: "s1", item_key: "x", effect: "streak_shield", magnitude: 1, uses_left: 1 }];
     expect(planMissionCompletion(state, reward, fx, [], now).effectsToConsume).toEqual([]);

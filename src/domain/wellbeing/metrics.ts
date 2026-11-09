@@ -1,5 +1,5 @@
 import type { CheckinRecord } from "@/domain/wellbeing/types";
-import { MISSION_CATEGORY, getMissionById } from "@/domain/gamification/missionsData";
+import { baseCategory, getMissionById } from "@/domain/gamification/missionsData";
 import type { TaskCategoryName } from "@/domain/gamification/rewards";
 
 export type MetricKey = "bienestar" | "resiliencia" | "energia" | "claridad";
@@ -39,7 +39,7 @@ function parseDate(value: string): Date | null {
 
 function categoryOf(missionId: string): TaskCategoryName | null {
   const mission = getMissionById(missionId);
-  return mission ? MISSION_CATEGORY[mission.type] : null;
+  return mission ? baseCategory(mission) : null;
 }
 
 interface Part {

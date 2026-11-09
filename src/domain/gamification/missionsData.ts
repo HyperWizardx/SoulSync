@@ -26,6 +26,8 @@ export interface Mission {
   durationSec?: number;
   requiredLevel?: number;
   isAR?: boolean;
+  /** Categoría propia cuando no coincide con la de su tipo (p. ej. un temporizador de autocuidado). */
+  category?: TaskCategoryName;
 }
 
 export const MISSIONS: Mission[] = [
@@ -45,11 +47,11 @@ export const MISSIONS: Mission[] = [
   // ——— Autocuidado ———
   { id: "breath-box", type: "breathing", title: "Respiración cuadrada", desc: "6 ciclos 4-4-4-4 para bajar revoluciones", icon: "cube", rarity: "Raro", reward: { xp: 65, coins: 20, stats: { bienestar: 5, claridad: 3 }, attributes: { mindfulness: 4 } } },
   { id: "breath-night", type: "breathing", title: "Respiración para dormir", desc: "Ciclos largos antes de descansar", icon: "moon", rarity: "Raro", reward: { xp: 70, coins: 22, stats: { bienestar: 6, energia: 2 }, attributes: { mindfulness: 3, resiliencia: 2 } } },
-  { id: "hydrate", type: "timer", title: "Pausa de hidratación", desc: "20 segundos: bebe agua con calma", icon: "water-drop", rarity: "Común", durationSec: 20, reward: { xp: 30, coins: 10, stats: { energia: 3, bienestar: 2 }, attributes: { resiliencia: 1 } } },
-  { id: "screen-break", type: "timer", title: "Descanso de pantalla", desc: "45 s mirando lejos, relaja la vista", icon: "semi-closed-eye", rarity: "Común", durationSec: 45, reward: { xp: 40, coins: 12, stats: { energia: 4, claridad: 2 }, attributes: { mindfulness: 2 } } },
+  { id: "hydrate", type: "timer", category: "autocuidado", title: "Pausa de hidratación", desc: "20 segundos: bebe agua con calma", icon: "water-drop", rarity: "Común", durationSec: 20, reward: { xp: 30, coins: 10, stats: { energia: 3, bienestar: 2 }, attributes: { resiliencia: 1 } } },
+  { id: "screen-break", type: "timer", category: "autocuidado", title: "Descanso de pantalla", desc: "45 s mirando lejos, relaja la vista", icon: "semi-closed-eye", rarity: "Común", durationSec: 45, reward: { xp: 40, coins: 12, stats: { energia: 4, claridad: 2 }, attributes: { mindfulness: 2 } } },
   { id: "meditation-5m", type: "meditation", title: "Meditación profunda", desc: "5 minutos de silencio guiado", icon: "lotus", rarity: "Legendaria", durationSec: 300, requiredLevel: 4, reward: { xp: 180, coins: 65, gems: 3, stats: { bienestar: 12, claridad: 8 }, attributes: { mindfulness: 7, autoconocimiento: 4 } } },
   { id: "body-scan", type: "meditation", title: "Escaneo corporal", desc: "90 s recorriendo tu cuerpo con atención", icon: "heart-organ", rarity: "Épica", durationSec: 90, reward: { xp: 95, coins: 30, stats: { bienestar: 7, claridad: 4 }, attributes: { mindfulness: 4, autoconocimiento: 2 } } },
-  { id: "self-care-ritual", type: "timer", title: "Ritual de autocuidado", desc: "60 s para algo que te cuide (té, ducha, música)", icon: "bathtub", rarity: "Raro", durationSec: 60, reward: { xp: 70, coins: 25, stats: { bienestar: 6 }, attributes: { autoconocimiento: 2, resiliencia: 2 } } },
+  { id: "self-care-ritual", type: "timer", category: "autocuidado", title: "Ritual de autocuidado", desc: "60 s para algo que te cuide (té, ducha, música)", icon: "bathtub", rarity: "Raro", durationSec: 60, reward: { xp: 70, coins: 25, stats: { bienestar: 6 }, attributes: { autoconocimiento: 2, resiliencia: 2 } } },
 
   // ——— Reflexión ———
   { id: "journal-worry", type: "journal", title: "Descarga de preocupaciones", desc: "Escribe lo que te pesa y suéltalo", icon: "raining", rarity: "Raro", reward: { xp: 65, coins: 20, stats: { claridad: 6, bienestar: 3 }, attributes: { autoconocimiento: 4, resiliencia: 2 } } },
@@ -63,7 +65,7 @@ export const MISSIONS: Mission[] = [
   { id: "quiz-emotions", type: "quiz", title: "Quiz de emociones", desc: "Reconoce y nombra lo que sientes", icon: "drama-masks", rarity: "Raro", reward: { xp: 70, coins: 24, stats: { claridad: 6 }, attributes: { autoconocimiento: 3, empatia: 2 } } },
   { id: "quiz-stress", type: "quiz", title: "Quiz de manejo del estrés", desc: "Estrategias que sí funcionan", icon: "puzzle", rarity: "Épica", reward: { xp: 95, coins: 30, gems: 1, stats: { claridad: 7, bienestar: 2 }, attributes: { resiliencia: 4, autoconocimiento: 2 } } },
   { id: "quiz-sleep", type: "quiz", title: "Quiz de higiene del sueño", desc: "Aprende a descansar mejor", icon: "night-sleep", rarity: "Raro", reward: { xp: 75, coins: 25, stats: { claridad: 5, energia: 3 }, attributes: { autoconocimiento: 3 } } },
-  { id: "focus-sprint", type: "timer", title: "Sprint de foco", desc: "2 minutos de atención plena en una sola tarea", icon: "sands-of-time", rarity: "Épica", durationSec: 120, reward: { xp: 100, coins: 30, stats: { claridad: 8, energia: 2 }, attributes: { mindfulness: 4, creatividad: 2 } } },
+  { id: "focus-sprint", type: "timer", category: "cognitivo", title: "Sprint de foco", desc: "2 minutos de atención plena en una sola tarea", icon: "sands-of-time", rarity: "Épica", durationSec: 120, reward: { xp: 100, coins: 30, stats: { claridad: 8, energia: 2 }, attributes: { mindfulness: 4, creatividad: 2 } } },
 
   // ——— Social ———
   { id: "social-message", type: "social", title: "Mensaje que conecta", desc: "Escribe a alguien que hace tiempo no ves", icon: "chat-bubble", rarity: "Raro", reward: { xp: 70, coins: 24, stats: { bienestar: 5, claridad: 2 }, attributes: { conexionSocial: 5, empatia: 3 } } },
@@ -99,4 +101,33 @@ export function primaryStatOf(mission: Mission | undefined): keyof NonNullable<M
   const entries = Object.entries(stats) as [keyof NonNullable<MissionReward["stats"]>, number][];
   if (entries.length === 0) return null;
   return entries.sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))[0][0];
+}
+
+/** Categoría temática de la misión: la propia si la declara, si no la de su tipo. */
+export function baseCategory(mission: Pick<Mission, "type" | "category">): TaskCategoryName {
+  return mission.category ?? MISSION_CATEGORY[mission.type];
+}
+
+/** Categoría con la que se registra una misión completada (las AR cuentan como "ar"). */
+export function missionCategory(mission: Pick<Mission, "type" | "isAR" | "category">): TaskCategoryName {
+  return mission.isAR ? "ar" : baseCategory(mission);
+}
+
+type AttributeKey = keyof NonNullable<MissionReward["attributes"]>;
+
+/**
+ * Categoría de misión que más hace crecer cada atributo, calculada con el catálogo real
+ * (suma de puntos que otorgan sus misiones). Así Perfil explica cómo subirlo sin listas fijas.
+ */
+export function attributeSourceCategory(attribute: AttributeKey, missions: readonly Mission[] = MISSIONS): TaskCategoryName | null {
+  const totals: Partial<Record<TaskCategoryName, number>> = {};
+  for (const m of missions) {
+    const points = m.reward.attributes?.[attribute] ?? 0;
+    if (points > 0) {
+      const c = missionCategory(m);
+      totals[c] = (totals[c] ?? 0) + points;
+    }
+  }
+  const best = (Object.entries(totals) as [TaskCategoryName, number][]).sort((a, b) => b[1] - a[1])[0];
+  return best ? best[0] : null;
 }

@@ -44,10 +44,22 @@ export const RARITY_LABEL: Record<Rarity, string> = {
 
 export const RARITY_CLASSES: Record<Rarity, { badge: string; border: string; glow: string }> = {
   comun: { badge: "bg-secondary text-muted-foreground", border: "border-border", glow: "" },
-  raro: { badge: "bg-soul-teal/20 text-soul-teal", border: "border-soul-teal/50", glow: "shadow-[0_0_16px_-6px_hsl(var(--primary))]" },
-  epico: { badge: "bg-primary/20 text-primary", border: "border-primary/50", glow: "shadow-[0_0_20px_-6px_hsl(var(--primary))]" },
-  legendario: { badge: "bg-soul-gold/20 text-soul-gold", border: "border-soul-gold/60", glow: "shadow-[0_0_24px_-6px_hsl(var(--soul-gold))]" },
+  raro: { badge: "bg-soul-teal/20 text-soul-teal", border: "border-soul-teal/50", glow: "shadow-[0_0_16px_-6px_var(--color-soul-teal)]" },
+  epico: { badge: "bg-primary/20 text-primary", border: "border-primary/50", glow: "shadow-[0_0_20px_-6px_var(--color-primary)]" },
+  legendario: { badge: "bg-soul-gold/20 text-soul-gold", border: "border-soul-gold/60", glow: "shadow-[0_0_24px_-6px_var(--color-soul-gold)]" },
 };
+
+/** Secciones de la pantalla Logros, en el orden en que se muestran. */
+export const ACHIEVEMENT_GROUPS: { key: Achievement["group"]; label: string }[] = [
+  { key: "constancia", label: "Constancia" },
+  { key: "volumen", label: "Misiones completadas" },
+  { key: "categorias", label: "Categorías de misión" },
+  { key: "ar", label: "Realidad aumentada" },
+  { key: "nivel", label: "Nivel" },
+  { key: "bienestar", label: "Bienestar" },
+  { key: "mundo", label: "Mundo" },
+  { key: "tienda", label: "Tienda" },
+];
 
 const cat = (name: string) => (c: AchievementContext) => c.byCategory[name] ?? 0;
 

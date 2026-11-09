@@ -13,7 +13,7 @@ import { useDailyGreeting } from "@/presentation/hooks/useDailyGreeting";
 import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
 import { Reveal } from "@/presentation/components/motion/Reveal";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
-import { getArchetypeStyle } from "@/domain/identity/archetype";
+import { CATEGORY_LABEL, getArchetypeStyle } from "@/domain/identity/archetype";
 import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
 import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
 import { SEASON_COPY } from "@/domain/world/world";
@@ -73,10 +73,15 @@ function DashboardPage() {
             <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} />
           </AuraHalo>
           <p className="mt-2 font-cinzel font-semibold">{archStyle.name}</p>
+          {archStyle.affinity.length > 0 && (
+            <p className="mt-0.5 text-center text-xs text-muted-foreground">
+              {archStyle.trait} · misiones afines: {archStyle.affinity.map((c) => CATEGORY_LABEL[c]).join(" y ")}
+            </p>
+          )}
         </Reveal>
 
         <Reveal index={1} className="mt-4">
-          <NextStepCard zones={world?.zones ?? null} completedToday={completedToday} level={user.level} />
+          <NextStepCard zones={world?.zones ?? null} completedToday={completedToday} level={user.level} archetype={user.archetype} />
         </Reveal>
 
         <Reveal index={2} className="mt-4">

@@ -1,6 +1,6 @@
 // Verifica que cada misión AR se ambiente en una zona y que el resto se agrupe por categoría.
 import { describe, expect, it } from "vitest";
-import { MISSIONS } from "@/domain/gamification/missionsData";
+import { MISSIONS, baseCategory } from "@/domain/gamification/missionsData";
 import { arZoneFor, missionBelongsToZone, nextStepMission } from "./missionZones";
 import { zoneInfo } from "./world";
 
@@ -40,6 +40,11 @@ describe("Tu siguiente paso", () => {
     const next = nextStepMission(zones, MISSIONS, new Set(), 99);
     expect(next?.zone).toBe("bosque");
     expect(missionBelongsToZone(next!.mission, ZONES[1])).toBe(true);
+  });
+  it("dentro de la zona prefiere una misión afín al arquetipo", () => {
+    const next = nextStepMission(zones, MISSIONS, new Set(), 99, (m) => baseCategory(m) === "cognitivo");
+    expect(next?.zone).toBe("bosque");
+    expect(baseCategory(next!.mission)).toBe("cognitivo");
   });
   it("salta las misiones ya hechas hoy y las que piden más nivel", () => {
     const bosque = MISSIONS.filter((m) => missionBelongsToZone(m, ZONES[1]));

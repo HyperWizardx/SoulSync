@@ -15,7 +15,7 @@ const navItems = [
 ];
 
 // Pantallas secundarias sin pestaña propia: se marca la pestaña desde la que se llega a ellas.
-const PARENT_TAB: Record<string, string> = { "/store": "/profile", "/community": "/profile" };
+const PARENT_TAB: Record<string, string> = { "/store": "/profile", "/community": "/profile", "/achievements": "/profile" };
 
 // Cada pantalla monta su propia barra: la pestaña anterior se recuerda a nivel de módulo.
 let lastIndex = -1;

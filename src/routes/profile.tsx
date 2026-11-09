@@ -1,8 +1,7 @@
-import { Coins, Gem } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck } from "lucide-react";
+import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck, ChevronRight } from "lucide-react";
 import { useAdminAccess } from "@/presentation/hooks/useAdmin";
 import { useUserStore, useProfileSummary } from "@/presentation/hooks/useUserStore";
 import { useState } from "react";
@@ -18,13 +17,14 @@ import { tap as hapticTap } from "@/shared/haptics";
 import { WeeklyChart } from "@/presentation/components/layout/WeeklyChart";
 import {
   ACHIEVEMENTS,
-  REWARD_BY_RARITY,
-  RARITY_CLASSES,
-  RARITY_LABEL,
   achievementProgress,
   type AchievementContext,
 } from "@/domain/gamification/achievements";
 import { getItem, getItemByName } from "@/domain/gamification/items";
+import { XP_PER_LEVEL } from "@/domain/gamification/progression";
+import { attributeSourceCategory } from "@/domain/gamification/missionsData";
+import { CATEGORY_LABEL } from "@/domain/identity/archetype";
+import type { TaskCategoryName, UserAttributes } from "@/domain/gamification/rewards";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -49,7 +49,6 @@ function ProfilePage() {
   const [editName, setEditName] = useState(user.name);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedAttr, setExpandedAttr] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"todos" | "desbloqueados" | "pendientes">("todos");
   const archStyle = getArchetypeStyle(user.archetype);
   const wellbeing = useWellbeing();
 
@@ -68,9 +67,10 @@ function ProfilePage() {
     { icon: "trophy-cup", label: "Logros", value: unlocked.size },
   ];
 
-  const visibleAchievements = ACHIEVEMENTS.filter((a) =>
-    filter === "todos" ? true : filter === "desbloqueados" ? unlocked.has(a.code) : !unlocked.has(a.code),
-  );
+  // Logro pendiente más cercano según el progreso real.
+  const nextAchievement = ctx
+    ? ACHIEVEMENTS.filter((a) => !unlocked.has(a.code)).sort((x, y) => achievementProgress(y, ctx).ratio - achievementProgress(x, ctx).ratio)[0]
+    : ACHIEVEMENTS.find((a) => !unlocked.has(a.code));
 
   const handleSignOut = async () => {
     await signOut();
@@ -78,14 +78,15 @@ function ProfilePage() {
     navigate({ to: "/auth", search: { mode: "login" } });
   };
 
-  const attributes = [
-    { name: "Resiliencia", value: user.attributes.resiliencia, category: "movimiento", categoryLabel: "movimiento" },
-    { name: "Empatía", value: user.attributes.empatia, category: "social", categoryLabel: "conexión social" },
-    { name: "Mindfulness", value: user.attributes.mindfulness, category: "autocuidado", categoryLabel: "autocuidado" },
-    { name: "Autoconocimiento", value: user.attributes.autoconocimiento, category: "reflexion", categoryLabel: "reflexión" },
-    { name: "Conexión Social", value: user.attributes.conexionSocial, category: "social", categoryLabel: "conexión social" },
-    { name: "Creatividad", value: user.attributes.creatividad, category: "cognitivo", categoryLabel: "actividad cognitiva" },
+  // La categoría que hace crecer cada atributo se calcula con las recompensas del catálogo de misiones.
+  const ATTRIBUTE_NAMES: [keyof UserAttributes, string][] = [
+    ["resiliencia", "Resiliencia"], ["empatia", "Empatía"], ["mindfulness", "Mindfulness"],
+    ["autoconocimiento", "Autoconocimiento"], ["conexionSocial", "Conexión Social"], ["creatividad", "Creatividad"],
   ];
+  const attributes = ATTRIBUTE_NAMES.map(([key, name]) => {
+    const category: TaskCategoryName = attributeSourceCategory(key) ?? "autocuidado";
+    return { name, value: user.attributes[key], category, categoryLabel: CATEGORY_LABEL[category].toLowerCase() };
+  });
 
   const handleSaveName = () => {
     if (editName.trim()) {
@@ -96,7 +97,7 @@ function ProfilePage() {
   };
 
   const devicePrefs = useDevicePrefs();
-  const xpPercent = (user.xp / 600) * 100;
+  const xpPercent = (user.xp / XP_PER_LEVEL) * 100;
   const textSizes: Array<{ v: "normal" | "large" | "xl"; label: string }> = [
     { v: "normal", label: "A" },
     { v: "large", label: "A+" },
@@ -267,7 +268,7 @@ function ProfilePage() {
 
           <p className="text-xs text-muted-foreground">{archetypeName} • Nivel {user.level}</p>
           <div className="mt-2 flex items-center gap-1">
-            <span className="text-xs text-soul-gold">{user.xp} / 600 XP</span>
+            <span className="text-xs text-soul-gold">{user.xp} / {XP_PER_LEVEL} XP</span>
           </div>
           <div className="mt-1 h-2 w-40 overflow-hidden rounded-full bg-secondary">
             <div className="h-full rounded-full bg-soul-gold transition-all duration-1000" style={{ width: `${xpPercent}%` }} />
@@ -305,15 +306,10 @@ function ProfilePage() {
             <Users className="h-5 w-5 text-soul-teal" />
             <span className="text-xs text-muted-foreground">Comunidad</span>
           </Link>
-          {/* Lleva a la sección Logros de esta misma pantalla (antes enviaba a Misiones). */}
-          <button
-            type="button"
-            onClick={() => document.getElementById("logros")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]"
-          >
+          <Link to="/achievements" className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center transition-all hover:border-primary/50 hover:scale-105 active:scale-95 min-h-[44px]">
             <Trophy className="h-5 w-5 text-primary" />
             <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length} logros</span>
-          </button>
+          </Link>
         </div>
 
         {adminAccess?.isAdmin && (
@@ -426,66 +422,29 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Achievements */}
-        <div id="logros" className="mt-6 scroll-mt-4">
+        {/* Logros: resumen aquí y la lista completa en su propia pantalla (formato de la Tienda) */}
+        <Link
+          to="/achievements"
+          className="mt-6 block rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <h2 className="font-cinzel font-semibold text-foreground">Logros</h2>
-            <span className="text-xs text-muted-foreground">{unlocked.size}/{ACHIEVEMENTS.length}</span>
+            <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+              {unlocked.size}/{ACHIEVEMENTS.length} <ChevronRight className="h-4 w-4" aria-hidden />
+            </span>
           </div>
-          <div className="mt-2 flex gap-2">
-            {(["todos", "desbloqueados", "pendientes"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-full px-3 py-1 text-xs capitalize transition-all ${
-                  filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className="h-full rounded-full bg-soul-gold transition-all duration-700" style={{ width: `${(unlocked.size / ACHIEVEMENTS.length) * 100}%` }} />
           </div>
-          <div className="mt-3 space-y-2">
-            {visibleAchievements.map((a) => {
-              const isUnlocked = unlocked.has(a.code);
-              const prog = ctx ? achievementProgress(a, ctx) : { value: 0, target: a.target, ratio: 0 };
-              const reward = REWARD_BY_RARITY[a.rarity];
-              const cls = RARITY_CLASSES[a.rarity];
-              return (
-                <div
-                  key={a.code}
-                  className={`rounded-xl border bg-card p-3 transition-all ${
-                    isUnlocked ? `${cls.border} ${cls.glow}` : "border-border opacity-70"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isUnlocked ? "bg-soul-gold/10 text-soul-gold" : "bg-secondary text-muted-foreground"}`}><GameIcon name={a.icon} className="h-6 w-6" /></span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-medium text-foreground">{a.name}</p>
-                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs ${cls.badge}`}>
-                          {RARITY_LABEL[a.rarity]}
-                        </span>
-                      </div>
-                      <p className="truncate text-xs text-muted-foreground">{a.description}</p>
-                    </div>
-                    <span className="shrink-0 text-xs text-soul-gold">
-                      +{reward.xp} XP · +{reward.coins} <Coins className="inline h-3 w-3 align-[-1px]" />{reward.gems ? <> · +{reward.gems} <Gem className="inline h-3 w-3 align-[-1px]" /></> : null}
-                    </span>
-                  </div>
-                  {!isUnlocked && (
-                    <div className="mt-2">
-                      <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-                        <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${prog.ratio * 100}%` }} />
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">{prog.value}/{prog.target}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          {nextAchievement ? (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <GameIcon name={nextAchievement.icon} className="h-4 w-4 text-primary" />
+              Próximo: <span className="font-semibold text-foreground">{nextAchievement.name}</span> · {nextAchievement.description}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">¡Desbloqueaste todos los logros!</p>
+          )}
+        </Link>
 
       </div>
     </MobileLayout>

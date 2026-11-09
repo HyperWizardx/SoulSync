@@ -1,9 +1,10 @@
-// "Tu siguiente paso" en Inicio: la misión recomendada de la zona con menos progreso,
-// con acceso directo para empezarla, más los accesos a Tienda y Comunidad.
+// "Tu siguiente paso" en Inicio: la misión recomendada de la zona con menos progreso
+// (prefiriendo las afines al arquetipo), con acceso directo para empezarla, más Tienda y Comunidad.
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, ShoppingBag, Users } from "lucide-react";
-import { MISSIONS } from "@/domain/gamification/missionsData";
+import { MISSIONS, missionCategory } from "@/domain/gamification/missionsData";
+import { AFFINITY_XP_MULT, isAffine } from "@/domain/identity/archetype";
 import { nextStepMission } from "@/domain/world/missionZones";
 import { zoneInfo, type WorldZone } from "@/domain/world/world";
 
@@ -11,10 +12,13 @@ interface Props {
   zones: WorldZone[] | null;
   completedToday: ReadonlySet<string>;
   level: number;
+  archetype: number | null;
 }
 
-export function NextStepCard({ zones, completedToday, level }: Props) {
-  const next = zones ? nextStepMission(zones, MISSIONS, completedToday, level) : null;
+export function NextStepCard({ zones, completedToday, level, archetype }: Props) {
+  const affine = (m: (typeof MISSIONS)[number]) => isAffine(archetype, missionCategory(m));
+  const next = zones ? nextStepMission(zones, MISSIONS, completedToday, level, affine) : null;
+  const nextAffine = next ? affine(next.mission) : false;
   const zone = next ? zoneInfo(next.zone) : null;
   return (
     <div className="space-y-2">
@@ -28,7 +32,7 @@ export function NextStepCard({ zones, completedToday, level }: Props) {
           <span className="min-w-0 flex-1">
             <span className="block text-xs font-semibold uppercase tracking-wide text-primary">Tu siguiente paso</span>
             <span className="block truncate font-semibold text-foreground">{next.mission.title}</span>
-            <span className="block text-xs text-muted-foreground"><GameIcon name={zone.icon} className="mr-1 h-3.5 w-3.5 align-[-2px]" />{zone.name} · +{next.mission.reward.xp} XP</span>
+            <span className="block text-xs text-muted-foreground"><GameIcon name={zone.icon} className="mr-1 h-3.5 w-3.5 align-[-2px]" />{zone.name} · +{Math.round((next.mission.reward.xp ?? 0) * (nextAffine ? AFFINITY_XP_MULT : 1))} XP{nextAffine ? " · afín a tu arquetipo" : ""}</span>
           </span>
           <ChevronRight className="h-5 w-5 shrink-0 text-primary" aria-hidden />
         </Link>
