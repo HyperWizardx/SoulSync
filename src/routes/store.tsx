@@ -57,7 +57,7 @@ function StorePage() {
     return (
       <div
         key={item.key}
-        className={`rounded-xl border bg-card p-3 transition-all duration-300 hover:scale-[1.02] ${
+        className={`flex flex-col rounded-xl border bg-card p-3 transition-all duration-300 hover:scale-[1.02] ${
           item.rarity === "Legendario" ? "border-soul-gold/50" :
           item.rarity === "Épico" ? "border-primary/50" :
           item.rarity === "Raro" ? "border-soul-teal/50" : "border-border"
@@ -79,20 +79,21 @@ function StorePage() {
           </p>
         )}
 
-        <div className="mt-2 flex gap-2">
+        <div className="mt-auto flex gap-2 pt-2">
           <button
             onClick={() => handleBuy(item)}
+            aria-label={item.kind === "permanent" && qty > 0 ? `${item.name} ya es tuyo` : `Comprar ${item.name} por ${item.price} ${item.currency === "coins" ? "monedas" : "gemas"}`}
             disabled={item.kind === "permanent" && qty > 0}
-            className="flex-1 rounded-lg bg-primary/10 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95 disabled:opacity-40"
+            className="flex min-h-9 flex-1 items-center justify-center gap-1 rounded-lg bg-primary/10 text-xs font-semibold text-foreground transition-all hover:bg-primary/20 active:scale-95 disabled:opacity-40"
           >
             {item.kind === "permanent" && qty > 0
-              ? <><Check className="h-3.5 w-3.5" /> Obtenido</>
-              : <>{item.currency === "coins" ? <Coins className="h-3.5 w-3.5" /> : <Gem className="h-3.5 w-3.5" />} {item.price}</>}
+              ? <><Check className="h-3.5 w-3.5 text-soul-teal" aria-hidden /> Obtenido</>
+              : <>{item.currency === "coins" ? <Coins className="h-3.5 w-3.5 text-soul-gold" aria-hidden /> : <Gem className="h-3.5 w-3.5 text-primary" aria-hidden />}{item.price}</>}
           </button>
           {qty > 0 && item.kind === "consumable" && (
             <button
               onClick={() => handleUse(item)}
-              className="flex-1 rounded-lg bg-soul-teal/15 py-1.5 text-xs font-semibold text-soul-teal transition-all hover:bg-soul-teal/25 active:scale-95"
+              className="flex min-h-9 flex-1 items-center justify-center rounded-lg bg-soul-teal/15 text-xs font-semibold text-soul-teal transition-all hover:bg-soul-teal/25 active:scale-95"
             >
               Usar
             </button>
@@ -101,7 +102,7 @@ function StorePage() {
             <button
               onClick={() => handleEquip(item)}
               disabled={!inv?.equipped && equippedCount >= MAX_EQUIPPED}
-              className="flex-1 rounded-lg bg-soul-gold/15 py-1.5 text-xs font-semibold text-soul-gold transition-all hover:bg-soul-gold/25 active:scale-95 disabled:opacity-40"
+              className="flex min-h-9 flex-1 items-center justify-center rounded-lg bg-soul-gold/15 text-xs font-semibold text-soul-gold transition-all hover:bg-soul-gold/25 active:scale-95 disabled:opacity-40"
             >
               {inv?.equipped ? "Quitar" : "Equipar"}
             </button>
@@ -149,7 +150,7 @@ function StorePage() {
                 <li key={e.id} className="text-xs text-muted-foreground">
                   <GameIcon name={e.icon} className="mr-1 h-3.5 w-3.5 align-[-2px]" />{e.name} ·{" "}
                   {e.uses_left !== null
-                    ? `${e.uses_left} misión(es) restantes`
+                    ? `${e.uses_left} ${e.uses_left === 1 ? "misión restante" : "misiones restantes"}`
                     : e.expires_at
                       ? `hasta ${new Date(e.expires_at).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`
                       : "activo"}
