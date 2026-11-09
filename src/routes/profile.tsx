@@ -1,3 +1,5 @@
+import { Coins, Gem } from "lucide-react";
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { Settings, Trophy, ShoppingBag, Users, Edit2, X, Check, LogOut, Sun, Moon, Type, Target as TargetIcon, ShieldCheck } from "lucide-react";
@@ -55,15 +57,15 @@ function ProfilePage() {
   const ctx = (summary?.context as AchievementContext | undefined) ?? null;
 
   const trophies = [
-    { emoji: "⭐", label: "Nivel", value: summary?.trophies.level ?? user.level },
-    { emoji: "🔥", label: "Racha", value: summary?.trophies.streak ?? user.streak },
-    { emoji: "🎯", label: "Misiones", value: summary?.trophies.missions ?? user.missionHistory.length },
-    { emoji: "📱", label: "Misiones AR", value: summary?.trophies.missionsAR ?? 0 },
-    { emoji: "📔", label: "Check-ins", value: summary?.trophies.checkins ?? 0 },
-    { emoji: "🗺️", label: "Zonas", value: summary?.trophies.zonesUnlocked ?? 0 },
-    { emoji: "📆", label: "Días activos (30 d)", value: summary?.trophies.activeDays30 ?? 0 },
-    { emoji: "✨", label: "XP (30 d)", value: summary?.trophies.xp30 ?? 0 },
-    { emoji: "🏆", label: "Logros", value: unlocked.size },
+    { icon: "star-formation", label: "Nivel", value: summary?.trophies.level ?? user.level },
+    { icon: "flame", label: "Racha", value: summary?.trophies.streak ?? user.streak },
+    { icon: "archery-target", label: "Misiones", value: summary?.trophies.missions ?? user.missionHistory.length },
+    { icon: "smartphone", label: "Misiones AR", value: summary?.trophies.missionsAR ?? 0 },
+    { icon: "book-cover", label: "Check-ins", value: summary?.trophies.checkins ?? 0 },
+    { icon: "treasure-map", label: "Zonas", value: summary?.trophies.zonesUnlocked ?? 0 },
+    { icon: "calendar", label: "Días activos (30 d)", value: summary?.trophies.activeDays30 ?? 0 },
+    { icon: "sparkles", label: "XP (30 d)", value: summary?.trophies.xp30 ?? 0 },
+    { icon: "trophy-cup", label: "Logros", value: unlocked.size },
   ];
 
   const visibleAchievements = ACHIEVEMENTS.filter((a) =>
@@ -88,7 +90,7 @@ function ProfilePage() {
   const handleSaveName = () => {
     if (editName.trim()) {
       updateUser({ name: editName.trim() });
-      toast.success("Nombre actualizado", { icon: "✨" });
+      toast.success("Nombre actualizado");
     }
     setEditing(false);
   };
@@ -209,6 +211,13 @@ function ProfilePage() {
             >
               <LogOut className="h-4 w-4" /> Cerrar sesión
             </button>
+
+            {/* Créditos de los recursos gráficos (CC0 y CC BY 3.0) */}
+            <p className="border-t border-border pt-3 text-[11px] leading-relaxed text-muted-foreground">
+              Créditos: personajes y escenarios de <a className="underline" href="https://kaylousberg.com" target="_blank" rel="noreferrer">KayKit</a> (CC0).
+              Íconos de <a className="underline" href="https://game-icons.net" target="_blank" rel="noreferrer">game-icons.net</a> por Lorc, Delapouite y colaboradores (CC BY 3.0)
+              y <a className="underline" href="https://lucide.dev" target="_blank" rel="noreferrer">Lucide</a> (ISC).
+            </p>
           </div>
         )}
 
@@ -278,7 +287,7 @@ function ProfilePage() {
           <div className="mt-3 grid grid-cols-3 gap-2">
             {trophies.map((t) => (
               <div key={t.label} className="rounded-xl border border-border bg-card p-3 text-center">
-                <span className="text-lg">{t.emoji}</span>
+                <GameIcon name={t.icon} className="mx-auto h-5 w-5 text-soul-gold" />
                 <p className="text-base font-bold text-foreground">{t.value}</p>
                 <p className="text-[9px] leading-tight text-muted-foreground">{t.label}</p>
               </div>
@@ -331,7 +340,7 @@ function ProfilePage() {
                 const active = user.effects.some((e) => e.item_key === inv.item_key);
                 return (
                   <div key={inv.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                    <span className="text-2xl">{item?.emoji ?? "🎁"}</span>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-soul-gold/10 text-soul-gold"><GameIcon name={item?.icon ?? "present"} className="h-6 w-6" /></span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-foreground">{inv.item_name}</p>
                       <p className="truncate text-[10px] text-muted-foreground">{item?.desc ?? ""}</p>
@@ -343,7 +352,7 @@ function ProfilePage() {
                       <button
                         onClick={async () => {
                           const ok = await applyItem(item.key);
-                          if (ok) toast.success(`${item.name} activado`, { icon: item.emoji });
+                          if (ok) toast.success(`${item.name} activado`, { icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
                         }}
                         className="rounded-lg bg-soul-teal/15 px-2 py-1 text-[11px] font-semibold text-soul-teal active:scale-95"
                       >
@@ -354,7 +363,7 @@ function ProfilePage() {
                       <button
                         onClick={async () => {
                           const ok = await toggleEquip(item.key);
-                          if (ok) toast.success(`${item.name} actualizado`, { icon: item.emoji });
+                          if (ok) toast.success(`${item.name} actualizado`, { icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
                         }}
                         className="rounded-lg bg-soul-gold/15 px-2 py-1 text-[11px] font-semibold text-soul-gold active:scale-95"
                       >
@@ -445,7 +454,7 @@ function ProfilePage() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`text-2xl ${isUnlocked ? "" : "grayscale"}`}>{a.emoji}</span>
+                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isUnlocked ? "bg-soul-gold/10 text-soul-gold" : "bg-secondary text-muted-foreground"}`}><GameIcon name={a.icon} className="h-6 w-6" /></span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate text-sm font-medium text-foreground">{a.name}</p>
@@ -456,7 +465,7 @@ function ProfilePage() {
                       <p className="truncate text-[10px] text-muted-foreground">{a.description}</p>
                     </div>
                     <span className="shrink-0 text-[10px] text-soul-gold">
-                      +{reward.xp} XP · +{reward.coins}🪙{reward.gems ? ` · +${reward.gems}💎` : ""}
+                      +{reward.xp} XP · +{reward.coins} <Coins className="inline h-3 w-3 align-[-1px]" />{reward.gems ? <> · +{reward.gems} <Gem className="inline h-3 w-3 align-[-1px]" /></> : null}
                     </span>
                   </div>
                   {!isUnlocked && (

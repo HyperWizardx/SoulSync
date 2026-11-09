@@ -1,3 +1,4 @@
+import { CheckCircle2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Brain, ChevronRight, Heart, Shield, Zap } from "lucide-react";
 import type { CheckinRecord, WellbeingPrediction } from "@/domain/wellbeing/types";
@@ -123,7 +124,7 @@ export function IntegratedStatus({
               const stat = primaryStatOf(getMissionById(h.id));
               return (
                 <div key={`${h.id}-${i}`} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                  <span aria-hidden="true">✅</span>
+                  <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-soul-teal" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">{h.title}</p>
                     <p className="text-[10px] text-muted-foreground">{h.date}</p>

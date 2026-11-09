@@ -1,18 +1,19 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useMemo, useState } from "react";
 import { X, Check, RefreshCw } from "lucide-react";
 import { tap, success } from "@/shared/haptics";
 
 const CHALLENGES = [
-  { emoji: "😊", title: "Sonríe a un desconocido", desc: "Un pequeño gesto que ilumina dos días." },
-  { emoji: "📝", title: "Escribe 1 cosa nueva sobre ti", desc: "Algo que descubriste recientemente." },
-  { emoji: "📞", title: "Llama a alguien que extrañas", desc: "Aunque sea 2 minutos." },
-  { emoji: "🌿", title: "Toca una planta o árbol", desc: "Conéctate con la naturaleza." },
-  { emoji: "💧", title: "Bebe un vaso de agua ahora", desc: "Hidratarse es autocuidado." },
-  { emoji: "📚", title: "Lee algo inspirador 5 min", desc: "Una página, un poema, una idea." },
-  { emoji: "🙏", title: "Agradece en voz alta", desc: "Por algo simple del día." },
-  { emoji: "🚶", title: "Camina sin móvil 3 min", desc: "Solo tú y tus pasos." },
-  { emoji: "🎵", title: "Escucha 1 canción favorita", desc: "Solo presente, sin distracciones." },
-  { emoji: "💆", title: "Estírate 1 minuto", desc: "Tu cuerpo te lo agradecerá." },
+  { icon: "sunflower", title: "Sonríe a un desconocido", desc: "Un pequeño gesto que ilumina dos días." },
+  { icon: "scroll-quill", title: "Escribe 1 cosa nueva sobre ti", desc: "Algo que descubriste recientemente." },
+  { icon: "phone", title: "Llama a alguien que extrañas", desc: "Aunque sea 2 minutos." },
+  { icon: "oak-leaf", title: "Toca una planta o árbol", desc: "Conéctate con la naturaleza." },
+  { icon: "water-drop", title: "Bebe un vaso de agua ahora", desc: "Hidratarse es autocuidado." },
+  { icon: "bookshelf", title: "Lee algo inspirador 5 min", desc: "Una página, un poema, una idea." },
+  { icon: "prayer", title: "Agradece en voz alta", desc: "Por algo simple del día." },
+  { icon: "walk", title: "Camina sin móvil 3 min", desc: "Solo tú y tus pasos." },
+  { icon: "musical-notes", title: "Escucha 1 canción favorita", desc: "Solo presente, sin distracciones." },
+  { icon: "body-balance", title: "Estírate 1 minuto", desc: "Tu cuerpo te lo agradecerá." },
 ];
 
 interface Props {
@@ -43,7 +44,7 @@ export function DailyChallengeMission({ onComplete, onClose }: Props) {
       <p className="font-cinzel text-sm text-muted-foreground">Reto del día</p>
 
       <div className="mt-6 w-full max-w-sm rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-soul-teal/10 p-6 text-center animate-fade-in" key={idx}>
-        <span className="text-6xl">{challenge.emoji}</span>
+        <GameIcon name={challenge.icon} className="h-16 w-16 text-primary" />
         <h2 className="mt-4 font-cinzel text-xl font-bold text-foreground">{challenge.title}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{challenge.desc}</p>
       </div>

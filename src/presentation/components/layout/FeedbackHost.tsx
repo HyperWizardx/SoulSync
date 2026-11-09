@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { onFeedback } from "@/shared/feedback";
@@ -24,12 +25,13 @@ export function FeedbackHost() {
         hapticSuccess();
         playSound("coin");
         const reward = REWARD_BY_RARITY[ach.rarity];
-        const parts = [`+${reward.xp} XP`, `+${reward.coins} 🪙`];
-        if (reward.gems > 0) parts.push(`+${reward.gems} 💎`);
+        const parts = [`+${reward.xp} XP`, `+${reward.coins} monedas`];
+        if (reward.gems > 0) parts.push(`+${reward.gems} gemas`);
         if (ach.rarity === "epico" || ach.rarity === "legendario") {
           confetti({ particleCount: 90, spread: 75, origin: { y: 0.3 } });
         }
-        toast(`${ach.emoji}  ¡Logro ${RARITY_LABEL[ach.rarity]} desbloqueado!`, {
+        toast(`¡Logro ${RARITY_LABEL[ach.rarity]} desbloqueado!`, {
+          icon: <GameIcon name={ach.icon} className="h-5 w-5 text-soul-gold" />,
           description: `${ach.name} — ${ach.description}\n${parts.join(" · ")}`,
           duration: 5000,
         });

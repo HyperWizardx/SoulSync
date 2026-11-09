@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import { AlertTriangle, LifeBuoy, TrendingUp } from "lucide-react";
 import type { WellbeingPrediction } from "@/domain/wellbeing/types";
 import { DISCLAIMER, MODEL_NOTE, RECOMMENDATIONS, RISK_COPY, SAFETY_MESSAGE } from "@/domain/wellbeing/copy";
@@ -99,7 +100,7 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
           <ul className="mt-3 space-y-2">
             {topFactors.slice(0, 3).map((f) => (
               <li key={f.key} className="flex gap-2 text-xs text-muted-foreground">
-                <span aria-hidden="true">✨</span>
+                <Sparkles aria-hidden="true" className="h-4 w-4 text-primary" />
                 <span>{RECOMMENDATIONS[f.key]}</span>
               </li>
             ))}

@@ -33,7 +33,7 @@ export function useWellbeing() {
     }) => checkinFn({ data }),
     onSuccess: (data) => {
       setPayload(data);
-      toast.success("Check-in registrado", { icon: "📝" });
+      toast.success("Check-in registrado");
     },
     onError: () => toast.error("No se pudo guardar tu check-in"),
   });

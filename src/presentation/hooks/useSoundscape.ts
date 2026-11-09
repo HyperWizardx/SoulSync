@@ -6,14 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type SoundscapeKind = "off" | "white" | "pink" | "rain" | "waves" | "alpha" | "theta";
 
-export const SOUNDSCAPES: { key: SoundscapeKind; label: string; emoji: string }[] = [
-  { key: "off", label: "Silencio", emoji: "🔇" },
-  { key: "white", label: "Ruido blanco", emoji: "🌫️" },
-  { key: "pink", label: "Ruido rosa", emoji: "🌸" },
-  { key: "rain", label: "Lluvia", emoji: "🌧️" },
-  { key: "waves", label: "Olas", emoji: "🌊" },
-  { key: "alpha", label: "Binaural alfa 10 Hz", emoji: "🎧" },
-  { key: "theta", label: "Binaural theta 6 Hz", emoji: "🎧" },
+export const SOUNDSCAPES: { key: SoundscapeKind; label: string }[] = [
+  { key: "off", label: "Silencio" },
+  { key: "white", label: "Ruido blanco" },
+  { key: "pink", label: "Ruido rosa" },
+  { key: "rain", label: "Lluvia" },
+  { key: "waves", label: "Olas" },
+  { key: "alpha", label: "Binaural alfa 10 Hz" },
+  { key: "theta", label: "Binaural theta 6 Hz" },
 ];
 
 const STORAGE_KEY = "soulsync.soundscape";

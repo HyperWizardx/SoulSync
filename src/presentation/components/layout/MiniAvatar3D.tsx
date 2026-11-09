@@ -1,4 +1,5 @@
 // Visor compartido por Inicio, Perfil y misiones; el 3D se carga solo en el navegador.
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import type { ZoneKey } from "@/domain/world/dioramas";
@@ -44,7 +45,7 @@ export function MiniAvatar3D({
   const [slow, setSlow] = useState(false);
   useEffect(() => { setMounted(true); const t = setTimeout(() => setSlow(true), 12000); return () => clearTimeout(t); }, []);
   const style = getArchetypeStyle(archetype);
-  const fallback = <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground"><span className="text-3xl">{style.emoji}</span><span>Personaje no disponible</span></div>;
+  const fallback = <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground"><GameIcon name={style.icon} className="h-8 w-8" style={{ color: style.accent }} /><span>Personaje no disponible</span></div>;
 
   return (
     <div

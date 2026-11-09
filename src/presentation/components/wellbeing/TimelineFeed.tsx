@@ -1,12 +1,13 @@
+import { CheckCircle2, Globe, NotebookPen, SkipForward, TrendingUp, Trophy, type LucideIcon } from "lucide-react";
 import type { TimelineEntry } from "@/service/server-functions/wellbeing.functions";
 
-const KIND_META: Record<TimelineEntry["kind"], { icon: string; tone: string; label: string }> = {
-  checkin: { icon: "📝", tone: "border-soul-teal/40", label: "Check-in" },
-  task_completed: { icon: "✅", tone: "border-primary/40", label: "Tarea completada" },
-  task_skipped: { icon: "⏭️", tone: "border-border", label: "Tarea omitida" },
-  prediction_change: { icon: "📈", tone: "border-soul-gold/50", label: "Cambio de señal" },
-  milestone: { icon: "🏆", tone: "border-soul-gold/50", label: "Hito" },
-  world_change: { icon: "🌍", tone: "border-primary/30", label: "Mundo" },
+const KIND_META: Record<TimelineEntry["kind"], { Icon: LucideIcon; tone: string; label: string }> = {
+  checkin: { Icon: NotebookPen, tone: "border-soul-teal/40", label: "Check-in" },
+  task_completed: { Icon: CheckCircle2, tone: "border-primary/40", label: "Tarea completada" },
+  task_skipped: { Icon: SkipForward, tone: "border-border", label: "Tarea omitida" },
+  prediction_change: { Icon: TrendingUp, tone: "border-soul-gold/50", label: "Cambio de señal" },
+  milestone: { Icon: Trophy, tone: "border-soul-gold/50", label: "Hito" },
+  world_change: { Icon: Globe, tone: "border-primary/30", label: "Mundo" },
 };
 
 function formatWhen(iso: string) {
@@ -47,7 +48,7 @@ export function TimelineFeed({
         return (
           <li key={e.id} className="flex gap-3">
             <div className="flex flex-col items-center">
-              <span className="text-xl" aria-hidden="true">{meta.icon}</span>
+              <meta.Icon className="h-5 w-5 text-primary" aria-hidden="true" />
               {i < items.length - 1 && <div className="mt-1 h-full min-h-6 w-0.5 bg-border" />}
             </div>
             <div className={`flex-1 rounded-xl border bg-card p-3 ${meta.tone}`}>

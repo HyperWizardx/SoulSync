@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { SoundscapeControl } from "@/presentation/components/missions/SoundscapeControl";
 import { useEffect, useRef, useState } from "react";
 import { X, Pause, Play } from "lucide-react";
@@ -75,7 +76,7 @@ export function MeditationMission({ durationSec = 120, onComplete, onClose }: Pr
       </div>
 
       <p className="mt-8 max-w-xs text-center text-base text-foreground font-medium animate-fade-in" key={step}>
-        🧘 {STEPS[step]}
+        <GameIcon name="meditation" className="mr-1 h-5 w-5 align-[-3px] text-primary" />{STEPS[step]}
       </p>
 
       <div className="mt-6 h-1.5 w-64 overflow-hidden rounded-full bg-secondary">

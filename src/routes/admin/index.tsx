@@ -178,7 +178,7 @@ function AdminStudentsPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.confidence ?? "—"}{s.safetyFlags ? " · ⚠️" : ""}</td>
+                  <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.confidence ?? "—"}{s.safetyFlags ? <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-destructive" aria-label="Revisión prioritaria" /> : null}</td>
                   <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.trend ?? "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.lastFollowUp ? new Date(s.lastFollowUp).toLocaleDateString("es-CO") : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.consent === "vigente" ? `${Math.round(s.coverage * 100)}%` : "—"}</td>

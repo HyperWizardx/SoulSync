@@ -1,10 +1,11 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { SoundscapeControl } from "@/presentation/components/missions/SoundscapeControl";
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, X } from "lucide-react";
 
 interface Props {
   title: string;
-  emoji: string;
+  icon: string;
   /** Segundos. Para el prototipo usamos valores cortos. */
   durationSec: number;
   description: string;
@@ -12,7 +13,7 @@ interface Props {
   onClose: () => void;
 }
 
-export function TimerMission({ title, emoji, durationSec, description, onComplete, onClose }: Props) {
+export function TimerMission({ title, icon, durationSec, description, onComplete, onClose }: Props) {
   const [remaining, setRemaining] = useState(durationSec);
   const [running, setRunning] = useState(true);
   const [done, setDone] = useState(false);
@@ -53,7 +54,7 @@ export function TimerMission({ title, emoji, durationSec, description, onComplet
         <X className="h-5 w-5" />
       </button>
 
-      <span className="text-6xl">{emoji}</span>
+      <GameIcon name={icon} className="h-16 w-16 text-primary" />
       <h3 className="mt-3 font-cinzel text-xl font-bold text-foreground">{title}</h3>
       <p className="mt-1 max-w-xs text-center text-xs text-muted-foreground">{description}</p>
 

@@ -21,7 +21,7 @@ export function SoundscapeControl({ stopped = false }: { stopped?: boolean }) {
           className="h-9 flex-1 rounded-lg border border-border bg-secondary/40 px-2 text-xs text-foreground outline-none focus:border-primary"
         >
           {SOUNDSCAPES.map((o) => (
-            <option key={o.key} value={o.key}>{o.emoji} {o.label}</option>
+            <option key={o.key} value={o.key}>{o.label}</option>
           ))}
         </select>
       </div>

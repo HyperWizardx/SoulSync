@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { StarField } from "@/presentation/components/layout/StarField";
 import { Shield, Brain, Heart } from "lucide-react";
@@ -62,7 +63,7 @@ function SplashPage() {
             onClick={() => navigate({ to: "/auth", search: { mode: "signup" } })}
             className="relative z-10 mt-10 w-full max-w-[280px] rounded-xl bg-primary px-6 py-3.5 text-center font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95"
           >
-            ⚔️ Comenzar Aventura
+            <GameIcon name="crossed-swords" className="h-5 w-5" /> Comenzar Aventura
           </button>
           <button
             onClick={() => navigate({ to: "/auth", search: { mode: "login" } })}

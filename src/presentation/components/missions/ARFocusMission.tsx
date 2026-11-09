@@ -58,7 +58,7 @@ export function ARFocusMission({ onComplete, onClose, zone }: Props) {
                   : "bg-destructive/30 text-destructive-foreground"
               }`}
             >
-              {focused ? "🟢 Centrado — pulsa si lo pierdes" : "🔴 Reanudar enfoque"}
+              <span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${focused ? "bg-soul-teal" : "bg-destructive"}`} />{focused ? "Centrado: pulsa si lo pierdes" : "Reanudar enfoque"}
             </button>
           </div>
         </div>

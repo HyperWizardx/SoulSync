@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useEffect, useRef, useState } from "react";
 import { X, Camera as CameraIcon } from "lucide-react";
 import { ARCompanion } from "@/presentation/components/missions/ARCompanion";
@@ -143,7 +144,7 @@ export function ZoneChip({ zone }: { zone: ZoneKey }) {
   const info = zoneInfo(zone);
   return (
     <span className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur" style={{ backgroundColor: withAlpha(ZONE_ACCENT[zone], 0.55) }}>
-      {info.emoji} {info.name}
+      <GameIcon name={info.icon} className="h-3.5 w-3.5" /> {info.name}
     </span>
   );
 }

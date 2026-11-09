@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
@@ -59,7 +60,7 @@ function DashboardPage() {
           <div>
             <p className="text-sm text-muted-foreground">Bienvenido de vuelta</p>
             <h1 className="text-xl font-cinzel font-bold text-foreground">
-              {user.name} {archStyle.emoji}
+              {user.name} <GameIcon name={archStyle.icon} className="h-5 w-5 align-[-3px]" style={{ color: archStyle.accent }} />
             </h1>
           </div>
           <ArchetypeCrest archetype={user.archetype} level={user.level} />
@@ -90,7 +91,7 @@ function DashboardPage() {
               </p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
                 {activeZone
-                  ? `${activeZone.emoji} ${activeZone.name} · ${activeZone.progress}%`
+                  ? `${activeZone.name} · ${activeZone.progress}%`
                   : "Completa una misión para activar tus zonas"}
               </p>
             </div>

@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
 import { useState } from "react";
@@ -148,7 +149,7 @@ function StudentDetailPage() {
                 {data.prediction && (
                   <div className="mb-3 space-y-1 rounded-xl bg-secondary/50 p-3 text-xs">
                     <p className="text-foreground">Confianza: <span className="capitalize">{data.prediction.confidence ?? "—"}</span></p>
-                    {data.prediction.safetyFlags.length > 0 && <p className="text-destructive">⚠️ Revisión prioritaria: {data.prediction.safetyFlags.join(" · ")}</p>}
+                    {data.prediction.safetyFlags.length > 0 && <p className="flex items-center gap-1 text-destructive"><AlertTriangle className="h-4 w-4" /> Revisión prioritaria: {data.prediction.safetyFlags.join(" · ")}</p>}
                     {data.prediction.protective.length > 0 && <p className="text-soul-teal">Protectores: {data.prediction.protective.join(" · ")}</p>}
                     {data.prediction.adjustments && (
                       <p className="text-muted-foreground">

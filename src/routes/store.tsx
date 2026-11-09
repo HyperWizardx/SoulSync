@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { Coins, Gem, Sparkles } from "lucide-react";
@@ -27,22 +29,22 @@ function StorePage() {
 
   const activeEffects = user.effects.map((e) => {
     const item = getItem(e.item_key);
-    return { ...e, name: item?.name ?? e.item_key, emoji: item?.emoji ?? "✨" };
+    return { ...e, name: item?.name ?? e.item_key, icon: item?.icon ?? "sparkles" };
   });
 
   const handleBuy = async (item: StoreItem) => {
     const ok = await buyItem(item.name, item.price, item.currency);
-    if (ok) toast.success(`¡Compraste ${item.name}!`, { icon: item.emoji });
+    if (ok) toast.success(`¡Compraste ${item.name}!`, { icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
   };
 
   const handleUse = async (item: StoreItem) => {
     const ok = await applyItem(item.key);
-    if (ok) toast.success(`${item.name} activado`, { description: item.detail, icon: item.emoji });
+    if (ok) toast.success(`${item.name} activado`, { description: item.detail, icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
   };
 
   const handleEquip = async (item: StoreItem) => {
     const ok = await toggleEquip(item.key);
-    if (ok) toast.success(`${item.name} actualizado`, { icon: item.emoji });
+    if (ok) toast.success(`${item.name} actualizado`, { icon: <GameIcon name={item.icon} className="h-5 w-5 text-soul-gold" /> });
   };
 
   const consumables = STORE_ITEMS.filter((i) => i.kind === "consumable");
@@ -61,7 +63,7 @@ function StorePage() {
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className="text-3xl">{item.emoji}</span>
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-soul-gold/10 text-soul-gold"><GameIcon name={item.icon} className="h-7 w-7" /></span>
           <span className={`text-[9px] rounded-full px-1.5 py-0.5 font-medium ${RARITY_CLASS[item.rarity]}`}>
             {item.rarity}
           </span>
@@ -83,8 +85,8 @@ function StorePage() {
             className="flex-1 rounded-lg bg-primary/10 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95 disabled:opacity-40"
           >
             {item.kind === "permanent" && qty > 0
-              ? "✓ Obtenido"
-              : `${item.currency === "coins" ? "🪙" : "💎"} ${item.price}`}
+              ? <><Check className="h-3.5 w-3.5" /> Obtenido</>
+              : <>{item.currency === "coins" ? <Coins className="h-3.5 w-3.5" /> : <Gem className="h-3.5 w-3.5" />} {item.price}</>}
           </button>
           {qty > 0 && item.kind === "consumable" && (
             <button
@@ -141,7 +143,7 @@ function StorePage() {
             <ul className="mt-2 space-y-1">
               {activeEffects.map((e) => (
                 <li key={e.id} className="text-[11px] text-muted-foreground">
-                  {e.emoji} {e.name} ·{" "}
+                  <GameIcon name={e.icon} className="mr-1 h-3.5 w-3.5 align-[-2px]" />{e.name} ·{" "}
                   {e.uses_left !== null
                     ? `${e.uses_left} misión(es) restantes`
                     : e.expires_at

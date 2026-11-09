@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
@@ -154,10 +155,10 @@ function WorldPage() {
                   >
                     {/* Recuadro que sigue el lienzo compartido de dioramas (WorldThumbnails) */}
                     <div ref={thumbRefs[z.key]} className="relative -mx-3 -mt-3 flex h-28 items-center justify-center" data-zone-thumb={z.key}>
-                      {!thumbsReady && <span className="text-3xl opacity-60" aria-hidden>{z.emoji}</span>}
+                      {!thumbsReady && <GameIcon name={z.icon} className="h-8 w-8 text-muted-foreground opacity-60" />}
                       {!z.unlocked && <span className="absolute flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow"><Lock className="h-4 w-4" aria-hidden /></span>}
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-foreground">{z.emoji} {z.name}</p>
+                    <p className="mt-2 flex items-center justify-center gap-1.5 text-sm font-semibold text-foreground"><GameIcon name={z.icon} className="h-4 w-4 text-primary" /> {z.name}</p>
                     {z.unlocked ? (
                       <>
                         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -214,7 +215,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
           <>
             <SheetHeader className="text-left">
               <SheetTitle className="flex items-center gap-2 font-cinzel">
-                <span className="text-3xl">{zone.unlocked ? zone.emoji : "🔒"}</span> {zone.name}
+                {zone.unlocked ? <GameIcon name={zone.icon} className="h-7 w-7 text-primary" /> : <Lock className="h-6 w-6 text-muted-foreground" />} {zone.name}
               </SheetTitle>
               <SheetDescription>{zone.description}</SheetDescription>
             </SheetHeader>
@@ -222,7 +223,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
             {/* Diorama de la zona: se puede girar y muestra a tu personaje si está desbloqueada */}
             <WorldDiorama
               zone={zone.key}
-              emoji={zone.emoji}
+              icon={zone.icon}
               progress={zone.progress}
               unlocked={zone.unlocked}
               season={season}
@@ -254,7 +255,7 @@ function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZon
                       const locked = !!m.requiredLevel && level < m.requiredLevel;
                       return (
                         <div key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                          <span className="text-2xl">{m.emoji}</span>
+                          <GameIcon name={m.icon} className="h-7 w-7 shrink-0 text-primary" />
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-foreground">{m.title}</p>
                             <p className="text-xs text-muted-foreground">{m.desc}</p>

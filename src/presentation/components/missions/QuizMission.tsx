@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useState } from "react";
 import { X, Check } from "lucide-react";
 
@@ -57,7 +58,7 @@ export function QuizMission({ onComplete, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/95 backdrop-blur-sm animate-fade-in sm:items-center">
       <div className="w-full max-w-md rounded-t-2xl border border-border bg-card p-5 sm:rounded-2xl">
         <div className="flex items-center justify-between">
-          <h3 className="font-cinzel text-lg font-bold text-foreground">🧠 Quiz de sabiduría</h3>
+          <h3 className="flex items-center gap-2 font-cinzel text-lg font-bold text-foreground"><GameIcon name="brain" className="h-5 w-5 text-primary" /> Quiz de sabiduría</h3>
           <button
             onClick={onClose}
             className="rounded-full p-1 text-muted-foreground hover:text-foreground active:scale-90 transition-all"

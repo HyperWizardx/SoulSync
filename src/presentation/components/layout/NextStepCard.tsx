@@ -1,5 +1,6 @@
 // "Tu siguiente paso" en Inicio: la misión recomendada de la zona con menos progreso,
 // con acceso directo para empezarla, más los accesos a Tienda y Comunidad.
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, ShoppingBag, Users } from "lucide-react";
 import { MISSIONS } from "@/domain/gamification/missionsData";
@@ -23,11 +24,11 @@ export function NextStepCard({ zones, completedToday, level }: Props) {
           search={{ mission: next.mission.id, from: next.zone }}
           className="flex items-center gap-3 rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 transition-transform active:scale-[0.98]"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-2xl" aria-hidden>{next.mission.emoji}</span>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary" aria-hidden><GameIcon name={next.mission.icon} className="h-6 w-6" /></span>
           <span className="min-w-0 flex-1">
             <span className="block text-xs font-semibold uppercase tracking-wide text-primary">Tu siguiente paso</span>
             <span className="block truncate font-semibold text-foreground">{next.mission.title}</span>
-            <span className="block text-xs text-muted-foreground">{zone.emoji} {zone.name} · +{next.mission.reward.xp} XP</span>
+            <span className="block text-xs text-muted-foreground"><GameIcon name={zone.icon} className="mr-1 h-3.5 w-3.5 align-[-2px]" />{zone.name} · +{next.mission.reward.xp} XP</span>
           </span>
           <ChevronRight className="h-5 w-5 shrink-0 text-primary" aria-hidden />
         </Link>

@@ -38,7 +38,7 @@ export interface StoreItem {
   detail: string;
   price: number;
   currency: "coins" | "gems";
-  emoji: string;
+  icon: string; // ícono de game-icons.net (ver GameIcon)
   rarity: "Común" | "Raro" | "Épico" | "Legendario";
   kind: ItemKind;
   effects: ItemEffect[];
@@ -52,7 +52,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Durante las próximas 2 misiones ganas mindfulness extra y el estrés pesa menos en tu mundo.",
     price: 50,
     currency: "coins",
-    emoji: "🧪",
+    icon: "round-bottom-flask",
     rarity: "Común",
     kind: "consumable",
     effects: [
@@ -67,7 +67,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Multiplica por 1.5 la experiencia de tus próximas 3 misiones.",
     price: 80,
     currency: "coins",
-    emoji: "⚡",
+    icon: "lightning-helix",
     rarity: "Raro",
     kind: "consumable",
     effects: [{ effect: "xp_multiplier", magnitude: 1.5, uses: 3 }],
@@ -79,7 +79,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Si un día no completas misiones, se consume solo y mantiene tu racha viva.",
     price: 120,
     currency: "coins",
-    emoji: "🛡️",
+    icon: "shield",
     rarity: "Raro",
     kind: "consumable",
     effects: [{ effect: "streak_shield", magnitude: 1, uses: 1, hours: 72 }],
@@ -91,7 +91,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Duplica las monedas que ganas en tus próximas 2 misiones.",
     price: 70,
     currency: "coins",
-    emoji: "🍵",
+    icon: "teapot",
     rarity: "Común",
     kind: "consumable",
     effects: [{ effect: "coin_multiplier", magnitude: 2, uses: 2 }],
@@ -103,7 +103,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Planta vitalidad inmediata en tu mundo durante 24 horas.",
     price: 40,
     currency: "coins",
-    emoji: "🌱",
+    icon: "sprout",
     rarity: "Común",
     kind: "consumable",
     effects: [{ effect: "world_vitality", magnitude: 10, hours: 24 }],
@@ -115,7 +115,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Despeja la niebla y la tormenta subiendo la armonía de tu mundo por un día.",
     price: 3,
     currency: "gems",
-    emoji: "🕯️",
+    icon: "candle-light",
     rarity: "Épico",
     kind: "consumable",
     effects: [{ effect: "world_harmony", magnitude: 10, hours: 24 }],
@@ -127,7 +127,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Cada una de tus próximas 5 misiones te da mindfulness extra.",
     price: 30,
     currency: "coins",
-    emoji: "📕",
+    icon: "book-cover",
     rarity: "Común",
     kind: "consumable",
     effects: [{ effect: "attribute_bonus", magnitude: 2, uses: 5, attribute: "mindfulness" }],
@@ -139,7 +139,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Objeto permanente. Mientras esté equipada suma empatía en cada misión social.",
     price: 15,
     currency: "gems",
-    emoji: "👑",
+    icon: "crown",
     rarity: "Legendario",
     kind: "permanent",
     effects: [{ effect: "attribute_bonus", magnitude: 3, attribute: "empatia" }],
@@ -151,7 +151,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Objeto permanente. Cambia el aura de tu avatar y aumenta toda la XP que ganas.",
     price: 10,
     currency: "gems",
-    emoji: "✨",
+    icon: "sparkles",
     rarity: "Legendario",
     kind: "permanent",
     effects: [{ effect: "xp_multiplier", magnitude: 1.15 }],
@@ -163,7 +163,7 @@ export const STORE_ITEMS: StoreItem[] = [
     detail: "Objeto permanente. Suma autoconocimiento en cada misión mientras lo lleves.",
     price: 5,
     currency: "gems",
-    emoji: "🔮",
+    icon: "crystal-ball",
     rarity: "Épico",
     kind: "permanent",
     effects: [{ effect: "attribute_bonus", magnitude: 3, attribute: "autoconocimiento" }],

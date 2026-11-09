@@ -1,3 +1,4 @@
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
@@ -9,22 +10,22 @@ const STEPS = [
   {
     title: "Tu Dashboard",
     body: "Aquí ves tus stats emocionales en tiempo real: bienestar, resiliencia, energía y claridad.",
-    emoji: "📊",
+    icon: "histogram",
   },
   {
     title: "Misiones diarias",
     body: "Completa misiones (respiración, diario, AR…) para ganar XP, monedas y subir tus atributos.",
-    emoji: "⚔️",
+    icon: "crossed-swords",
   },
   {
     title: "Realidad aumentada",
     body: "Las misiones AR usan la cámara de tu móvil y tu avatar 3D. Vívelas en tu espacio real.",
-    emoji: "📱",
+    icon: "smartphone",
   },
   {
     title: "Tu progreso, persistente",
     body: "Todo se guarda en la nube. Vuelve mañana para mantener tu racha y desbloquear logros.",
-    emoji: "🔥",
+    icon: "flame",
   },
 ] as const;
 
@@ -81,7 +82,7 @@ export function OnboardingTour() {
           </div>
         ) : (
           <div className="text-center">
-            <span className="text-5xl">{tourStep!.emoji}</span>
+            <GameIcon name={tourStep!.icon} className="h-12 w-12 text-primary" />
             <h2 className="mt-4 font-cinzel text-xl font-bold text-foreground">
               {tourStep!.title}
             </h2>

@@ -4,11 +4,11 @@
 // aquí se define lo que lo acompaña en la creación del héroe, Inicio, Perfil y misiones AR:
 //  - color del aura/glow
 //  - exposición (luz) del modelo
-//  - emoji, nombre legible, rasgo de bienestar y equipo visible
+//  - ícono, nombre legible, rasgo de bienestar y equipo visible
 
 export interface ArchetypeStyle {
   name: string;
-  emoji: string;
+  icon: string;        // ícono de game-icons.net (ver GameIcon)
   glow: string;        // hsl(...) para MiniAvatar3D
   exposure: number;    // brillo del modelo
   accent: string;      // color tailwind-friendly para anillos/bordes
@@ -18,18 +18,18 @@ export interface ArchetypeStyle {
 
 const STYLES: ArchetypeStyle[] = [
   // 0 - Caballero: rojo/ámbar intenso
-  { name: "Caballero",  emoji: "⚔️", glow: "hsl(15 85% 55%)",  exposure: 1.25, accent: "hsl(15 85% 55%)",  trait: "Fuerza y resiliencia",     gear: "Espada, escudo y armadura" },
+  { name: "Caballero",  icon: "broadsword", glow: "hsl(15 85% 55%)",  exposure: 1.25, accent: "hsl(15 85% 55%)",  trait: "Fuerza y resiliencia",     gear: "Espada, escudo y armadura" },
   // 1 - Bárbaro: ámbar fogoso
-  { name: "Bárbaro",    emoji: "🪓", glow: "hsl(38 92% 55%)",  exposure: 1.15, accent: "hsl(38 92% 55%)",  trait: "Coraje y energía",         gear: "Hacha a dos manos y piel de oso" },
+  { name: "Bárbaro",    icon: "battle-axe", glow: "hsl(38 92% 55%)",  exposure: 1.15, accent: "hsl(38 92% 55%)",  trait: "Coraje y energía",         gear: "Hacha a dos manos y piel de oso" },
   // 2 - Pícaro: turquesa/cyan
-  { name: "Pícaro",     emoji: "🗡️", glow: "hsl(190 80% 55%)", exposure: 1.20, accent: "hsl(190 80% 55%)", trait: "Curiosidad y aventura",    gear: "Capucha, ballesta y daga" },
+  { name: "Pícaro",     icon: "crossbow", glow: "hsl(190 80% 55%)", exposure: 1.20, accent: "hsl(190 80% 55%)", trait: "Curiosidad y aventura",    gear: "Capucha, ballesta y daga" },
   // 3 - Mago: violeta místico
-  { name: "Mago",       emoji: "📖", glow: "hsl(265 75% 65%)", exposure: 1.10, accent: "hsl(265 75% 65%)", trait: "Reflexión y conocimiento", gear: "Sombrero y libro de hechizos" },
+  { name: "Mago",       icon: "pointy-hat", glow: "hsl(265 75% 65%)", exposure: 1.10, accent: "hsl(265 75% 65%)", trait: "Reflexión y conocimiento", gear: "Sombrero y libro de hechizos" },
 ];
 
 const DEFAULT: ArchetypeStyle = {
   name: "Novato",
-  emoji: "✨",
+  icon: "sparkles",
   glow: "hsl(var(--primary))",
   exposure: 1.1,
   accent: "hsl(var(--primary))",

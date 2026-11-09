@@ -55,7 +55,7 @@ export function GratitudeMission({ onComplete, onClose }: Props) {
           onClick={() => onComplete(items)}
           className="mt-5 w-full rounded-xl bg-soul-gold py-3 font-semibold text-background transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-soul-gold/90"
         >
-          Sellar gratitud ✨
+          Sellar gratitud <Sparkles className="inline h-4 w-4" />
         </button>
       </div>
     </div>

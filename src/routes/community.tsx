@@ -1,3 +1,5 @@
+import { Moon } from "lucide-react";
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { MapPin, MessageCircle } from "lucide-react";
@@ -16,10 +18,10 @@ export const Route = createFileRoute("/community")({
 });
 
 const volunteers = [
-  { name: "Ana M.", role: "Psicóloga", dist: "0.5 km", emoji: "👩‍⚕️", online: true },
-  { name: "Carlos R.", role: "Coach", dist: "1.2 km", emoji: "🧑‍🏫", online: true },
-  { name: "Marta L.", role: "Voluntaria", dist: "2.0 km", emoji: "🤝", online: false },
-  { name: "Pedro G.", role: "Mentor", dist: "3.5 km", emoji: "🧙", online: true },
+  { name: "Ana M.", role: "Psicóloga", dist: "0.5 km", icon: "doctor-face", online: true },
+  { name: "Carlos R.", role: "Coach", dist: "1.2 km", icon: "teacher", online: true },
+  { name: "Marta L.", role: "Voluntaria", dist: "2.0 km", icon: "shaking-hands", online: false },
+  { name: "Pedro G.", role: "Mentor", dist: "3.5 km", icon: "wizard-face", online: true },
 ];
 
 function CommunityPage() {
@@ -31,7 +33,7 @@ function CommunityPage() {
 
         {/* Map placeholder */}
         <button
-          onClick={() => toast("Mapa interactivo próximamente", { icon: "🗺️" })}
+          onClick={() => toast("Mapa interactivo próximamente", { icon: <MapPin className="h-4 w-4" /> })}
           className="mt-6 flex h-48 w-full items-center justify-center rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-card to-soul-teal/5 transition-all hover:border-primary/50 hover:shadow-lg active:scale-[0.98]"
         >
           <div className="flex flex-col items-center text-muted-foreground">
@@ -48,7 +50,7 @@ function CommunityPage() {
             {volunteers.map((v) => (
               <div key={v.name} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:border-primary/30 hover:shadow-sm">
                 <div className="relative">
-                  <span className="text-3xl">{v.emoji}</span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><GameIcon name={v.icon} className="h-7 w-7" /></span>
                   {v.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-soul-teal animate-pulse" />}
                 </div>
                 <div className="flex-1">
@@ -58,9 +60,9 @@ function CommunityPage() {
                 <button
                   onClick={() => {
                     if (!v.online) {
-                      toast.error(`${v.name} no está disponible`, { icon: "😴" });
+                      toast.error(`${v.name} no está disponible`, { icon: <Moon className="h-4 w-4" /> });
                     } else {
-                      toast.success(`Conectando con ${v.name}...`, { icon: "💬" });
+                      toast.success(`Conectando con ${v.name}...`, { icon: <MessageCircle className="h-4 w-4" /> });
                     }
                   }}
                   className={`rounded-lg p-2 transition-all active:scale-90 ${

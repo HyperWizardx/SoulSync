@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import { SoundscapeControl } from "@/presentation/components/missions/SoundscapeControl";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
@@ -78,7 +79,7 @@ export function BreathingMission({ cycles = 4, onComplete, onClose }: Props) {
           }}
         />
         <span className="relative text-2xl font-cinzel font-bold text-foreground">
-          {done ? "✨" : phase.name}
+          {done ? <Sparkles className="h-8 w-8" /> : phase.name}
         </span>
       </div>
 

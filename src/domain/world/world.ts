@@ -21,7 +21,7 @@ export interface WorldInput {
 export interface WorldZone {
   key: ZoneKey;
   name: string;
-  emoji: string;
+  icon: string; // ícono de game-icons.net (ver GameIcon)
   /** Nivel requerido para desbloquear */
   requiredLevel: number;
   unlocked: boolean;
@@ -46,10 +46,10 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 const pct = (n: number) => Math.round(clamp01(n) * 100);
 
 const ZONE_CATALOG = [
-  { key: "valle", name: "Valle de la Calma", emoji: "🏔️", requiredLevel: 1, description: "Se ilumina con tus tareas completadas hoy.", categories: ["autocuidado"] as const },
-  { key: "bosque", name: "Bosque Interior", emoji: "🌲", requiredLevel: 2, description: "Crece con tus check-ins registrados.", categories: ["reflexion", "cognitivo"] as const },
-  { key: "reino", name: "Reino de las Emociones", emoji: "🏰", requiredLevel: 5, description: "Crece con tu tendencia emocional reciente.", categories: ["social", "reflexion"] as const },
-  { key: "montana", name: "Montaña de Fuerza", emoji: "⛰️", requiredLevel: 10, description: "Se levanta con tus rachas sostenidas.", categories: ["movimiento", "ar"] as const },
+  { key: "valle", name: "Valle de la Calma", icon: "windmill", requiredLevel: 1, description: "Se ilumina con tus tareas completadas hoy.", categories: ["autocuidado"] as const },
+  { key: "bosque", name: "Bosque Interior", icon: "pine-tree", requiredLevel: 2, description: "Crece con tus check-ins registrados.", categories: ["reflexion", "cognitivo"] as const },
+  { key: "reino", name: "Reino de las Emociones", icon: "castle", requiredLevel: 5, description: "Crece con tu tendencia emocional reciente.", categories: ["social", "reflexion"] as const },
+  { key: "montana", name: "Montaña de Fuerza", icon: "mountains", requiredLevel: 10, description: "Se levanta con tus rachas sostenidas.", categories: ["movimiento", "ar"] as const },
 ] as const;
 
 /**
@@ -105,8 +105,8 @@ export const SEASON_COPY: Record<WorldSeason, { label: string; description: stri
   niebla: { label: "Estación de niebla", description: "Faltan registros para leer el estado de tu mundo con claridad." },
 };
 
-// Nombre y emoji de una zona (para rotular las misiones AR ambientadas en ella).
-export function zoneInfo(key: ZoneKey): { name: string; emoji: string } {
+// Nombre e ícono de una zona (para rotular las misiones AR ambientadas en ella).
+export function zoneInfo(key: ZoneKey): { name: string; icon: string } {
   const zone = ZONE_CATALOG.find((z) => z.key === key);
-  return { name: zone?.name ?? key, emoji: zone?.emoji ?? "🗺️" };
+  return { name: zone?.name ?? key, icon: zone?.icon ?? "treasure-map" };
 }

@@ -1,4 +1,5 @@
 // Creación del héroe en dos pasos: elegir uno de los 4 arquetipos (con su personaje 3D) y darle nombre.
+import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { StarField } from "@/presentation/components/layout/StarField";
@@ -34,13 +35,13 @@ function CreateAvatarPage() {
   const handleFinish = async () => {
     if (saving || archetype === null) return;
     if (!name.trim()) {
-      toast.warning("Escribe tu nombre de héroe", { icon: "📝" });
+      toast.warning("Escribe tu nombre de héroe");
       return;
     }
     setSaving(true);
     try {
       await updateUser({ name: name.trim(), archetype });
-      toast.success(`¡Bienvenido, ${name.trim()}! Tu aventura como ${style.name} comienza.`, { icon: style.emoji, duration: 3000 });
+      toast.success(`¡Bienvenido, ${name.trim()}! Tu aventura como ${style.name} comienza.`, { icon: <GameIcon name={style.icon} className="h-5 w-5" style={{ color: style.accent }} />, duration: 3000 });
       navigate({ to: "/dashboard" });
     } catch {
       // El error ya se muestra vía el toast.error del propio hook
@@ -78,13 +79,13 @@ function CreateAvatarPage() {
             >
               {archetype === null ? (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <div className="flex gap-2 text-3xl" aria-hidden>{ARCHETYPE_OPTIONS.map((a) => <span key={a.index}>{a.emoji}</span>)}</div>
+                  <div className="flex gap-3" aria-hidden>{ARCHETYPE_OPTIONS.map((a) => <GameIcon key={a.index} name={a.icon} className="h-8 w-8" style={{ color: a.accent }} />)}</div>
                   <p className="text-sm text-muted-foreground">Toca un arquetipo para conocer a tu héroe</p>
                 </div>
               ) : (
                 <>
                   <MiniAvatar3D key={archetype} archetype={archetype} size={200} glowColor={style.glow} exposure={style.exposure} />
-                  <p className="mt-1 font-cinzel text-xl font-bold text-foreground">{style.emoji} {style.name}</p>
+                  <p className="mt-1 flex items-center gap-2 font-cinzel text-xl font-bold text-foreground"><GameIcon name={style.icon} className="h-5 w-5" style={{ color: style.accent }} /> {style.name}</p>
                   <p className="text-sm font-medium" style={{ color: style.accent }}>{style.trait}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">{style.gear}</p>
                 </>
@@ -112,7 +113,7 @@ function CreateAvatarPage() {
                       style={{ backgroundColor: withAlpha(a.accent, 0.18), boxShadow: `inset 0 0 0 1px ${withAlpha(a.accent, 0.5)}` }}
                       aria-hidden
                     >
-                      {a.emoji}
+                      <GameIcon name={a.icon} className="h-5 w-5" style={{ color: a.accent }} />
                     </span>
                     <span className="font-cinzel font-semibold text-foreground">{a.name}</span>
                     <span className="text-[11px] leading-tight text-muted-foreground">{a.trait}</span>
@@ -150,7 +151,7 @@ function CreateAvatarPage() {
                 <MiniAvatar3D archetype={archetype} size={96} rotate={false} interactive={false} glowColor={style.glow} exposure={style.exposure} />
                 <div>
                   <p className="font-cinzel text-lg font-semibold text-foreground">{name.trim() || "Héroe"}</p>
-                  <p className="text-xs text-muted-foreground">{style.emoji} {style.name} • Nivel 1</p>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground"><GameIcon name={style.icon} className="h-3.5 w-3.5" style={{ color: style.accent }} /> {style.name} • Nivel 1</p>
                   <p className="text-[11px]" style={{ color: style.accent }}>{style.trait}</p>
                 </div>
               </div>
@@ -182,7 +183,7 @@ function CreateAvatarPage() {
             disabled={!name.trim() || saving}
             className="flex items-center gap-1 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 active:scale-95 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {saving ? "Guardando..." : `¡Comenzar! ${style.emoji}`}
+            {saving ? "Guardando..." : <>¡Comenzar! <GameIcon name={style.icon} className="h-4 w-4" /></>}
           </button>
         )}
       </div>

@@ -46,7 +46,7 @@ export function AREnergyMission({ onComplete, onClose, zone }: Props) {
                 style={{ width: `${charge * 100}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-white/70">Toca a tu personaje para cargarlo de energía ⚡</p>
+            <p className="mt-2 text-xs text-white/70">Toca a tu personaje para cargarlo de energía</p>
           </div>
         </>
       )}
