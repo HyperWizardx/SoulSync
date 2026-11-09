@@ -100,11 +100,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   { code: "level_30", name: "Alma plena", icon: "sunbeams", description: "Alcanza nivel 30", rarity: "legendario", group: "nivel", target: 30, metric: (c) => c.level },
 
   // Bienestar
-  { code: "checkin_7", name: "Voz propia", icon: "talk", description: "7 check-ins registrados", rarity: "comun", group: "bienestar", target: 7, metric: (c) => c.checkins },
-  { code: "checkin_30", name: "Diario del alma", icon: "book-cover", description: "30 check-ins registrados", rarity: "epico", group: "bienestar", target: 30, metric: (c) => c.checkins },
-  { code: "first_prediction", name: "Señal temprana", icon: "telescope", description: "Genera tu primera predicción de bienestar", rarity: "raro", group: "bienestar", target: 1, metric: (c) => c.predictions },
-  { code: "daily_goal", name: "Meta cumplida", icon: "check-mark", description: "Cumple tu meta diaria", rarity: "comun", group: "bienestar", target: 1, metric: (c) => c.goalDays },
-  { code: "daily_goal_7", name: "Semana perfecta", icon: "calendar", description: "Cumple la meta diaria 7 días", rarity: "epico", group: "bienestar", target: 7, metric: (c) => c.goalDays },
+  { code: "checkin_7", name: "Voz propia", icon: "talk", description: "Haz tu check-in de Bienestar 7 días", rarity: "comun", group: "bienestar", target: 7, metric: (c) => c.checkins },
+  { code: "checkin_30", name: "Diario del alma", icon: "book-cover", description: "Haz tu check-in de Bienestar 30 días", rarity: "epico", group: "bienestar", target: 30, metric: (c) => c.checkins },
+  { code: "first_prediction", name: "Brújula despierta", icon: "telescope", description: "Recibe la primera lectura de tu brújula de bienestar", rarity: "raro", group: "bienestar", target: 1, metric: (c) => c.predictions },
+  { code: "daily_goal", name: "Meta cumplida", icon: "check-mark", description: "Completa tu meta diaria de misiones un día", rarity: "comun", group: "bienestar", target: 1, metric: (c) => c.goalDays },
+  { code: "daily_goal_7", name: "Semana perfecta", icon: "calendar", description: "Completa tu meta diaria de misiones 7 días", rarity: "epico", group: "bienestar", target: 7, metric: (c) => c.goalDays },
 
   // Mundo
   { code: "world_2", name: "Explorador", icon: "treasure-map", description: "Desbloquea 2 zonas del mundo", rarity: "comun", group: "mundo", target: 2, metric: (c) => c.zonesUnlocked },
