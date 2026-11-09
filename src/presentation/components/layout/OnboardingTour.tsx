@@ -29,10 +29,10 @@ const STEPS = [
 ] as const;
 
 const WELCOMES = [
-  "Tu fuerza despierta, Guerrero. Que cada batalla te haga más fuerte.",
-  "La calma te guía, Sanador. Lleva paz a donde vayas.",
-  "El camino te llama, Explorador. Descubre nuevos horizontes interiores.",
-  "El conocimiento es tu aliado, Sabio. Reflexiona y crece.",
+  "Tu fuerza despierta, Caballero. Que cada batalla te haga más fuerte.",
+  "La calma te guía, Druida. Lleva paz a donde vayas.",
+  "El camino te llama, Pícaro. Descubre nuevos horizontes interiores.",
+  "El conocimiento es tu aliado, Mago. Reflexiona y crece.",
 ];
 
 export function OnboardingTour() {

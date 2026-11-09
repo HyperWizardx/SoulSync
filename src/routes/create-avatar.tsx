@@ -19,10 +19,10 @@ export const Route = createFileRoute("/create-avatar")({
 });
 
 const archetypes = [
-  { name: "Guerrero", desc: "Fuerza y resiliencia", emoji: "⚔️" },
-  { name: "Sanador", desc: "Empatía y cuidado", emoji: "💚" },
-  { name: "Explorador", desc: "Curiosidad y aventura", emoji: "🧭" },
-  { name: "Sabio", desc: "Reflexión y conocimiento", emoji: "📖" },
+  { name: "Caballero", desc: "Fuerza y resiliencia", emoji: "⚔️" },
+  { name: "Druida", desc: "Empatía y cuidado", emoji: "🌿" },
+  { name: "Pícaro", desc: "Curiosidad y aventura", emoji: "🗡️" },
+  { name: "Mago", desc: "Reflexión y conocimiento", emoji: "📖" },
 ];
 
 function CreateAvatarPage() {

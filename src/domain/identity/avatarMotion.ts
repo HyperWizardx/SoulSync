@@ -3,7 +3,7 @@ export function avatarPosition(x: number, y: number) {
   return { x: Math.max(20, Math.min(80, x)), y: Math.max(25, Math.min(75, y)) };
 }
 
-// 0 Guerrero → caballero, 1 Sanador → mago con bastón, 2 Explorador → pícaro encapuchado, 3 Sabio → mago con libro.
+// 0 Caballero (espada y escudo), 1 Druida (bastón), 2 Pícaro (encapuchado con ballesta), 3 Mago (sombrero y libro).
 export function archetypeModelKey(archetype: number | null | undefined) {
   return (["warrior", "healer", "explorer", "sage"] as const)[archetype ?? -1] ?? "explorer";
 }
