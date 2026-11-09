@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { ARMissionHost, AvatarOverlay } from "@/presentation/components/missions/ARMission";
+import type { ZoneKey } from "@/domain/world/dioramas";
 
 interface Props {
   onComplete: () => void;
   onClose: () => void;
+  zone?: ZoneKey | null; // zona del Mundo en la que se ambienta
 }
 
 const TARGET = 10;
 
-export function AREnergyMission({ onComplete, onClose }: Props) {
+export function AREnergyMission({ onComplete, onClose, zone }: Props) {
   const [taps, setTaps] = useState(0);
   const [boom, setBoom] = useState(false);
 
@@ -29,10 +31,10 @@ export function AREnergyMission({ onComplete, onClose }: Props) {
   const scale = 1 + charge * 0.5 + (boom ? 0.15 : 0);
 
   return (
-    <ARMissionHost title="Captura de energía" onClose={onClose}>
+    <ARMissionHost title="Captura de energía" onClose={onClose} zone={zone}>
       {() => (
         <>
-          <AvatarOverlay scale={scale} onTap={handleTap} tapLabel="Cargar energía de tu personaje" celebrate={taps >= TARGET} />
+          <AvatarOverlay scale={scale} onTap={handleTap} tapLabel="Cargar energía de tu personaje" celebrate={taps >= TARGET} zone={zone} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">Carga</p>
             <p className="mt-1 text-3xl font-cinzel font-bold">

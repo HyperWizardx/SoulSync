@@ -104,3 +104,9 @@ export const SEASON_COPY: Record<WorldSeason, { label: string; description: stri
   tormenta: { label: "Estación de tormenta", description: "Coincide con una baja en tus indicadores. Una tarea corta ayuda a despejar." },
   niebla: { label: "Estación de niebla", description: "Faltan registros para leer el estado de tu mundo con claridad." },
 };
+
+// Nombre y emoji de una zona (para rotular las misiones AR ambientadas en ella).
+export function zoneInfo(key: ZoneKey): { name: string; emoji: string } {
+  const zone = ZONE_CATALOG.find((z) => z.key === key);
+  return { name: zone?.name ?? key, emoji: zone?.emoji ?? "🗺️" };
+}

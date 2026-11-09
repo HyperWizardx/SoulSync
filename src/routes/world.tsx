@@ -8,7 +8,8 @@ import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { Lock } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { MISSIONS, MISSION_CATEGORY } from "@/domain/gamification/missionsData";
+import { MISSIONS } from "@/domain/gamification/missionsData";
+import { missionBelongsToZone } from "@/domain/world/missionZones";
 import type { WorldSeason, WorldZone } from "@/domain/world/world";
 import { WorldDiorama } from "@/presentation/components/world/WorldDiorama";
 
@@ -175,7 +176,7 @@ function WorldPage() {
 
 function ZoneSheet({ zone, level, archetype, season, onClose }: { zone: WorldZone | null; level: number; archetype: number | null; season: WorldSeason; onClose: () => void }) {
   const missions = zone
-    ? MISSIONS.filter((m) => zone.categories.includes(MISSION_CATEGORY[m.type]))
+    ? MISSIONS.filter((m) => missionBelongsToZone(m, zone))
     : [];
   return (
     <Sheet open={!!zone} onOpenChange={(open) => !open && onClose()}>

@@ -90,6 +90,39 @@ export const DIORAMAS: Record<ZoneKey, DioramaLayout> = {
   },
 };
 
+// Isla de la zona sobre la que se para el personaje en las misiones AR. Coordenadas en
+// unidades del modelo (la loseta mide 2 de ancho); los adornos van detrás del personaje (z < 0).
+export interface ArPlatformProp { model: string; x: number; z: number; scale: number; rotation?: number }
+export const AR_PLATFORMS: Record<ZoneKey, { ground: string; props: ArPlatformProp[] }> = {
+  valle: { ground: "hex_grass", props: [
+    { model: "building_windmill_blue", x: 0.5, z: -0.5, scale: 0.55, rotation: 30 },
+    { model: "trees_A_small", x: -0.55, z: -0.4, scale: 0.75 },
+  ] },
+  bosque: { ground: "hex_grass", props: [
+    { model: "trees_A_large", x: -0.5, z: -0.5, scale: 0.7 },
+    { model: "trees_B_medium", x: 0.55, z: -0.45, scale: 0.7 },
+    { model: "resource_lumber", x: 0.55, z: 0.4, scale: 0.6 },
+  ] },
+  reino: { ground: "hex_grass", props: [
+    { model: "building_castle_blue", x: 0.45, z: -0.55, scale: 0.48 },
+    { model: "building_home_A_blue", x: -0.55, z: -0.4, scale: 0.5, rotation: 90 },
+    { model: "flag_blue", x: -0.6, z: 0.35, scale: 0.75 },
+  ] },
+  montana: { ground: "hex_grass", props: [
+    { model: "mountain_A_grass_trees", x: 0.45, z: -0.5, scale: 0.65 },
+    { model: "rock_single_A", x: -0.55, z: -0.35, scale: 0.8 },
+    { model: "flag_red", x: -0.6, z: 0.35, scale: 0.75 },
+  ] },
+};
+
+// Color de acento de cada zona (marco y degradado sobre la cámara en AR).
+export const ZONE_ACCENT: Record<ZoneKey, string> = {
+  valle: "hsl(95 55% 50%)",
+  bosque: "hsl(150 55% 35%)",
+  reino: "hsl(215 70% 55%)",
+  montana: "hsl(30 35% 55%)",
+};
+
 // Las losetas KayKit son hexágonos "punta arriba" de 2 unidades de ancho (de cara a cara).
 const HEX_WIDTH = 2;
 export function hexToWorld({ q, r }: HexCoord): { x: number; z: number } {
@@ -108,6 +141,10 @@ export function dioramaModels(): string[] {
   for (const layout of Object.values(DIORAMAS)) {
     layout.ground.forEach((g) => names.add(g.model));
     layout.pieces.forEach((p) => names.add(p.model));
+  }
+  for (const platform of Object.values(AR_PLATFORMS)) {
+    names.add(platform.ground);
+    platform.props.forEach((p) => names.add(p.model));
   }
   return [...names].sort();
 }

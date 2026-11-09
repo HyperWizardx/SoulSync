@@ -18,6 +18,7 @@ import { ARFocusMission } from "@/presentation/components/missions/ARFocusMissio
 import { MeditationMission } from "@/presentation/components/missions/MeditationMission";
 import { DailyChallengeMission } from "@/presentation/components/missions/DailyChallengeMission";
 import { ARWalkMission } from "@/presentation/components/missions/ARWalkMission";
+import { arZoneFor } from "@/domain/world/missionZones";
 
 export const Route = createFileRoute("/missions")({
   head: () => ({ meta: [
@@ -83,12 +84,12 @@ function MissionsPage() {
     {active?.type === "timer" && <TimerMission title={active.title} emoji={active.emoji} durationSec={active.durationSec || 30} description={active.desc} onComplete={() => finishMission(active)} onClose={() => setActive(null)} />}
     {active?.type === "gratitude" && <GratitudeMission onComplete={() => finishMission(active, "Gratitud sellada")} onClose={() => setActive(null)} />}
     {active?.type === "quiz" && <QuizMission onComplete={(s, t) => finishMission(active, `Aciertos: ${s}/${t}`)} onClose={() => setActive(null)} />}
-    {active?.type === "ar-aura" && <ARAuraMission onComplete={() => finishMission(active, "Aura sincronizada 🌬️")} onClose={() => setActive(null)} />}
-    {active?.type === "ar-energy" && <AREnergyMission onComplete={() => finishMission(active, "Avatar cargado ⚡")} onClose={() => setActive(null)} />}
-    {active?.type === "ar-focus" && <ARFocusMission onComplete={() => finishMission(active, "Enfoque sostenido 🎯")} onClose={() => setActive(null)} />}
+    {active?.type === "ar-aura" && <ARAuraMission zone={arZoneFor(active)} onComplete={() => finishMission(active, "Aura sincronizada 🌬️")} onClose={() => setActive(null)} />}
+    {active?.type === "ar-energy" && <AREnergyMission zone={arZoneFor(active)} onComplete={() => finishMission(active, "Avatar cargado ⚡")} onClose={() => setActive(null)} />}
+    {active?.type === "ar-focus" && <ARFocusMission zone={arZoneFor(active)} onComplete={() => finishMission(active, "Enfoque sostenido 🎯")} onClose={() => setActive(null)} />}
     {active?.type === "meditation" && <MeditationMission durationSec={active.durationSec || 120} onComplete={() => finishMission(active, "Meditación completada 🧘")} onClose={() => setActive(null)} />}
     {active?.type === "daily-challenge" && <DailyChallengeMission onComplete={(title) => finishMission(active, title)} onClose={() => setActive(null)} />}
-    {active?.type === "ar-walk" && <ARWalkMission goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada 🚶")} onClose={() => setActive(null)} />}
+    {active?.type === "ar-walk" && <ARWalkMission zone={arZoneFor(active)} goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada 🚶")} onClose={() => setActive(null)} />}
   </div></MobileLayout>;
 }
 

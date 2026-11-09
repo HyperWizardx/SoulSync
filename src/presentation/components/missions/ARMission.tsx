@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Camera as CameraIcon } from "lucide-react";
 import { ARCompanion } from "@/presentation/components/missions/ARCompanion";
+import { ZONE_ACCENT, type ZoneKey } from "@/domain/world/dioramas";
+import { zoneInfo } from "@/domain/world/world";
+import { withAlpha } from "@/domain/identity/archetype";
 
 interface Props {
   title: string;
   children: (helpers: { stream: MediaStream | null }) => React.ReactNode;
   onClose: () => void;
+  zone?: ZoneKey | null; // zona del Mundo en la que se ambienta la misión
 }
 
 /** Host: pide cámara, muestra stream a pantalla completa con overlay AR */
-export function ARMissionHost({ title, children, onClose }: Props) {
+export function ARMissionHost({ title, children, onClose, zone = null }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -99,11 +103,15 @@ export function ARMissionHost({ title, children, onClose }: Props) {
         </div>
       )}
 
+      {/* Ambientación de la zona: degradado de su color sobre la cámara */}
+      {zone && <ZoneTint zone={zone} />}
+
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-4 py-3">
         <div>
           <p className="text-[10px] uppercase tracking-wider text-white/70">Misión AR</p>
           <h2 className="font-cinzel text-base font-semibold text-white drop-shadow">{title}</h2>
+          {zone && <ZoneChip zone={zone} />}
         </div>
         <button
           onClick={onClose}
@@ -120,11 +128,34 @@ export function ARMissionHost({ title, children, onClose }: Props) {
 
 // Personaje 3D del arquetipo sobre la cámara; ver ARCompanion para la interacción.
 interface AvatarOverlayProps {
+  zone?: ZoneKey | null;
   scale?: number;
   onTap?: () => void;
   tapLabel?: string;
   celebrate?: boolean;
 }
-export function AvatarOverlay({ scale = 1, onTap, tapLabel, celebrate }: AvatarOverlayProps) {
-  return <ARCompanion scale={scale} onTap={onTap} tapLabel={tapLabel} celebrate={celebrate} />;
+export function AvatarOverlay({ scale = 1, onTap, tapLabel, celebrate, zone }: AvatarOverlayProps) {
+  return <ARCompanion scale={scale} onTap={onTap} tapLabel={tapLabel} celebrate={celebrate} zone={zone} />;
+}
+
+// Etiqueta con la zona del Mundo de la misión.
+export function ZoneChip({ zone }: { zone: ZoneKey }) {
+  const info = zoneInfo(zone);
+  return (
+    <span className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur" style={{ backgroundColor: withAlpha(ZONE_ACCENT[zone], 0.55) }}>
+      {info.emoji} {info.name}
+    </span>
+  );
+}
+
+// Degradado del color de la zona en los bordes de la cámara.
+export function ZoneTint({ zone }: { zone: ZoneKey }) {
+  const accent = ZONE_ACCENT[zone];
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{ background: `linear-gradient(to bottom, ${withAlpha(accent, 0.35)}, transparent 30%, transparent 60%, ${withAlpha(accent, 0.45)})` }}
+    />
+  );
 }

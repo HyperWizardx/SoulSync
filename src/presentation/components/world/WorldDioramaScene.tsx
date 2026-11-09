@@ -3,12 +3,12 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { Color, Fog, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
+import { Color, Fog, type Object3D } from "three";
 import { DIORAMAS, hexToWorld, visiblePieces, type HexCoord, type ZoneKey } from "@/domain/world/dioramas";
 import type { WorldSeason } from "@/domain/world/world";
 import { ArchetypeCharacter } from "@/presentation/components/avatars/ArchetypeScene";
+import { WORLD_KIT_URL, cloneKitPiece } from "@/presentation/components/world/worldKit";
 
-const KIT_URL = "/models/world-kit.glb";
 
 // Ambientación por estación (la estación sale de deriveWorldState).
 const AMBIENCE: Record<WorldSeason, { ambient: number; sun: number; sunColor: string; sky: string; ground: string; fog?: [string, number, number]; clouds: number }> = {
@@ -18,24 +18,8 @@ const AMBIENCE: Record<WorldSeason, { ambient: number; sun: number; sunColor: st
   niebla: { ambient: 0.65, sun: 0.7, sunColor: "#e3e6ec", sky: "#c9ced8", ground: "#5d6b5a", fog: ["#9aa3b2", 8, 18], clouds: 2 },
 };
 
-// El pasto de la paleta KayKit es verde lima; se tiñe un poco hacia verde para que no se vea amarillo.
-const GRASS_TINT = new Color(0.72, 1, 0.74);
-function tintGrass(object: Object3D) {
-  object.traverse((child) => {
-    const mesh = child as Mesh;
-    if (!mesh.isMesh) return;
-    const material = (mesh.material as MeshStandardMaterial).clone();
-    material.color.multiply(GRASS_TINT);
-    mesh.material = material;
-  });
-  return object;
-}
-
 function Piece({ kit, model, coord, rotation = 0, scale = 1, offset = [0, 0], y = 0 }: { kit: Object3D; model: string; coord: HexCoord; rotation?: number; scale?: number; offset?: [number, number]; y?: number }) {
-  const object = useMemo(() => {
-    const copy = kit.getObjectByName(model)?.clone(true) ?? null;
-    return copy && model.startsWith("hex_grass") ? tintGrass(copy) : copy;
-  }, [kit, model]);
+  const object = useMemo(() => cloneKitPiece(kit, model), [kit, model]);
   if (!object) return null;
   const { x, z } = hexToWorld(coord);
   return <primitive object={object} position={[x + offset[0], y, z + offset[1]]} rotation={[0, (rotation * Math.PI) / 180, 0]} scale={scale} />;
@@ -47,7 +31,7 @@ function Clouds({ kit, count }: { kit: Object3D; count: number }) {
 }
 
 function Diorama({ zone, progress, unlocked, season, archetype, showHero, onReady }: Props) {
-  const { scene } = useGLTF(KIT_URL);
+  const { scene } = useGLTF(WORLD_KIT_URL);
   const layout = DIORAMAS[zone];
   const pieces = visiblePieces(layout, progress, unlocked);
   const ambience = AMBIENCE[season];

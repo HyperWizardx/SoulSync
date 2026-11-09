@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ARMissionHost, AvatarOverlay } from "@/presentation/components/missions/ARMission";
+import type { ZoneKey } from "@/domain/world/dioramas";
 
 interface Props {
   onComplete: () => void;
   onClose: () => void;
+  zone?: ZoneKey | null; // zona del Mundo en la que se ambienta
 }
 
 const PHASES = [
@@ -13,7 +15,7 @@ const PHASES = [
 ];
 const CYCLES = 4;
 
-export function ARAuraMission({ onComplete, onClose }: Props) {
+export function ARAuraMission({ onComplete, onClose, zone }: Props) {
   const [cycle, setCycle] = useState(0);
   const [phaseIdx, setPhaseIdx] = useState(0);
 
@@ -35,10 +37,10 @@ export function ARAuraMission({ onComplete, onClose }: Props) {
   const progress = Math.min(cycle / CYCLES, 1);
 
   return (
-    <ARMissionHost title="Aura serena" onClose={onClose}>
+    <ARMissionHost title="Aura serena" onClose={onClose} zone={zone}>
       {() => (
         <>
-          <AvatarOverlay scale={phase.scale} celebrate={cycle >= CYCLES} />
+          <AvatarOverlay scale={phase.scale} celebrate={cycle >= CYCLES} zone={zone} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-[10px] uppercase tracking-wider text-white/60">
               Ciclo {Math.min(cycle + 1, CYCLES)} / {CYCLES}

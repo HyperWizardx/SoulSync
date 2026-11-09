@@ -1,6 +1,7 @@
 // Visor compartido por Inicio, Perfil y misiones; el 3D se carga solo en el navegador.
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
+import type { ZoneKey } from "@/domain/world/dioramas";
 const ArchetypeScene = lazy(() => import("@/presentation/components/avatars/ArchetypeScene"));
 
 class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
@@ -21,6 +22,7 @@ interface Props {
   walking?: boolean;
   celebrating?: boolean;
   facing?: number;
+  zone?: ZoneKey | null;
 }
 
 export function MiniAvatar3D({
@@ -35,6 +37,7 @@ export function MiniAvatar3D({
   walking = false,
   celebrating = false,
   facing = 0,
+  zone = null,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
@@ -52,7 +55,7 @@ export function MiniAvatar3D({
     >
       <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />
       {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "El personaje está tardando en cargar" : "Cargando personaje…"}</div>}
-      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
+      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} zone={zone} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
     </div>
   );
 }

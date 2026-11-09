@@ -7,6 +7,7 @@ import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { AVATAR_ZOOM, avatarPosition, avatarZoom } from "@/domain/identity/avatarMotion";
+import type { ZoneKey } from "@/domain/world/dioramas";
 
 interface Props {
   scale?: number;          // tamaño que impone la misión (respiración, carga de energía…)
@@ -14,6 +15,7 @@ interface Props {
   celebrate?: boolean;     // la misión terminó: el personaje celebra
   onTap?: () => void;      // acción propia de la misión al tocar al personaje
   tapLabel?: string;
+  zone?: ZoneKey | null;  // zona del Mundo en la que se ambienta la misión
 }
 
 type Point = { x: number; y: number };
@@ -24,7 +26,7 @@ const clampZoom = (z: number) => Math.max(AVATAR_ZOOM.min, Math.min(AVATAR_ZOOM.
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 const angle = (a: Point, b: Point) => (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
 
-export function ARCompanion({ scale = 1, walking = false, celebrate = false, onTap, tapLabel }: Props) {
+export function ARCompanion({ scale = 1, walking = false, celebrate = false, onTap, tapLabel, zone = null }: Props) {
   const { user } = useUserStore();
   const style = getArchetypeStyle(user.archetype);
   const who = user.archetype === null ? "personaje" : style.name.toLowerCase();
@@ -141,6 +143,7 @@ export function ARCompanion({ scale = 1, walking = false, celebrate = false, onT
               walking={walking && following}
               celebrating={cheering || celebrate}
               facing={facing}
+              zone={zone}
               glowColor={style.glow}
               exposure={style.exposure}
             />

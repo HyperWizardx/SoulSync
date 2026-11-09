@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { ARMissionHost, AvatarOverlay } from "@/presentation/components/missions/ARMission";
+import type { ZoneKey } from "@/domain/world/dioramas";
 
 interface Props {
   onComplete: () => void;
   onClose: () => void;
+  zone?: ZoneKey | null; // zona del Mundo en la que se ambienta
 }
 
 const TOTAL = 30;
 
-export function ARFocusMission({ onComplete, onClose }: Props) {
+export function ARFocusMission({ onComplete, onClose, zone }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const [focused, setFocused] = useState(true);
 
@@ -26,7 +28,7 @@ export function ARFocusMission({ onComplete, onClose }: Props) {
   const progress = elapsed / TOTAL;
 
   return (
-    <ARMissionHost title="Enfoque consciente" onClose={onClose}>
+    <ARMissionHost title="Enfoque consciente" onClose={onClose} zone={zone}>
       {() => (
         <div className="flex flex-1 flex-col">
           {/* Frame guide */}
@@ -36,7 +38,7 @@ export function ARFocusMission({ onComplete, onClose }: Props) {
                 focused ? "border-soul-teal/80" : "border-destructive/80"
               }`}
             />
-            <AvatarOverlay scale={1 + progress * 0.2} celebrate={elapsed >= TOTAL} />
+            <AvatarOverlay scale={1 + progress * 0.2} celebrate={elapsed >= TOTAL} zone={zone} />
           </div>
 
           <div className="pointer-events-auto mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
