@@ -45,8 +45,8 @@ function Diorama({ zone, progress, unlocked, season, archetype, showHero, onRead
       {pieces.map((p) => <Piece key={`${p.model}${p.q},${p.r}`} kit={scene} model={p.model} coord={p} rotation={p.rotation} scale={p.scale} offset={p.offset} />)}
       {unlocked && <Clouds kit={scene} count={ambience.clouds} />}
       {showHero && unlocked && (
-        // El personaje (normalizado a 2 de alto con los pies en y = -1) se reduce para la escala del diorama.
-        <group position={[hero.x - 0.1, 0.42, hero.z + 0.1]} scale={0.42}>
+        // El personaje (normalizado a 2 de alto con los pies en y = -1) se reduce y se centra en su casilla libre.
+        <group position={[hero.x, 0.5, hero.z]} scale={0.5}>
           <ArchetypeCharacter archetype={archetype} reducedMotion={false} />
         </group>
       )}

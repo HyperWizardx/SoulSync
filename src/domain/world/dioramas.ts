@@ -17,7 +17,7 @@ export interface DioramaPiece extends HexCoord {
 export interface DioramaLayout {
   ground: (HexCoord & { model: string })[];
   pieces: DioramaPiece[];
-  hero: HexCoord;          // casilla donde se para el personaje del usuario
+  hero: HexCoord;          // casilla donde se para el personaje del usuario (queda libre de piezas)
 }
 
 // Casilla central y su anillo (7 hexágonos).
@@ -39,8 +39,8 @@ export const DIORAMAS: Record<ZoneKey, DioramaLayout> = {
       { model: "building_grain", q: 1, r: 0, minProgress: 35 },
       { model: "building_home_A_blue", q: 0, r: -1, minProgress: 50, rotation: 180 },
       { model: "tree_single_A", q: -1, r: 1, minProgress: 65 },
-      { model: "barrel", q: 0, r: 1, minProgress: 85, offset: [0.55, -0.2], scale: 0.9 },
-      { model: "sack", q: 0, r: 1, minProgress: 95, offset: [-0.55, -0.25], scale: 0.9 },
+      { model: "barrel", q: 1, r: -1, minProgress: 85, offset: [0.55, 0.3], scale: 0.9 },
+      { model: "sack", q: -1, r: 1, minProgress: 95, offset: [0.5, -0.35], scale: 0.9 },
     ],
   },
   // Bosque que se espesa con los check-ins.
@@ -55,7 +55,7 @@ export const DIORAMAS: Record<ZoneKey, DioramaLayout> = {
       { model: "tree_single_B", q: 1, r: 0, minProgress: 45 },
       { model: "building_lumbermill_blue", q: -1, r: 1, minProgress: 60, rotation: 60 },
       { model: "tent", q: 1, r: 0, minProgress: 75, offset: [0.35, 0.4], scale: 0.8 },
-      { model: "resource_lumber", q: 0, r: 1, minProgress: 90, offset: [0.55, -0.2], scale: 0.9 },
+      { model: "resource_lumber", q: 1, r: 0, minProgress: 90, offset: [-0.45, -0.5], scale: 0.9 },
     ],
   },
   // Reino medieval (antes "Mar de Emociones") que crece con la tendencia de bienestar.
@@ -69,7 +69,7 @@ export const DIORAMAS: Record<ZoneKey, DioramaLayout> = {
       { model: "building_market_blue", q: 1, r: 0, minProgress: 30, rotation: 240 },
       { model: "building_church_blue", q: -1, r: 1, minProgress: 45, rotation: 60 },
       { model: "building_tavern_blue", q: 0, r: -1, minProgress: 60, rotation: 180 },
-      { model: "flag_blue", q: 0, r: 1, minProgress: 75, offset: [0.6, -0.25] },
+      { model: "flag_blue", q: -1, r: 0, minProgress: 75, offset: [0.6, 0.5] },
       { model: "building_blacksmith_blue", q: 1, r: 0, minProgress: 90, offset: [0.3, 0.45], scale: 0.55, rotation: 270 },
     ],
   },
@@ -84,36 +84,50 @@ export const DIORAMAS: Record<ZoneKey, DioramaLayout> = {
       { model: "rock_single_A", q: 1, r: -1, minProgress: 30 },
       { model: "building_tower_A_blue", q: 1, r: 0, minProgress: 45 },
       { model: "building_mine_blue", q: -1, r: 1, minProgress: 60, rotation: 60 },
-      { model: "resource_stone", q: 0, r: 1, minProgress: 75, offset: [0.55, -0.2], scale: 0.9 },
+      { model: "resource_stone", q: 1, r: -1, minProgress: 75, offset: [-0.45, 0.45], scale: 0.9 },
       { model: "flag_red", q: 1, r: -1, minProgress: 90, offset: [0.4, 0.3] },
     ],
   },
 };
 
 // Isla de la zona sobre la que se para el personaje en las misiones AR. Coordenadas en
-// unidades del modelo (la loseta mide 2 de ancho); los adornos van detrás del personaje (z < 0).
+// unidades de la loseta (2 de ancho); los adornos rodean al personaje sin tocarlo (ver pruebas).
 export interface ArPlatformProp { model: string; x: number; z: number; scale: number; rotation?: number }
 export const AR_PLATFORMS: Record<ZoneKey, { ground: string; props: ArPlatformProp[] }> = {
   valle: { ground: "hex_grass", props: [
-    { model: "building_windmill_blue", x: 0.5, z: -0.5, scale: 0.55, rotation: 30 },
-    { model: "trees_A_small", x: -0.55, z: -0.4, scale: 0.75 },
+    { model: "building_windmill_blue", x: 0.55, z: -0.45, scale: 0.55, rotation: 30 },
+    { model: "trees_A_small", x: -0.55, z: -0.45, scale: 0.45 },
   ] },
   bosque: { ground: "hex_grass", props: [
-    { model: "trees_A_large", x: -0.5, z: -0.5, scale: 0.7 },
-    { model: "trees_B_medium", x: 0.55, z: -0.45, scale: 0.7 },
+    { model: "trees_A_large", x: -0.5, z: -0.5, scale: 0.38 },
+    { model: "trees_B_medium", x: 0.5, z: -0.5, scale: 0.38 },
     { model: "resource_lumber", x: 0.55, z: 0.4, scale: 0.6 },
   ] },
   reino: { ground: "hex_grass", props: [
-    { model: "building_castle_blue", x: 0.45, z: -0.55, scale: 0.48 },
-    { model: "building_home_A_blue", x: -0.55, z: -0.4, scale: 0.5, rotation: 90 },
+    { model: "building_castle_blue", x: 0.5, z: -0.5, scale: 0.3 },
+    { model: "building_home_A_blue", x: -0.55, z: -0.4, scale: 0.55, rotation: 90 },
     { model: "flag_blue", x: -0.6, z: 0.35, scale: 0.75 },
   ] },
   montana: { ground: "hex_grass", props: [
-    { model: "mountain_A_grass_trees", x: 0.45, z: -0.5, scale: 0.65 },
+    { model: "mountain_A_grass_trees", x: 0.5, z: -0.5, scale: 0.4 },
     { model: "rock_single_A", x: -0.55, z: -0.35, scale: 0.8 },
     { model: "flag_red", x: -0.6, z: 0.35, scale: 0.75 },
   ] },
 };
+
+// Radio de la huella de cada pieza (medido de world-kit.glb con getBounds, sin escalar).
+export const MODEL_RADIUS: Record<string, number> = {
+  hex_grass: 1.15, barrel: 0.1, building_blacksmith_blue: 0.69, building_castle_blue: 1.13, building_church_blue: 0.6,
+  building_grain: 1.05, building_home_A_blue: 0.47, building_home_B_blue: 0.56, building_lumbermill_blue: 0.73,
+  building_market_blue: 0.9, building_mine_blue: 1.02, building_tavern_blue: 0.7, building_tower_A_blue: 0.58,
+  building_well_blue: 0.38, building_windmill_blue: 0.57, flag_blue: 0.24, flag_red: 0.24, hills_A_trees: 0.93,
+  mountain_A_grass_trees: 0.96, mountain_B: 0.94, mountain_C_grass: 1.02, resource_lumber: 0.34, resource_stone: 0.21,
+  rock_single_A: 0.16, sack: 0.09, tent: 0.26, tree_single_A: 0.3, tree_single_B: 0.36, trees_A_large: 0.99,
+  trees_A_small: 0.76, trees_B_large: 0.99, trees_B_medium: 0.97,
+};
+
+// Espacio que ocupa el personaje: en el diorama (escala 0.42) y en la isla AR (en unidades de la loseta).
+export const HERO_RADIUS = { diorama: 0.3, arPlatform: 0.25 } as const;
 
 // Color de acento de cada zona (marco y degradado sobre la cámara en AR).
 export const ZONE_ACCENT: Record<ZoneKey, string> = {

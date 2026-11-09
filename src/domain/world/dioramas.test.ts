@@ -1,7 +1,7 @@
 // Verifica los dioramas del Mundo: casillas válidas, aparición por progreso y piezas presentes en el kit 3D.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { DIORAMAS, dioramaModels, hexToWorld, visiblePieces } from "./dioramas";
+import { AR_PLATFORMS, DIORAMAS, HERO_RADIUS, MODEL_RADIUS, dioramaModels, hexToWorld, visiblePieces } from "./dioramas";
 import { deriveWorldState } from "./world";
 
 const kitNodeNames = () => {
@@ -38,5 +38,28 @@ describe("Dioramas del Mundo", () => {
   it("usa solo piezas incluidas en world-kit.glb", () => {
     const names = kitNodeNames();
     expect(dioramaModels().filter((m) => !names.has(m))).toEqual([]);
+  });
+  it("deja libre la casilla del personaje y no le encima ninguna pieza", () => {
+    for (const [zone, layout] of Object.entries(DIORAMAS)) {
+      const hero = hexToWorld(layout.hero);
+      for (const p of layout.pieces) {
+        expect([zone, p.q, p.r]).not.toEqual([zone, layout.hero.q, layout.hero.r]);
+        const c = hexToWorld(p);
+        const x = c.x + (p.offset?.[0] ?? 0), z = c.z + (p.offset?.[1] ?? 0);
+        const gap = Math.hypot(x - hero.x, z - hero.z) - (MODEL_RADIUS[p.model] ?? 1) * (p.scale ?? 1);
+        expect({ zone, model: p.model, ok: gap >= HERO_RADIUS.diorama }).toEqual({ zone, model: p.model, ok: true });
+      }
+    }
+  });
+  it("en la isla AR los adornos rodean al personaje sin tocarlo y caben en la loseta", () => {
+    for (const [zone, platform] of Object.entries(AR_PLATFORMS)) {
+      for (const p of platform.props) {
+        const d = Math.hypot(p.x, p.z), r = (MODEL_RADIUS[p.model] ?? 1) * p.scale;
+        expect({ zone, model: p.model, clear: d - r >= HERO_RADIUS.arPlatform, inside: d + r <= 1.15 }).toEqual({ zone, model: p.model, clear: true, inside: true });
+      }
+    }
+  });
+  it("conoce la huella de todas las piezas usadas", () => {
+    expect(dioramaModels().filter((m) => MODEL_RADIUS[m] === undefined)).toEqual([]);
   });
 });

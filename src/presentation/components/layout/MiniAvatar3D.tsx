@@ -53,7 +53,8 @@ export function MiniAvatar3D({
       className={`relative transition-transform duration-300 ease-out ${className}`}
       style={{ width: size, height: size, transform: `scale(${scale})`, maxWidth: "100%" }}
     >
-      <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />
+      {/* Con isla de zona el personaje ya tiene suelo: no se dibuja la sombra de color. */}
+      {!zone && <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />}
       {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "El personaje está tardando en cargar" : "Cargando personaje…"}</div>}
       {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} zone={zone} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
     </div>
