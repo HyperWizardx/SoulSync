@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { toast } from 'sonner';
 import { completeMissionServer } from '@/service/server-functions/missions.functions';
-import { emitFeedback } from '@/shared/feedback';
 
 /** Resultado que devuelve el servidor (la recompensa real sale del catálogo de misiones). */
 export interface MissionResult {
@@ -38,13 +37,8 @@ export function useMissionActions(level: number) {
   const completeMission = useCallback(
     async (missionId: string, options?: { durationSeconds?: number }): Promise<MissionResult> => {
       try {
+        // La pantalla decide cuándo celebrar (subida de nivel, logros) tras el aviso de misión cumplida.
         const res = await completeMissionMut.mutateAsync({ missionId, durationSeconds: options?.durationSeconds });
-        if (res.leveledUp) {
-          emitFeedback({ type: "levelup", level: res.newLevel });
-        }
-        for (const code of res.unlockedAchievements ?? []) {
-          emitFeedback({ type: "achievement", code });
-        }
         return { ok: true, ...res };
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Error guardando misión");

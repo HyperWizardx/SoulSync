@@ -5,15 +5,17 @@ import { ZoneChip, ZoneTint } from "@/presentation/components/missions/ARMission
 import type { ZoneKey } from "@/domain/world/dioramas";
 import { Button } from "@/components/ui/button";
 import { tap, success } from "@/shared/haptics";
+import { useMissionFinale } from "@/presentation/hooks/useMissionFinale";
 
 interface Props {
   goal?: number;
   onComplete: () => void;
+  onAchieved?: () => void; // objetivo logrado: anuncia "¡Misión cumplida!" antes de la celebración
   onClose: () => void;
   zone?: ZoneKey | null; // zona del Mundo en la que se ambienta
 }
 
-export function ARWalkMission({ goal = 30, onComplete, onClose, zone }: Props) {
+export function ARWalkMission({ goal = 30, onComplete, onAchieved, onClose, zone }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [steps, setSteps] = useState(0);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
@@ -81,14 +83,13 @@ export function ARWalkMission({ goal = 30, onComplete, onClose, zone }: Props) {
     return () => window.removeEventListener("devicemotion", handler);
   }, [goal, motionOk]);
 
+  const celebrate = useMissionFinale(steps >= goal, onComplete, onAchieved);
   useEffect(() => {
     if (steps >= goal && !completedRef.current) {
       completedRef.current = true;
       success();
-      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
-      return () => clearTimeout(t);
     }
-  }, [steps, goal, onComplete]);
+  }, [steps, goal]);
 
   const pct = (steps / goal) * 100;
 
@@ -127,7 +128,7 @@ export function ARWalkMission({ goal = 30, onComplete, onClose, zone }: Props) {
         {motionOk === false && <p className="mt-2 text-xs text-soul-gold">Sensor no disponible. Registro manual de pasos.</p>}
         {cameraOk === false && <p className="mt-2 text-xs text-muted-foreground">Sin cámara. Caminata sin vista AR.</p>}
       </div>
-      <ARCompanion walking={walking} celebrate={steps >= goal} zone={zone} />
+      <ARCompanion walking={walking} celebrate={celebrate} zone={zone} />
       <div className="relative z-10 mx-4 mb-6 rounded-lg bg-card/90 p-3 text-center backdrop-blur-sm">
         <p className="text-sm text-foreground">Caminata consciente</p>
         <p className="mt-1 text-xs text-muted-foreground">Camina en un lugar seguro, lejos del tráfico.</p>

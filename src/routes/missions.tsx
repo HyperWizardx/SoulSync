@@ -16,10 +16,8 @@ import type { ZoneKey } from "@/domain/world/dioramas";
 import { arZoneFor } from "@/domain/world/missionZones";
 import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
 import { Reveal } from "@/presentation/components/motion/Reveal";
-import { playSound } from "@/shared/sound";
-import { emitFeedback } from "@/shared/feedback";
+import { MISSION_BANNER_MS, emitFeedback } from "@/shared/feedback";
 import { AnimatedNumber } from "@/presentation/components/motion/AnimatedNumber";
-import { success as hapticSuccess } from "@/shared/haptics";
 
 // Las misiones se abren de a una: cada pantalla de misión se descarga aparte y se precarga
 // cuando el navegador queda libre, para que la lista aparezca antes y abrirlas siga siendo inmediato.
@@ -84,7 +82,14 @@ function MissionsPage() {
   const [fromZone, setFromZone] = useState<ZoneKey | null>(null);
   // Momento en que se abrió la misión: su duración real se guarda con la tarea completada.
   const startedAt = useRef(0);
-  const openMission = (m: Mission) => { startedAt.current = Date.now(); setActive(m); };
+  // Momento en que se anunció "¡Misión cumplida!" (0 = aún no): las AR lo anuncian al lograr el objetivo.
+  const announcedAt = useRef(0);
+  const openMission = (m: Mission) => { startedAt.current = Date.now(); announcedAt.current = 0; setActive(m); };
+  const announce = (m: Mission) => {
+    if (announcedAt.current) return;
+    announcedAt.current = Date.now();
+    emitFeedback({ type: "missionComplete", title: m.title, icon: m.icon });
+  };
   const archStyle = getArchetypeStyle(user.archetype);
   const affine = (m: Mission) => isAffine(user.archetype, missionCategory(m));
   useEffect(() => { preloadMissions(); }, []);
@@ -118,16 +123,24 @@ function MissionsPage() {
     toast("Misión omitida por hoy. ¡Mañana habrá otra oportunidad!", { icon: <SkipForward className="h-4 w-4" /> });
   };
   const finishMission = async (m: Mission, extraNote?: string) => {
+    // 1. Al instante: "¡Misión cumplida!" (si la misión AR no lo anunció ya) mientras se guarda.
+    announce(m);
     setActive(null);
     const durationSeconds = startedAt.current ? Math.round((Date.now() - startedAt.current) / 1000) : 0;
-    const res = await completeMission(m.id, { durationSeconds });
+    const bannerLeft = Math.max(0, MISSION_BANNER_MS - (Date.now() - announcedAt.current));
+    const [res] = await Promise.all([
+      completeMission(m.id, { durationSeconds }),
+      new Promise((resolve) => setTimeout(resolve, bannerLeft)),
+    ]);
+    announcedAt.current = 0;
     if (!res.ok) { closeMission(); return; }
-    playSound("complete");
-    hapticSuccess();
-    // Se muestra lo que el servidor otorgó de verdad (catálogo + afinidad + objetos).
+    // 2. Después del aviso: recompensas que el servidor otorgó de verdad (catálogo + afinidad + objetos).
     emitFeedback({ type: "reward", xp: res.gainedXp, coins: res.gainedCoins, gems: res.gainedGems });
     const bonus = res.affinity ? ` · afín a tu ${archStyle.name}` : "";
     toast.success(`¡${m.title} completada! +${res.gainedXp} XP${bonus}`, { icon: <GameIcon name={m.icon} className="h-5 w-5 text-soul-gold" />, description: extraNote });
+    // Luego, si los hubo, la subida de nivel y los logros nuevos.
+    if (res.leveledUp) emitFeedback({ type: "levelup", level: res.newLevel });
+    for (const code of res.unlockedAchievements ?? []) emitFeedback({ type: "achievement", code });
     // Con el progreso ya guardado, vuelve a la zona de origen para ver cómo creció.
     closeMission();
   };
@@ -146,12 +159,12 @@ function MissionsPage() {
     {active?.type === "timer" && <TimerMission title={active.title} icon={active.icon} durationSec={active.durationSec || 30} description={active.desc} onComplete={() => finishMission(active)} onClose={closeMission} />}
     {active?.type === "gratitude" && <GratitudeMission title={active.title} hint={GRATITUDE_HINTS[active.id]} onComplete={() => finishMission(active, "Gratitud sellada")} onClose={closeMission} />}
     {active?.type === "quiz" && <QuizMission title={active.title} icon={active.icon} onComplete={(s, t) => finishMission(active, `Aciertos: ${s}/${t}`)} onClose={closeMission} />}
-    {active?.type === "ar-aura" && <ARAuraMission zone={arZoneFor(active)} onComplete={() => finishMission(active, "Aura sincronizada")} onClose={closeMission} />}
-    {active?.type === "ar-energy" && <AREnergyMission zone={arZoneFor(active)} onComplete={() => finishMission(active, "Personaje cargado de energía")} onClose={closeMission} />}
-    {active?.type === "ar-focus" && <ARFocusMission zone={arZoneFor(active)} onComplete={() => finishMission(active, "Enfoque sostenido")} onClose={closeMission} />}
+    {active?.type === "ar-aura" && <ARAuraMission zone={arZoneFor(active)} onAchieved={() => announce(active)} onComplete={() => finishMission(active, "Aura sincronizada")} onClose={closeMission} />}
+    {active?.type === "ar-energy" && <AREnergyMission zone={arZoneFor(active)} onAchieved={() => announce(active)} onComplete={() => finishMission(active, "Personaje cargado de energía")} onClose={closeMission} />}
+    {active?.type === "ar-focus" && <ARFocusMission zone={arZoneFor(active)} onAchieved={() => announce(active)} onComplete={() => finishMission(active, "Enfoque sostenido")} onClose={closeMission} />}
     {active?.type === "meditation" && <MeditationMission durationSec={active.durationSec || 120} onComplete={() => finishMission(active, "Meditación completada")} onClose={closeMission} />}
     {active?.type === "daily-challenge" && <DailyChallengeMission onComplete={(title) => finishMission(active, title)} onClose={closeMission} />}
-    {active?.type === "ar-walk" && <ARWalkMission zone={arZoneFor(active)} goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada")} onClose={closeMission} />}
+    {active?.type === "ar-walk" && <ARWalkMission zone={arZoneFor(active)} onAchieved={() => announce(active)} goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada")} onClose={closeMission} />}
     </Suspense>
   </div></MobileLayout>;
 }

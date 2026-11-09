@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
 import { ARMissionHost, AvatarOverlay } from "@/presentation/components/missions/ARMission";
 import type { ZoneKey } from "@/domain/world/dioramas";
+import { useMissionFinale } from "@/presentation/hooks/useMissionFinale";
 
 interface Props {
   onComplete: () => void;
+  onAchieved?: () => void; // objetivo logrado: anuncia "¡Misión cumplida!" antes de la celebración
   onClose: () => void;
   zone?: ZoneKey | null; // zona del Mundo en la que se ambienta
 }
 
 const TOTAL = 30;
 
-export function ARFocusMission({ onComplete, onClose, zone }: Props) {
+export function ARFocusMission({ onComplete, onAchieved, onClose, zone }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const [focused, setFocused] = useState(true);
+  const celebrate = useMissionFinale(elapsed >= TOTAL, onComplete, onAchieved);
 
   useEffect(() => {
-    if (elapsed >= TOTAL) {
-      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
-      return () => clearTimeout(t);
-    }
+    if (elapsed >= TOTAL) return;
     const id = setInterval(() => {
       if (focused) setElapsed((e) => Math.min(TOTAL, e + 1));
     }, 1000);
     return () => clearInterval(id);
-  }, [elapsed, focused, onComplete]);
+  }, [elapsed, focused]);
 
   const progress = elapsed / TOTAL;
 
@@ -38,7 +38,7 @@ export function ARFocusMission({ onComplete, onClose, zone }: Props) {
                 focused ? "border-soul-teal/80" : "border-destructive/80"
               }`}
             />
-            <AvatarOverlay scale={1 + progress * 0.2} celebrate={elapsed >= TOTAL} zone={zone} />
+            <AvatarOverlay scale={1 + progress * 0.2} celebrate={celebrate} zone={zone} />
           </div>
 
           <div className="pointer-events-auto mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">

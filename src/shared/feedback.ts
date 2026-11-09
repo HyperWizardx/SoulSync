@@ -2,7 +2,27 @@
 type LevelUpEvent = { type: "levelup"; level: number };
 type AchievementEvent = { type: "achievement"; code: string };
 type RewardEvent = { type: "reward"; xp: number; coins: number; gems: number };
-export type FeedbackEvent = LevelUpEvent | AchievementEvent | RewardEvent;
+type MissionCompleteEvent = { type: "missionComplete"; title: string; icon: string };
+export type FeedbackEvent = LevelUpEvent | AchievementEvent | RewardEvent | MissionCompleteEvent;
+
+/** Cuánto dura el aviso "¡Misión cumplida!" antes de seguir (celebración del avatar, recompensas). */
+export const MISSION_BANNER_MS = 1800;
+/** Cuánto dura la celebración del personaje en las misiones AR. */
+export const AVATAR_CELEBRATION_MS = 1600;
+
+const CHEERS = [
+  "¡Así se forja un héroe!",
+  "Tu leyenda sigue creciendo.",
+  "Un paso más en tu aventura.",
+  "Tus tierras celebran contigo.",
+  "¡Tu espíritu brilla más fuerte!",
+  "Cada hazaña cuenta. ¡Sigue así!",
+];
+
+/** Frase motivadora para el aviso de misión cumplida (determinista si se pasa una semilla). */
+export function missionCheer(seed = Math.random()): string {
+  return CHEERS[Math.floor(seed * CHEERS.length) % CHEERS.length];
+}
 
 type Listener = (e: FeedbackEvent) => void;
 const listeners = new Set<Listener>();

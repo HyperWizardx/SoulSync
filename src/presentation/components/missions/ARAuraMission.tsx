@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ARMissionHost, AvatarOverlay } from "@/presentation/components/missions/ARMission";
 import type { ZoneKey } from "@/domain/world/dioramas";
+import { useMissionFinale } from "@/presentation/hooks/useMissionFinale";
 
 interface Props {
   onComplete: () => void;
+  onAchieved?: () => void; // objetivo logrado: anuncia "¡Misión cumplida!" antes de la celebración
   onClose: () => void;
   zone?: ZoneKey | null; // zona del Mundo en la que se ambienta
 }
@@ -15,15 +17,13 @@ const PHASES = [
 ];
 const CYCLES = 4;
 
-export function ARAuraMission({ onComplete, onClose, zone }: Props) {
+export function ARAuraMission({ onComplete, onAchieved, onClose, zone }: Props) {
   const [cycle, setCycle] = useState(0);
   const [phaseIdx, setPhaseIdx] = useState(0);
+  const celebrate = useMissionFinale(cycle >= CYCLES, onComplete, onAchieved);
 
   useEffect(() => {
-    if (cycle >= CYCLES) {
-      const t = setTimeout(onComplete, 1600); // deja ver la celebración del personaje
-      return () => clearTimeout(t);
-    }
+    if (cycle >= CYCLES) return;
     const phase = PHASES[phaseIdx];
     const t = setTimeout(() => {
       const nextPhase = (phaseIdx + 1) % PHASES.length;
@@ -31,7 +31,7 @@ export function ARAuraMission({ onComplete, onClose, zone }: Props) {
       if (nextPhase === 0) setCycle((c) => c + 1);
     }, phase.ms);
     return () => clearTimeout(t);
-  }, [cycle, phaseIdx, onComplete]);
+  }, [cycle, phaseIdx]);
 
   const phase = PHASES[phaseIdx];
   const progress = Math.min(cycle / CYCLES, 1);
@@ -40,7 +40,7 @@ export function ARAuraMission({ onComplete, onClose, zone }: Props) {
     <ARMissionHost title="Aura serena" onClose={onClose} zone={zone}>
       {() => (
         <>
-          <AvatarOverlay scale={phase.scale} celebrate={cycle >= CYCLES} zone={zone} />
+          <AvatarOverlay scale={phase.scale} celebrate={celebrate} zone={zone} />
           <div className="relative z-10 mx-4 mb-6 rounded-2xl bg-black/60 p-4 text-center text-white backdrop-blur">
             <p className="text-xs uppercase tracking-wider text-white/60">
               Ciclo {Math.min(cycle + 1, CYCLES)} / {CYCLES}

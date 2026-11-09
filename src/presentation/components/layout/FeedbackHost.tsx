@@ -9,6 +9,7 @@ import { LevelUpModal } from "@/presentation/components/layout/LevelUpModal";
 import { success as hapticSuccess, levelUp as hapticLevelUp } from "@/shared/haptics";
 import { playSound } from "@/shared/sound";
 import { RewardBurst } from "@/presentation/components/motion/RewardBurst";
+import { MissionCompleteBanner } from "@/presentation/components/motion/MissionCompleteBanner";
 
 export function FeedbackHost() {
   const [levelUp, setLevelUp] = useState<number | null>(null);
@@ -42,6 +43,7 @@ export function FeedbackHost() {
 
   return (
     <>
+      <MissionCompleteBanner />
       <RewardBurst />
       {levelUp !== null && <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />}
     </>
