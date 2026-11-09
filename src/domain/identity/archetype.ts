@@ -1,5 +1,6 @@
 // Mapeo visual del avatar según el arquetipo elegido.
-// Cada arquetipo tiene su propio modelo .glb (ver avatarMotion.archetypeModelKey);
+// Cada arquetipo tiene su propio personaje medieval KayKit (CC0) en public/models
+// (ver avatarMotion.archetypeModelKey);
 // aquí se define lo que lo acompaña en Inicio, Perfil y misiones AR:
 //  - color del aura/glow
 //  - exposición (luz) del modelo

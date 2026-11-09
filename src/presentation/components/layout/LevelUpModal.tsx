@@ -47,7 +47,7 @@ export function LevelUpModal({ level, onClose }: Props) {
 
         <div className="mt-4 flex justify-center">
           <div className="relative">
-            <MiniAvatar3D archetype={user.archetype} size={160} glowColor={style.glow} exposure={style.exposure + 0.2} />
+            <MiniAvatar3D archetype={user.archetype} size={160} celebrating glowColor={style.glow} exposure={style.exposure + 0.2} />
             <Sparkles className="absolute -right-2 -top-2 h-6 w-6 text-soul-gold animate-pulse" />
             <Sparkles className="absolute -left-2 -bottom-2 h-5 w-5 text-primary animate-pulse" />
           </div>
