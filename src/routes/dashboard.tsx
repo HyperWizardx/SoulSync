@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { ChevronRight, Flame } from "lucide-react";
+import { ChevronRight, Flame, Shield } from "lucide-react";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
-import { AvatarIcon } from "@/presentation/components/avatars/AvatarArt";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
@@ -32,6 +31,9 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
+// Añade transparencia a un color hsl(...) del arquetipo.
+const withAlpha = (hsl: string, alpha: number) => hsl.replace(/\)$/, ` / ${alpha})`);
+
 function DashboardPage() {
   const { user } = useUserStore();
   const { data: wb, isLoading: wbLoading } = useWellbeing();
@@ -50,8 +52,18 @@ function DashboardPage() {
               {user.name} {archStyle.emoji}
             </h1>
           </div>
-          <Link to="/profile" className="flex h-12 w-12 items-center justify-center rounded-full ring-2 ring-primary/30">
-            <AvatarIcon index={user.avatar} size={44} />
+          {/* Escudo heráldico del arquetipo con el nivel: acceso al Perfil. */}
+          <Link
+            to="/profile"
+            aria-label={`Ver perfil: ${archStyle.name}, nivel ${user.level}`}
+            className="relative flex h-12 w-12 items-center justify-center rounded-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            style={{ filter: `drop-shadow(0 0 8px ${withAlpha(archStyle.glow, 0.45)})` }}
+          >
+            <Shield aria-hidden className="absolute inset-0 h-12 w-12" strokeWidth={1.75} style={{ color: archStyle.accent, fill: withAlpha(archStyle.accent, 0.15) }} />
+            <span aria-hidden className="relative -mt-1 text-lg">{archStyle.emoji}</span>
+            <span aria-hidden className="absolute -bottom-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
+              {user.level}
+            </span>
           </Link>
         </div>
 
