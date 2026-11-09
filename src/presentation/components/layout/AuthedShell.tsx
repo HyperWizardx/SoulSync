@@ -2,6 +2,7 @@ import { SettingsApplier } from "@/presentation/components/layout/SettingsApplie
 import { OnboardingGate } from "@/presentation/components/layout/OnboardingGate";
 import { OnboardingTour } from "@/presentation/components/layout/OnboardingTour";
 import { FeedbackHost } from "@/presentation/components/layout/FeedbackHost";
+import { ScenePreloader } from "@/presentation/components/layout/ScenePreloader";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 
 /**
@@ -20,6 +21,7 @@ export function AuthedShell() {
       <OnboardingGate />
       <OnboardingTour />
       <FeedbackHost />
+      <ScenePreloader />
     </>
   );
 }

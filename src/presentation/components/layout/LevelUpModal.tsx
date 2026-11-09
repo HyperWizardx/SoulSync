@@ -5,6 +5,7 @@ import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { levelUp as hapticLevelUp } from "@/shared/haptics";
+import { AnimatedNumber } from "@/presentation/components/motion/AnimatedNumber";
 
 interface Props {
   level: number;
@@ -54,7 +55,7 @@ export function LevelUpModal({ level, onClose }: Props) {
         </div>
 
         <h2 className="mt-4 font-cinzel text-3xl font-bold text-foreground">
-          Nivel {level}
+          Nivel <AnimatedNumber value={level} from={Math.max(1, level - 1)} duration={900} />
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           ¡Tu energía interior crece! Nuevos retos te esperan.

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { LevelUpModal } from "@/presentation/components/layout/LevelUpModal";
 import { success as hapticSuccess, levelUp as hapticLevelUp } from "@/shared/haptics";
 import { playSound } from "@/shared/sound";
+import { RewardBurst } from "@/presentation/components/motion/RewardBurst";
 
 export function FeedbackHost() {
   const [levelUp, setLevelUp] = useState<number | null>(null);
@@ -37,8 +38,10 @@ export function FeedbackHost() {
   }, []);
 
 
-  if (levelUp !== null) {
-    return <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />;
-  }
-  return null;
+  return (
+    <>
+      <RewardBurst />
+      {levelUp !== null && <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />}
+    </>
+  );
 }

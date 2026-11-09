@@ -6,13 +6,14 @@ import { SEASON_COPY } from "@/domain/world/world";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { Lock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { createRef, useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { MISSIONS } from "@/domain/gamification/missionsData";
 import { missionBelongsToZone } from "@/domain/world/missionZones";
 import type { WorldSeason, WorldZone } from "@/domain/world/world";
 import { DIORAMAS, type ZoneKey } from "@/domain/world/dioramas";
 import { WorldDiorama } from "@/presentation/components/world/WorldDiorama";
+import { WorldThumbnails } from "@/presentation/components/world/WorldThumbnails";
 import { Reveal } from "@/presentation/components/motion/Reveal";
 
 export const Route = createFileRoute("/world")({
@@ -47,6 +48,8 @@ function WorldPage() {
   const [zoneKey, setZoneKey] = useState<ZoneKey | null>(null);
   const { zone: zoneParam } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const thumbRefs = useMemo(() => ({ valle: createRef<HTMLDivElement>(), bosque: createRef<HTMLDivElement>(), reino: createRef<HTMLDivElement>(), montana: createRef<HTMLDivElement>() }), []);
+  const [thumbsReady, setThumbsReady] = useState(false);
 
   const world = data?.world ?? null;
   const zone: WorldZone | null = world?.zones.find((z) => z.key === zoneKey) ?? null;
@@ -149,7 +152,11 @@ function WorldPage() {
                       z.unlocked ? "border-primary/40 bg-primary/5" : "border-border bg-card"
                     }`}
                   >
-                    <WorldDiorama zone={z.key} emoji={z.emoji} progress={z.progress} unlocked={z.unlocked} season={world.season} className="-mx-3 -mt-3 h-28" />
+                    {/* Recuadro que sigue el lienzo compartido de dioramas (WorldThumbnails) */}
+                    <div ref={thumbRefs[z.key]} className="relative -mx-3 -mt-3 flex h-28 items-center justify-center" data-zone-thumb={z.key}>
+                      {!thumbsReady && <span className="text-3xl opacity-60" aria-hidden>{z.emoji}</span>}
+                      {!z.unlocked && <span className="absolute flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow"><Lock className="h-4 w-4" aria-hidden /></span>}
+                    </div>
                     <p className="mt-2 text-sm font-semibold text-foreground">{z.emoji} {z.name}</p>
                     {z.unlocked ? (
                       <>
@@ -171,6 +178,11 @@ function WorldPage() {
                   </Reveal>
                 ))}
               </div>
+              <WorldThumbnails
+                season={world.season}
+                onReady={() => setThumbsReady(true)}
+                items={world.zones.map((z) => ({ zone: z.key, progress: z.progress, unlocked: z.unlocked, track: thumbRefs[z.key] }))}
+              />
             </section>
 
             {/* Timeline unificado */}

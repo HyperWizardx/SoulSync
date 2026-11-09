@@ -1,11 +1,14 @@
-// Requiere: npm i -D @gltf-transform/core@4 @gltf-transform/functions@4 (solo para regenerar los modelos).
+// Requiere: npm i -D @gltf-transform/core@4 @gltf-transform/functions@4 @gltf-transform/extensions@4 meshoptimizer (solo para regenerar los modelos).
+// Se comprimen con cuantización (UV a 16 bits por la textura de paleta) + meshopt; useGLTF de drei trae el decodificador.
 // Origen: https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 (Characters/gltf, CC0).
 // Ejemplo: node scripts/build-avatars.mjs <carpeta_kaykit> public/models
 // Recorta los personajes KayKit (CC0) a lo que usa SoulSync: un set de accesorios
 // por arquetipo y solo las animaciones necesarias.
 // Uso: node build-avatars.mjs <carpeta_origen> <carpeta_destino>
 import { NodeIO } from "@gltf-transform/core";
-import { prune, dedup, resample } from "@gltf-transform/functions";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
+import { MeshoptEncoder } from "meshoptimizer";
+import { prune, dedup, resample, quantize, meshopt } from "@gltf-transform/functions";
 import { statSync } from "node:fs";
 
 const [, , srcDir, outDir] = process.argv;
@@ -20,7 +23,8 @@ const SPECS = [
 // Partes del cuerpo que siempre se conservan.
 const BODY = /_(ArmLeft|ArmRight|Body|Head|Head_Hooded|LegLeft|LegRight)$/;
 
-const io = new NodeIO();
+await MeshoptEncoder.ready;
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.encoder": MeshoptEncoder });
 for (const spec of SPECS) {
   const doc = await io.read(`${srcDir}/${spec.src}`);
   const root = doc.getRoot();
@@ -40,7 +44,7 @@ for (const spec of SPECS) {
   await doc.transform(resample(), dedup(), prune());
   // Algunas muestras de animaciones descartadas quedan huérfanas: se eliminan explícitamente.
   for (const acc of root.listAccessors()) if (acc.listParents().every((p) => p === root)) acc.dispose();
-  await doc.transform(prune());
+  await doc.transform(prune(), quantize({ quantizeTexcoord: 16 }), meshopt({ encoder: MeshoptEncoder, level: "medium" }));
   await io.write(`${outDir}/${spec.out}`, doc);
   const kept = root.listNodes().filter((n) => n.getMesh()).map((n) => n.getName());
   console.log(spec.out, Math.round(statSync(`${outDir}/${spec.out}`).size / 1024) + " KB", kept.join(","), root.listAnimations().map((a) => a.getName()).join(","));

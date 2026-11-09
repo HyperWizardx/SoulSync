@@ -114,3 +114,11 @@ export default function ArchetypeScene(props: Props) {
     </Canvas>
   );
 }
+
+// Precarga (para ScenePreloader): baja el modelo antes de que se abra la pantalla que lo usa.
+export function preloadArchetype(archetype: number | null) {
+  useGLTF.preload(MODEL_URL(archetypeModelKey(archetype)));
+}
+export function preloadWorldKit() {
+  useGLTF.preload(WORLD_KIT_URL);
+}

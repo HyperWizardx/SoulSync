@@ -7,6 +7,8 @@ import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
 import { NextStepCard } from "@/presentation/components/layout/NextStepCard";
+import { AnimatedNumber } from "@/presentation/components/motion/AnimatedNumber";
+import { useDailyGreeting } from "@/presentation/hooks/useDailyGreeting";
 import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
 import { Reveal } from "@/presentation/components/motion/Reveal";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
@@ -40,6 +42,7 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardPage() {
   const { user, isLoading } = useUserStore();
   const { data: wb, isLoading: wbLoading } = useWellbeing();
+  const greeting = useDailyGreeting();
   const archStyle = getArchetypeStyle(user.archetype);
 
   const world = wb?.world ?? null;
@@ -64,7 +67,7 @@ function DashboardPage() {
 
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
           <AuraHalo aura={wb?.aura} color={archStyle.glow}>
-            <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} />
+            <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} />
           </AuraHalo>
           <p className="mt-2 font-cinzel font-semibold">{archStyle.name}</p>
         </Reveal>
@@ -122,11 +125,11 @@ function DashboardPage() {
           </div>
           <div className="rounded-xl border border-border bg-card p-2 text-center">
             <p className="text-[10px] text-muted-foreground">Monedas</p>
-            <p className="text-sm font-bold">{user.coins}</p>
+            <p className="text-sm font-bold"><AnimatedNumber value={user.coins} /></p>
           </div>
           <div className="rounded-xl border border-border bg-card p-2 text-center">
             <p className="text-[10px] text-muted-foreground">Gemas</p>
-            <p className="text-sm font-bold text-primary">{user.gems}</p>
+            <p className="text-sm font-bold text-primary"><AnimatedNumber value={user.gems} /></p>
           </div>
         </div>
       </div>
