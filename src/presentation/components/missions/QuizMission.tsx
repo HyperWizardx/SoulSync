@@ -1,43 +1,18 @@
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useState } from "react";
 import { X, Check } from "lucide-react";
-
-interface Question {
-  q: string;
-  options: string[];
-  correct: number;
-  explain: string;
-}
+import type { QuizQuestion } from "@/domain/gamification/quizzes";
 
 interface Props {
   onComplete: (score: number, total: number) => void;
   onClose: () => void;
   title?: string;
   icon?: string;
+  /** Preguntas de este quiz (ver domain/gamification/quizzes). */
+  questions: readonly QuizQuestion[];
 }
 
-const QUESTIONS: Question[] = [
-  {
-    q: "¿Qué técnica ayuda a calmar el sistema nervioso al instante?",
-    options: ["Respiración 4-7-8", "Beber café", "Revisar redes"],
-    correct: 0,
-    explain: "Inhalar 4s, sostener 7s, exhalar 8s activa el sistema parasimpático.",
-  },
-  {
-    q: "El mindfulness consiste principalmente en…",
-    options: ["Vaciar la mente", "Observar sin juzgar", "Pensar en positivo"],
-    correct: 1,
-    explain: "Es atención plena al momento presente, sin reaccionar.",
-  },
-  {
-    q: "La resiliencia se entrena con…",
-    options: ["Evitar el malestar", "Exponerse y reflexionar", "Dormir más"],
-    correct: 1,
-    explain: "Afrontar y procesar dificultades fortalece la resiliencia.",
-  },
-];
-
-export function QuizMission({ onComplete, onClose, title = "Quiz de sabiduría", icon = "brain" }: Props) {
+export function QuizMission({ onComplete, onClose, title = "Quiz de atención plena", icon = "brain", questions: QUESTIONS }: Props) {
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
@@ -128,6 +103,7 @@ export function QuizMission({ onComplete, onClose, title = "Quiz de sabiduría",
           <div className="flex flex-col items-center py-8">
             <Check className="h-12 w-12 text-soul-teal" />
             <p className="mt-3 font-cinzel text-xl font-bold text-foreground">¡Quiz completado!</p>
+            <p className="mt-1 text-sm text-muted-foreground">Cada respuesta suma sabiduría a tu héroe.</p>
           </div>
         )}
       </div>

@@ -5,7 +5,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { MISSIONS, baseCategory, pathBlocker } from "@/domain/gamification/missionsData";
+import { baseCategory, pathBlocker, visibleMissions } from "@/domain/gamification/missionsData";
 import { isoDay } from "@/domain/gamification/progression";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import type { TaskCategoryName } from "@/domain/gamification/rewards";
@@ -45,7 +45,7 @@ export async function loadRecommendations(db: Db, userId: string): Promise<Recom
   // Candidatas: misiones disponibles hoy (nivel, sin repetir hoy, ruta desbloqueada).
   const doneToday = new Set(rows.filter((r) => r.completed_date === today).map((r) => r.mission_id as string));
   const everDone = new Set(rows.map((r) => r.mission_id as string));
-  const candidates = MISSIONS
+  const candidates = visibleMissions(archetype)
     .filter((m) => !doneToday.has(m.id) && (!m.requiredLevel || level >= m.requiredLevel) && !pathBlocker(m, everDone))
     .map((m) => ({ id: m.id, category: m.isAR ? "ar" as const : baseCategory(m) }));
 

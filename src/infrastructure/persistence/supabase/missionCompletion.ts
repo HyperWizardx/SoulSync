@@ -37,6 +37,7 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
   if (!pRes.data || !sRes.data || !aRes.data) throw new Error("Perfil no inicializado");
   const p = pRes.data, s = sRes.data, a = aRes.data;
   if (mission.requiredLevel && p.level < mission.requiredLevel) throw new Error(`Requiere nivel ${mission.requiredLevel}`);
+  if (mission.archetype !== undefined && mission.archetype !== p.archetype) throw new Error("Esta misión es exclusiva de otro arquetipo.");
   if (mission.path) {
     const { data: doneRows } = await db.from("mission_completions").select("mission_id").eq("user_id", userId).like("mission_id", `${mission.path.id}-%`);
     const blocker = pathBlocker(mission, new Set((doneRows ?? []).map((r) => r.mission_id as string)));

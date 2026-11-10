@@ -8,7 +8,7 @@ interface Props {
   hint?: string;
 }
 
-export function GratitudeMission({ onComplete, onClose, title = "3 Gratitudes", hint = "Escribe tres cosas, personas o momentos por los que te sientas agradecido hoy." }: Props) {
+export function GratitudeMission({ onComplete, onClose, title = "3 Gratitudes", hint = "Escribe tres cosas, personas o momentos que agradeces hoy." }: Props) {
   const [items, setItems] = useState<string[]>(["", "", ""]);
 
   const valid = items.every((i) => i.trim().length >= 3);

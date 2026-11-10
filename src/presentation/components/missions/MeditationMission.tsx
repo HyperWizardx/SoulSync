@@ -6,11 +6,14 @@ import { tap } from "@/shared/haptics";
 
 interface Props {
   durationSec?: number;
+  /** Título de la misión y frases guía propias (por defecto, la meditación guiada general). */
+  title?: string;
+  guide?: readonly string[];
   onComplete: () => void;
   onClose: () => void;
 }
 
-const STEPS = [
+const DEFAULT_STEPS = [
   "Cierra los ojos suavemente.",
   "Siente tu respiración natural.",
   "Relaja los hombros y la mandíbula.",
@@ -19,7 +22,8 @@ const STEPS = [
   "Conecta con la quietud interior.",
 ];
 
-export function MeditationMission({ durationSec = 120, onComplete, onClose }: Props) {
+export function MeditationMission({ durationSec = 120, onComplete, onClose, title = "Meditación guiada", guide }: Props) {
+  const STEPS = guide && guide.length > 0 ? guide : DEFAULT_STEPS;
   const [remaining, setRemaining] = useState(durationSec);
   const [paused, setPaused] = useState(false);
   const [step, setStep] = useState(0);
@@ -68,7 +72,7 @@ export function MeditationMission({ durationSec = 120, onComplete, onClose }: Pr
         <X className="h-5 w-5" />
       </button>
 
-      <p className="font-cinzel text-sm text-muted-foreground">Meditación guiada</p>
+      <p className="font-cinzel text-sm text-muted-foreground">{title}</p>
       <div className="mt-6 relative h-56 w-56 flex items-center justify-center">
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-soul-teal/30 animate-pulse" />
         <div className="absolute inset-4 rounded-full border-2 border-primary/40" />

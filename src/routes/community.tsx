@@ -6,7 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
 import { BackButton } from "@/presentation/components/layout/BackButton";
 import { toast } from "sonner";
-import { MISSIONS, baseCategory, missionCategory } from "@/domain/gamification/missionsData";
+import { baseCategory, missionCategory, visibleMissions } from "@/domain/gamification/missionsData";
 import { AFFINITY_XP_MULT, getArchetypeStyle, isAffine } from "@/domain/identity/archetype";
 import { useProfileSummary, useUserStore } from "@/presentation/hooks/useUserStore";
 
@@ -30,7 +30,6 @@ const SAMPLE_VOLUNTEERS = [
   { name: "Pedro G.", role: "Mentor", dist: "3.5 km", icon: "wizard-face", online: true },
 ];
 
-const SOCIAL_MISSIONS = MISSIONS.filter((m) => baseCategory(m) === "social");
 
 function CommunityPage() {
   const { user } = useUserStore();
@@ -39,6 +38,7 @@ function CommunityPage() {
   const today = new Date().toDateString();
   const doneToday = new Set(user.missionHistory.filter((m) => m.date === today).map((m) => m.id));
   const social30 = summary?.categories30?.social ?? 0;
+  const SOCIAL_MISSIONS = visibleMissions(user.archetype).filter((m) => baseCategory(m) === "social");
 
   return (
     <MobileLayout>

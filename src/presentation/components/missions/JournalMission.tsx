@@ -13,12 +13,12 @@ interface Props {
 }
 
 const MOODS = [
-  { label: "Feliz", Icon: Laugh },
-  { label: "Tranquilo", Icon: Smile },
+  { label: "Alegría", Icon: Laugh },
+  { label: "Calma", Icon: Smile },
   { label: "Neutral", Icon: Meh },
-  { label: "Triste", Icon: Frown },
-  { label: "Molesto", Icon: Angry },
-  { label: "Abrumado", Icon: Annoyed },
+  { label: "Tristeza", Icon: Frown },
+  { label: "Enojo", Icon: Angry },
+  { label: "Agobio", Icon: Annoyed },
 ];
 const PROMPTS = [
   "¿Qué emoción predomina hoy y de dónde crees que viene?",
@@ -28,7 +28,7 @@ const PROMPTS = [
 
 export function JournalMission({ onComplete, onClose, title = "Diario emocional", icon = "notebook", prompts = PROMPTS }: Props) {
   const [text, setText] = useState("");
-  const [mood, setMood] = useState("Feliz");
+  const [mood, setMood] = useState("Alegría");
   const [prompt] = useState(() => prompts[Math.floor(Math.random() * prompts.length)]);
 
   const minChars = 30;

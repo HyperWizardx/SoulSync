@@ -8,12 +8,12 @@ const CHALLENGES = [
   { icon: "scroll-quill", title: "Escribe 1 cosa nueva sobre ti", desc: "Algo que descubriste recientemente." },
   { icon: "phone", title: "Llama a alguien que extrañas", desc: "Aunque sea 2 minutos." },
   { icon: "oak-leaf", title: "Toca una planta o árbol", desc: "Conéctate con la naturaleza." },
-  { icon: "water-drop", title: "Bebe un vaso de agua ahora", desc: "Hidratarse es autocuidado." },
+  { icon: "broom", title: "Ordena tu espacio 5 minutos", desc: "Un lugar despejado ayuda a pensar con calma." },
   { icon: "bookshelf", title: "Lee algo inspirador 5 min", desc: "Una página, un poema, una idea." },
-  { icon: "prayer", title: "Agradece en voz alta", desc: "Por algo simple del día." },
-  { icon: "walk", title: "Camina sin móvil 3 min", desc: "Solo tú y tus pasos." },
+  { icon: "cloud-ring", title: "Mira el cielo un minuto", desc: "Nota los colores y las formas de las nubes." },
+  { icon: "envelope", title: "Escribe una nota amable", desc: "Para alguien de tu casa, tu clase o para ti." },
   { icon: "musical-notes", title: "Escucha 1 canción favorita", desc: "Solo presente, sin distracciones." },
-  { icon: "body-balance", title: "Estírate 1 minuto", desc: "Tu cuerpo te lo agradecerá." },
+  { icon: "open-book", title: "Aprende una palabra nueva", desc: "Busca su significado y úsala hoy." },
 ];
 
 interface Props {

@@ -3,7 +3,7 @@
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, ShoppingBag, Users } from "lucide-react";
-import { MISSIONS, missionCategory } from "@/domain/gamification/missionsData";
+import { missionCategory, visibleMissions, type Mission } from "@/domain/gamification/missionsData";
 import { AFFINITY_XP_MULT, isAffine } from "@/domain/identity/archetype";
 import { nextStepMission } from "@/domain/world/missionZones";
 import { zoneInfo, type WorldZone } from "@/domain/world/world";
@@ -16,8 +16,10 @@ interface Props {
 }
 
 export function NextStepCard({ zones, completedToday, level, archetype }: Props) {
-  const affine = (m: (typeof MISSIONS)[number]) => isAffine(archetype, missionCategory(m));
-  const next = zones ? nextStepMission(zones, MISSIONS, completedToday, level, affine) : null;
+  const affine = (m: Mission) => isAffine(archetype, missionCategory(m));
+  // Sin pasos de ruta (tienen su propio orden) y solo misiones que este héroe puede ver.
+  const pool = visibleMissions(archetype).filter((m) => !m.path);
+  const next = zones ? nextStepMission(zones, pool, completedToday, level, affine) : null;
   const nextAffine = next ? affine(next.mission) : false;
   const zone = next ? zoneInfo(next.zone) : null;
   return (
