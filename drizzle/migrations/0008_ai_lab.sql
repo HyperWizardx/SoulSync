@@ -1,4 +1,5 @@
 -- Fase 4 (IA avanzada).
+-- Idempotente: se puede ejecutar de nuevo sin error (tablas IF NOT EXISTS, políticas recreadas).
 -- participant_profile: ficha OPCIONAL (edad, género y semestre por tramos, con "Prefiero no decir")
 -- que solo se usa, agrupada y seudonimizada, en la auditoría de equidad. La ve su dueño y el rol
 -- de investigación (nunca psicología); se borra al revocar el consentimiento.
@@ -15,14 +16,19 @@ CREATE TABLE IF NOT EXISTS public.participant_profile (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.participant_profile TO authenticated;
 GRANT ALL ON public.participant_profile TO service_role;
 ALTER TABLE public.participant_profile ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "users read own participant profile" ON public.participant_profile;
 CREATE POLICY "users read own participant profile" ON public.participant_profile FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users insert own participant profile" ON public.participant_profile;
 CREATE POLICY "users insert own participant profile" ON public.participant_profile FOR INSERT TO authenticated
   WITH CHECK ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users update own participant profile" ON public.participant_profile;
 CREATE POLICY "users update own participant profile" ON public.participant_profile FOR UPDATE TO authenticated
   USING ((SELECT auth.uid()) = user_id) WITH CHECK ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users delete own participant profile" ON public.participant_profile;
 CREATE POLICY "users delete own participant profile" ON public.participant_profile FOR DELETE TO authenticated
   USING ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "researchers read participant profiles" ON public.participant_profile;
 CREATE POLICY "researchers read participant profiles" ON public.participant_profile FOR SELECT TO authenticated
   USING ((SELECT public.has_role((SELECT auth.uid()), 'investigador')));
 

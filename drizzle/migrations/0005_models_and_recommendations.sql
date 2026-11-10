@@ -1,4 +1,5 @@
 -- Modelos versionados y registro de recomendaciones (IA propia de SoulSync).
+-- Idempotente: se puede ejecutar de nuevo sin error (tablas IF NOT EXISTS, políticas recreadas).
 -- model_versions: qué modelos existen, con qué parámetros y cuál está activo (lectura pública).
 -- recommendation_log: qué misiones recomendó el modelo a cada estudiante y si las aceptó,
 -- para evaluarlo. Solo se registra con consentimiento; se borra al revocarlo.
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.model_versions (
 GRANT SELECT ON public.model_versions TO authenticated;
 GRANT ALL ON public.model_versions TO service_role;
 ALTER TABLE public.model_versions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "authenticated read model versions" ON public.model_versions;
 CREATE POLICY "authenticated read model versions" ON public.model_versions FOR SELECT TO authenticated USING (true);
 
 INSERT INTO public.model_versions (version, kind, description, params, active) VALUES
@@ -37,14 +39,19 @@ CREATE TABLE IF NOT EXISTS public.recommendation_log (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.recommendation_log TO authenticated;
 GRANT ALL ON public.recommendation_log TO service_role;
 ALTER TABLE public.recommendation_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "users read own recommendations" ON public.recommendation_log;
 CREATE POLICY "users read own recommendations" ON public.recommendation_log FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users insert own recommendations" ON public.recommendation_log;
 CREATE POLICY "users insert own recommendations" ON public.recommendation_log FOR INSERT TO authenticated
   WITH CHECK ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users update own recommendations" ON public.recommendation_log;
 CREATE POLICY "users update own recommendations" ON public.recommendation_log FOR UPDATE TO authenticated
   USING ((SELECT auth.uid()) = user_id) WITH CHECK ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users delete own recommendations" ON public.recommendation_log;
 CREATE POLICY "users delete own recommendations" ON public.recommendation_log FOR DELETE TO authenticated
   USING ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "admins read all recommendation_log" ON public.recommendation_log;
 CREATE POLICY "admins read all recommendation_log" ON public.recommendation_log FOR SELECT TO authenticated
   USING ((SELECT public.is_admin((SELECT auth.uid()))));
 CREATE INDEX IF NOT EXISTS recommendation_log_date_idx ON public.recommendation_log (rec_date);

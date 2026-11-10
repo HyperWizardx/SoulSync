@@ -1,4 +1,5 @@
 -- Gremios: grupos de 3 a 5 estudiantes con un reto semanal compartido (sin ranking).
+-- Idempotente: se puede ejecutar de nuevo sin error (tablas IF NOT EXISTS, políticas recreadas).
 -- guilds / guild_members: cada estudiante pertenece a lo sumo a un gremio; solo los miembros
 -- ven su gremio. Crear, unirse y salir se hace con funciones SECURITY DEFINER que validan
 -- el cupo (máx. 5) y generan el código. guild_chest_claims: cofre semanal, uno por miembro.
@@ -43,12 +44,16 @@ RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT guild_id FROM public.guild_members WHERE user_id = auth.uid()
 $$;
 
+DROP POLICY IF EXISTS "members read own guild" ON public.guilds;
 CREATE POLICY "members read own guild" ON public.guilds FOR SELECT TO authenticated
   USING (id = (SELECT public.my_guild_id()));
+DROP POLICY IF EXISTS "members read guild members" ON public.guild_members;
 CREATE POLICY "members read guild members" ON public.guild_members FOR SELECT TO authenticated
   USING (guild_id = (SELECT public.my_guild_id()));
+DROP POLICY IF EXISTS "users read own chest claims" ON public.guild_chest_claims;
 CREATE POLICY "users read own chest claims" ON public.guild_chest_claims FOR SELECT TO authenticated
   USING ((SELECT auth.uid()) = user_id);
+DROP POLICY IF EXISTS "users insert own chest claims" ON public.guild_chest_claims;
 CREATE POLICY "users insert own chest claims" ON public.guild_chest_claims FOR INSERT TO authenticated
   WITH CHECK ((SELECT auth.uid()) = user_id);
 
