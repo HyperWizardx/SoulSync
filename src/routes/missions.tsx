@@ -76,13 +76,13 @@ export const Route = createFileRoute("/missions")({
   component: MissionsPage,
 });
 // Secciones por tipo de misión (las AR van aparte) y su orden en la pantalla.
-const SECTIONS: { key: TaskCategoryName; label: string; icon: string; hint: string }[] = [
+const SECTIONS: { key: TaskCategoryName; label: string; chip?: string; icon: string; hint: string }[] = [
   { key: "autocuidado", label: "Autocuidado", icon: "lotus", hint: "Respira, descansa y cuida tu cuerpo" },
   { key: "reflexion", label: "Reflexión", icon: "scroll-quill", hint: "Escribe y ordena lo que sientes" },
   { key: "movimiento", label: "Movimiento", icon: "run", hint: "Activa tu cuerpo, aunque sean minutos" },
-  { key: "social", label: "Conexión social", icon: "shaking-hands", hint: "Acércate a las personas que te suman" },
+  { key: "social", label: "Conexión social", chip: "Social", icon: "shaking-hands", hint: "Acércate a las personas que te suman" },
   { key: "cognitivo", label: "Mente", icon: "brain", hint: "Aprende, enfoca y juega con ideas" },
-  { key: "ar", label: "Realidad aumentada", icon: "smartphone", hint: "Lleva a tu héroe a tu mundo real" },
+  { key: "ar", label: "Realidad aumentada", chip: "AR", icon: "smartphone", hint: "Lleva a tu héroe a tu mundo real" },
 ];
 type Filter = "todas" | TaskCategoryName;
 
@@ -214,17 +214,18 @@ function MissionsPage() {
     </div>
 
     {/* Filtros por tipo de misión */}
-    <div className="-mx-4 mt-5 overflow-x-auto px-4 [scrollbar-width:none]" role="tablist" aria-label="Tipos de misión">
-      <div className="flex w-max gap-2">
-        {([{ key: "todas", label: "Todas", icon: "crossed-swords" }, ...SECTIONS] as { key: Filter; label: string; icon: string }[]).map((f) => (
+    {/* Se acomodan en varias líneas: todos los filtros quedan a la vista, sin deslizar */}
+    <div className="mt-5" role="tablist" aria-label="Tipos de misión">
+      <div className="flex flex-wrap gap-2">
+        {([{ key: "todas", label: "Todas", icon: "crossed-swords" }, ...SECTIONS] as { key: Filter; label: string; chip?: string; icon: string }[]).map((f) => (
           <button
             key={f.key}
             role="tab"
             aria-selected={filter === f.key}
             onClick={() => setFilter(f.key)}
-            className={`flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${filter === f.key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"}`}
+            className={`flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-colors ${filter === f.key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"}`}
           >
-            <GameIcon name={f.icon} className="h-3.5 w-3.5" /> {f.label}
+            <GameIcon name={f.icon} className="h-3.5 w-3.5" /> {f.chip ?? f.label}
           </button>
         ))}
       </div>
