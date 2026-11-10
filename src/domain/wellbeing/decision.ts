@@ -93,12 +93,18 @@ export function applyHysteresis(level: RiskLevel, previous: RiskLevel[] | undefi
   return { level, mode: "ninguna" };
 }
 
-export const decisionModel: WellbeingModel = {
-  modelVersion: DECISION_MODEL_VERSION,
+/**
+ * Crea el criterio de decisión sobre un modelo base (el baseline experto o una brújula entrenada).
+ * Las reglas de seguridad, la línea base personal, los protectores, el contexto académico y la
+ * histéresis son las mismas para cualquier modelo base.
+ */
+export function buildDecisionModel(baseModel: WellbeingModel, modelVersion: string): WellbeingModel {
+  return {
+  modelVersion,
   predict(fs: FeatureSet, ctx: DecisionContext = {}): WellbeingPrediction {
-    const base = baselineLogisticModel.predict(fs);
+    const base = baseModel.predict(fs);
     const confidence = signalConfidence(fs.checkinCount14, base.coverage);
-    if (base.score === null) return { ...base, modelVersion: DECISION_MODEL_VERSION, rawScore: null, confidence: "baja", safetyFlags: [], protectiveFactors: [] };
+    if (base.score === null) return { ...base, modelVersion, rawScore: null, confidence: "baja", safetyFlags: [], protectiveFactors: [] };
 
     const personal = ctx.checkins && ctx.today ? personalAdjustment(ctx.checkins, ctx.today) : 0;
     const protective = protectiveFactors(fs);
@@ -111,7 +117,7 @@ export const decisionModel: WellbeingModel = {
 
     return {
       ...base,
-      modelVersion: DECISION_MODEL_VERSION,
+      modelVersion,
       rawScore: base.score,
       score,
       riskLevel: level,
@@ -121,7 +127,11 @@ export const decisionModel: WellbeingModel = {
       adjustments: { personal, protective: -protective.reduction, academic: -academic, hysteresis: mode },
     };
   },
-};
+  };
+}
+
+/** Criterio experto (decision-v4 sobre baseline-logistic-v3): el modelo por defecto. */
+export const decisionModel: WellbeingModel = buildDecisionModel(baselineLogisticModel, DECISION_MODEL_VERSION);
 
 export const SAFETY_FLAG_COPY: Record<SafetyFlag, string> = {
   triada_estres_sueno_aislamiento: "Estrés alto, poco sueño y aislamiento a la vez",

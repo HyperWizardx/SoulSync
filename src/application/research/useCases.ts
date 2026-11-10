@@ -1,28 +1,21 @@
 /** Casos de uso del panel: permisos, consentimiento, señales y exportación por puertos. */
-import { activeModel, isExamPeriod, runInference } from '@/domain/wellbeing/inference';
+import { isExamPeriod, runInference } from '@/domain/wellbeing/inference';
+import { resolveActiveModel } from '@/domain/wellbeing/trainedLogistic';
+import { forecastMood } from '@/domain/wellbeing/forecast';
+import { buildProfiles } from '@/domain/research/clustering';
+import { buildProfileVectors } from '@/domain/research/profileVectors';
 import { buildDashboardSeries } from '@/domain/research/dashboard';
 import { SAFETY_FLAG_COPY } from '@/domain/wellbeing/decision';
 import type { RiskLevel } from '@/domain/wellbeing/types';
 import { CONSENT_VERSION } from '@/domain/wellbeing/types';
+import { consentState, consentedUserIds, daysAgoISO, requireRole, todayISO } from './access';
 import type { CheckinRecord, PredictionInput, ScaleRecord, TaskCategory, TaskStatus, FactorExplanation } from '@/domain/wellbeing/types';
 import { WHO5_CODE } from '@/domain/wellbeing/who5';
 import { buildAlerts } from '@/domain/research/alerts';
 import { aggregatePopulation, participantCode, toCsv, type StudentRow } from '@/domain/research/aggregate';
-import { DATASET_COLUMNS, type AdminDeps, type AdminRole, type StudentDetail, type DatasetKey } from '@/domain/research/ports';
+import { DATASET_COLUMNS, type AdminDeps, type StudentDetail, type DatasetKey } from '@/domain/research/ports';
 
 export const getAdminAccessUseCase = (deps: AdminDeps, userId: string) => deps.repository.readAccess(userId);
-async function requireRole(deps: AdminDeps, userId: string, role: AdminRole) {
-  const access = await deps.repository.readAccess(userId);
-  if (!access[role]) throw new Error('Acceso restringido: no tienes permisos de administración para esta vista.');
-}
-const todayISO = (deps: AdminDeps) => deps.now().toISOString().slice(0, 10);
-const daysAgoISO = (deps: AdminDeps, n: number) => new Date(deps.now().getTime() - n * 86_400_000).toISOString().slice(0, 10);
-
-function consentState(row: { consent_version: string; revoked_at: string | null } | undefined) {
-  if (!row) return "ninguno" as const;
-  if (row.revoked_at) return "revocado" as const;
-  return row.consent_version === CONSENT_VERSION ? ("vigente" as const) : ("desactualizado" as const);
-}
 
 function buildInput(
   today: string,
@@ -61,10 +54,13 @@ async function loadStudentRows(deps: AdminDeps, withEmails: boolean): Promise<St
 /** Carga filas + datos crudos + contexto de decisión (calendario, niveles previos, seguimientos). */
 async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
   const today = todayISO(deps);
-  const [snapshot, ctx] = await Promise.all([
+  const [snapshot, ctx, compass] = await Promise.all([
     deps.repository.loadStudents(withEmails, daysAgoISO(deps, 27), new Date(deps.now().getTime() - 13 * 86_400_000).toISOString()),
     deps.repository.loadDecisionContext(daysAgoISO(deps, 29)),
+    deps.repository.loadActiveCompass(),
   ]);
+  // La brújula activa (entrenada o experta) es la misma que ve cada estudiante.
+  const model = resolveActiveModel(compass);
   const { profiles, consents, checkins, missions, tasks, emails } = snapshot;
   const scales = snapshot.scales ?? [];
   const examPeriod = isExamPeriod(today, ctx.calendar);
@@ -156,6 +152,7 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
         userScales,
       ),
       { previousLevels: levelsByUser.get(p.user_id), examPeriod },
+      model,
     );
 
     return {
@@ -168,9 +165,10 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
       trend: prediction.trend,
       coverage: prediction.coverage,
       who5Raw: who5 ? who5.raw : null,
+      forecastDip: forecastMood(userCheckins, today)?.dip ?? false,
     } satisfies StudentRow;
   });
-  return { rows, snapshot, ctx, today };
+  return { rows, snapshot, ctx, today, model };
 }
 
 export async function listStudentsUseCase(deps: AdminDeps, userId: string): Promise<StudentRow[]> {
@@ -188,7 +186,7 @@ export async function getPopulationMetricsUseCase(deps: AdminDeps, userId: strin
   await requireRole(deps, userId, 'investigador');
   const data = await loadStudentData(deps, false);
   const rows = data.rows.map(r => ({ ...r, name: r.participantCode, email: null, lastFollowUp: null }));
-  return { metrics: aggregatePopulation(rows, data.today), rows, dashboard: dashboardFrom(data, rows), calendar: data.ctx.calendar, modelVersion: activeModel.modelVersion };
+  return { metrics: aggregatePopulation(rows, data.today), rows, dashboard: dashboardFrom(data, rows), calendar: data.ctx.calendar, modelVersion: data.model.modelVersion, profiles: profilesFrom(data) };
 }
 
 function dashboardFrom(data: Awaited<ReturnType<typeof loadStudentData>>, rows: StudentRow[]) {
@@ -202,11 +200,17 @@ function dashboardFrom(data: Awaited<ReturnType<typeof loadStudentData>>, rows: 
   });
 }
 
-/** Panel de psicología: filas identificadas + series agregadas. */
+/** Perfiles del grupo (k-means propio): solo agregados, con consentimiento vigente. */
+function profilesFrom(data: Awaited<ReturnType<typeof loadStudentData>>) {
+  const consented = consentedUserIds(data.snapshot.consents);
+  return buildProfiles(buildProfileVectors({ checkins: data.snapshot.checkins, missions: data.snapshot.missions }, consented, data.today));
+}
+
+/** Panel de psicología: filas identificadas + series agregadas, alertas y perfiles del grupo. */
 export async function getPsychologistDashboardUseCase(deps: AdminDeps, userId: string) {
   await requireRole(deps, userId, 'psicologo');
   const data = await loadStudentData(deps, true);
-  return { dashboard: dashboardFrom(data, data.rows), alerts: buildAlerts(data.rows, deps.now()) };
+  return { dashboard: dashboardFrom(data, data.rows), alerts: buildAlerts(data.rows, deps.now()), profiles: profilesFrom(data) };
 }
 
 export async function addFollowUpUseCase(deps: AdminDeps, userId: string, studentId: string, note: string) {
@@ -244,7 +248,7 @@ export async function getStudentDetailUseCase(deps: AdminDeps, userId: string, t
     const prediction = runInference(buildInput(todayISO(deps), detail.checkins, {}, 3, null,
       tasks.map(t => ({ date: todayISO(deps), missionId: '', status: t.status as TaskStatus, category: t.category as TaskCategory, durationSeconds: 0 })),
       detail.scales.map(s => ({ code: s.code, raw: s.raw, max: s.max, answeredAt: s.answeredAt.slice(0, 10) })),
-    ), { previousLevels: data.ctx.predictions.filter(p => p.user_id === targetId && p.generated_at.slice(0, 10) !== todayISO(deps)).sort((a, b) => b.generated_at.localeCompare(a.generated_at)).map(p => p.risk_level as RiskLevel), examPeriod: isExamPeriod(todayISO(deps), data.ctx.calendar) });
+    ), { previousLevels: data.ctx.predictions.filter(p => p.user_id === targetId && p.generated_at.slice(0, 10) !== todayISO(deps)).sort((a, b) => b.generated_at.localeCompare(a.generated_at)).map(p => p.risk_level as RiskLevel), examPeriod: isExamPeriod(todayISO(deps), data.ctx.calendar) }, data.model);
     explanation = prediction.explanation;
     decision = {
       confidence: prediction.confidence ?? null,

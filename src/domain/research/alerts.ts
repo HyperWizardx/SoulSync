@@ -45,6 +45,7 @@ export function alertFor(row: StudentRow, now: Date): { priority: AlertPriority;
   }
   if (row.riskLevel === 'alto') attention.push('Señal alta del modelo');
   if (row.riskLevel === 'moderado' && row.trend === 'empeorando') watch.push('Señal moderada en aumento');
+  if (row.forecastDip) watch.push('Pronóstico: posible bajada de ánimo');
   if (row.lastCheckin) {
     const idle = daysBetween(row.lastCheckin, now);
     if (idle >= INACTIVE_DAYS) watch.push(`Sin check-in hace ${idle} días`);

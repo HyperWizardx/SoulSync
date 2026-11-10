@@ -4,6 +4,9 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { WhatIfSimulator } from "@/presentation/components/admin/WhatIfSimulator";
 import { ModelsPanel } from "@/presentation/components/admin/ModelsPanel";
+import { CompassLab } from "@/presentation/components/admin/CompassLab";
+import { ProfilesPanel } from "@/presentation/components/admin/ProfilesPanel";
+import { useModelLab } from "@/presentation/hooks/useAdmin";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
 import { useAdminAccess, useCalendarActions, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
 import { ActivityChart, CategoryChart, ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
@@ -93,6 +96,7 @@ function AdminMetricsPage() {
   const [busy, setBusy] = useState<DatasetKey | null>(null);
 
   const m = data?.metrics;
+  const lab = useModelLab(!!access?.investigador);
 
   const download = async (dataset: DatasetKey) => {
     setBusy(dataset);
@@ -210,9 +214,13 @@ function AdminMetricsPage() {
 
           <ModelsPanel enabled={!!access?.isAdmin} />
 
+          <CompassLab enabled={!!access?.investigador} />
+
+          <ProfilesPanel profiles={data?.profiles} />
+
           <CalendarManager periods={data?.calendar ?? []} />
 
-          <WhatIfSimulator participants={data?.rows ?? []} />
+          <WhatIfSimulator participants={data?.rows ?? []} activeParams={lab.data?.activeParams ?? null} />
 
           <div className="rounded-2xl border border-border bg-card p-4">
             <h2 className="mb-1 font-semibold text-foreground">Exportar datos</h2>

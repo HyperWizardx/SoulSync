@@ -3,17 +3,21 @@ import { useMemo, useState } from "react";
 import { PRESETS, SIM_FEATURES, simulate, type Scenario } from "@/application/research/simulate";
 import { FEATURE_LABELS } from "@/domain/wellbeing/copy";
 import { useStudentDetail } from "@/presentation/hooks/useAdmin";
+import { resolveActiveModel } from "@/domain/wellbeing/trainedLogistic";
 
 interface Props {
   participants: { userId: string; participantCode: string }[];
+  /** Parámetros de la brújula entrenada activa: el simulador usa el mismo modelo que los estudiantes. */
+  activeParams?: unknown;
 }
 
-export function WhatIfSimulator({ participants }: Props) {
+export function WhatIfSimulator({ participants, activeParams = null }: Props) {
+  const model = useMemo(() => resolveActiveModel(activeParams), [activeParams]);
   const [scenario, setScenario] = useState<Scenario>(PRESETS[1].scenario);
   const [checkins, setCheckins] = useState(7);
   const [selected, setSelected] = useState("");
   const detail = useStudentDetail(selected, Boolean(selected));
-  const result = useMemo(() => simulate(scenario, checkins), [scenario, checkins]);
+  const result = useMemo(() => simulate(scenario, checkins, model), [scenario, checkins, model]);
 
   const loadParticipant = () => {
     const exp = detail.data?.explanation ?? [];
@@ -28,7 +32,7 @@ export function WhatIfSimulator({ participants }: Props) {
     <div className="mb-5 rounded-2xl border border-border bg-card p-4">
       <h2 className="font-semibold text-foreground">Simulador ¿y si...?</h2>
       <p className="mb-3 text-xs text-muted-foreground">
-        Herramienta exploratoria de explicabilidad. Usa el mismo modelo de la app; no guarda datos ni es un diagnóstico.
+        Herramienta exploratoria de explicabilidad. Usa el mismo modelo de la app ({model.modelVersion}); no guarda datos ni es un diagnóstico.
       </p>
 
       <div className="mb-3 flex flex-wrap gap-2">

@@ -6,6 +6,10 @@ import { buildAdminDeps } from '@/infrastructure/persistence/supabase/adminRepos
 import { getAdminAccessUseCase, listStudentsUseCase, getPopulationMetricsUseCase, getStudentDetailUseCase, exportDatasetUseCase, getPsychologistDashboardUseCase, addFollowUpUseCase, addCalendarPeriodUseCase, removeCalendarPeriodUseCase } from '@/application/research/useCases';
 import { DATASETS } from '@/domain/research/ports';
 import { summarizeRecommendations } from '@/domain/wellbeing/recommender';
+import { activateCompassUseCase, getModelLabUseCase, trainCompassUseCase } from '@/application/research/modelLab';
+export type { CompassReport, ModelLab } from '@/application/research/modelLab';
+export type { ProfilesReport, GroupProfile } from '@/domain/research/clustering';
+export type { ForecastBacktest } from '@/domain/wellbeing/forecast';
 export { DATASETS } from '@/domain/research/ports';
 export type { AdminAccess, StudentDetail, DatasetKey } from '@/domain/research/ports';
 export type { StudentRow, PopulationMetrics } from '@/domain/research/aggregate';
@@ -105,3 +109,19 @@ export const getModelsReport = createServerFn({ method: 'GET' })
       recommender: summarizeRecommendations((recs.data ?? []).map((r) => ({ category: r.category, taken: r.taken_at !== null }))),
     };
   });
+
+/** Laboratorio de modelos (investigación): brújulas entrenadas, pronóstico y perfiles. */
+export const getModelLab = createServerFn({ method: 'GET' })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => getModelLabUseCase(adminDeps(context.supabase), context.userId));
+
+/** Entrena una nueva brújula con los datos actuales y la registra inactiva. */
+export const trainCompass = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => trainCompassUseCase(adminDeps(context.supabase), context.userId));
+
+/** Activa una brújula que superó la compuerta, o vuelve al criterio experto (decision-v4). */
+export const activateCompass = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ version: z.string().regex(/^(decision-v4|brujula-map-\d{8}-\d{4})$/) }).parse(d))
+  .handler(async ({ context, data }) => { await activateCompassUseCase(adminDeps(context.supabase), context.userId, data.version); return { ok: true }; });

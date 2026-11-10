@@ -23,6 +23,11 @@ function setup(access: AdminAccess = { psicologo: true, investigador: true, isAd
     loadDetail: vi.fn(async () => ({ checkins: [], predictions: [], missions: [], tasks: [{ status: 'completed', category: 'social' }, { status: 'skipped', category: 'social' }], timeline: [], scales: [], world: null, stats: null, attributes: null })),
     loadConsents: vi.fn(async () => snapshot.consents),
     loadDataset: vi.fn(async () => [{ user_id: uid, checkin_date: '2026-10-21', mood: 4, stress: 2, energy: 3, social: 4, sleep_hours: 8 }]),
+    loadActiveCompass: vi.fn(async () => null),
+    loadTrainingSnapshot: vi.fn(async () => ({ profiles: [], consents: [], checkins: [], missions: [], tasks: [], scales: [], participants: [] })),
+    loadCompassVersions: vi.fn(async () => []),
+    saveCompass: vi.fn(async () => {}),
+    activateCompass: vi.fn(async () => {}),
   };
   const deps: AdminDeps = { repository, now: () => new Date('2026-10-21T12:00:00Z') };
   return { deps, repository };

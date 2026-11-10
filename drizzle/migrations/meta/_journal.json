@@ -57,6 +57,13 @@
       "when": 1794491732226,
       "tag": "0007_guild_chest_claim",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794578132226,
+      "tag": "0008_ai_lab",
+      "breakpoints": true
     }
   ]
 }

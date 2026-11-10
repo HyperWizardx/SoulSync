@@ -32,8 +32,8 @@ export const BASELINE_WEIGHTS: Record<FeatureKey, number> = {
 export const PASSIVE_FEATURES = new Set<FeatureKey>(["lateCheckin", "scheduleIrregularity", "responseLatency"]);
 
 /** Pendiente e intercepto del enlace logístico: índice 0.5 → probabilidad 0.5. */
-const INTERCEPT = -3.2;
-const SLOPE = 6.4;
+export const INTERCEPT = -3.2;
+export const SLOPE = 6.4;
 
 /** Cobertura mínima de peso disponible y check-ins mínimos para emitir señal. */
 export const MIN_COVERAGE = 0.45;
@@ -42,7 +42,29 @@ export const MIN_CHECKINS = 3;
 export const THRESHOLD_MODERADO = 0.35;
 export const THRESHOLD_ALTO = 0.65;
 
-const sigmoid = (z: number) => 1 / (1 + Math.exp(-z));
+export const sigmoid = (z: number) => 1 / (1 + Math.exp(-z));
+
+/**
+ * Cobertura de indicadores (peso experto disponible / total) y, si no alcanza, el motivo.
+ * La usan el baseline y la brújula entrenada: ambos exigen los mismos datos mínimos.
+ */
+export function assessCoverage(featureSet: FeatureSet): { coverage: number; availableWeight: number; insufficientReason: string | null } {
+  const entries = Object.values(featureSet.features);
+  const totalWeight = entries
+    .filter((f) => f.available || !PASSIVE_FEATURES.has(f.key))
+    .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
+  const availableWeight = entries
+    .filter((f) => f.available)
+    .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
+  const coverage = totalWeight === 0 ? 0 : Number((availableWeight / totalWeight).toFixed(4));
+  let insufficientReason: string | null = null;
+  if (featureSet.checkinCount14 < MIN_CHECKINS) {
+    insufficientReason = `Se requieren al menos ${MIN_CHECKINS} check-ins en los últimos 14 días (tienes ${featureSet.checkinCount14}).`;
+  } else if (coverage < MIN_COVERAGE || availableWeight === 0) {
+    insufficientReason = "Cobertura de indicadores insuficiente para una estimación estable.";
+  }
+  return { coverage, availableWeight, insufficientReason };
+}
 
 export function toRiskLevel(score: number): RiskLevel {
   if (score >= THRESHOLD_ALTO) return "alto";
@@ -55,15 +77,7 @@ export const baselineLogisticModel: WellbeingModel = {
   predict(featureSet: FeatureSet): WellbeingPrediction {
     const generatedAt = new Date().toISOString();
     const entries = Object.values(featureSet.features);
-
-    const totalWeight = entries
-      .filter((f) => f.available || !PASSIVE_FEATURES.has(f.key))
-      .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
-    const availableWeight = entries
-      .filter((f) => f.available)
-      .reduce((s, f) => s + (BASELINE_WEIGHTS[f.key] ?? 0), 0);
-    const coverage = totalWeight === 0 ? 0 : Number((availableWeight / totalWeight).toFixed(4));
-
+    const { coverage, availableWeight, insufficientReason } = assessCoverage(featureSet);
     const { trend, trendDelta } = computeTrend(featureSet);
 
     const base = {
@@ -75,24 +89,8 @@ export const baselineLogisticModel: WellbeingModel = {
       trendDelta,
     };
 
-    if (featureSet.checkinCount14 < MIN_CHECKINS) {
-      return {
-        ...base,
-        score: null,
-        riskLevel: "insuficiente",
-        explanation: [],
-        insufficientReason: `Se requieren al menos ${MIN_CHECKINS} check-ins en los últimos 14 días (tienes ${featureSet.checkinCount14}).`,
-      };
-    }
-
-    if (coverage < MIN_COVERAGE || availableWeight === 0) {
-      return {
-        ...base,
-        score: null,
-        riskLevel: "insuficiente",
-        explanation: [],
-        insufficientReason: "Cobertura de indicadores insuficiente para una estimación estable.",
-      };
+    if (insufficientReason) {
+      return { ...base, score: null, riskLevel: "insuficiente", explanation: [], insufficientReason };
     }
 
     // Índice ponderado 0–1 sobre las features disponibles.

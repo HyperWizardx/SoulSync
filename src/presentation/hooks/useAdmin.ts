@@ -14,6 +14,9 @@ import {
   removeCalendarPeriod,
   type DatasetKey,
   getModelsReport,
+  getModelLab,
+  trainCompass,
+  activateCompass,
 } from "@/service/server-functions/admin.functions";
 
 export function useAdminAccess() {
@@ -101,4 +104,22 @@ export function useCalendarActions() {
 export function useModelsReport(enabled: boolean) {
   const fn = useServerFn(getModelsReport);
   return useQuery({ queryKey: ["admin", "models"], queryFn: () => withTimeout(fn()), enabled, retry: 1 });
+}
+
+/** Laboratorio de la brújula, pronóstico y perfiles (investigación). */
+export function useModelLab(enabled: boolean) {
+  const fn = useServerFn(getModelLab);
+  return useQuery({ queryKey: ["admin", "lab"], queryFn: () => withTimeout(fn()), enabled, retry: 1, staleTime: 60_000 });
+}
+
+/** Entrenar y activar brújulas: refresca el laboratorio, las métricas y los modelos. */
+export function useCompassActions() {
+  const trainFn = useServerFn(trainCompass);
+  const activateFn = useServerFn(activateCompass);
+  const qc = useQueryClient();
+  const done = () => qc.invalidateQueries({ queryKey: ["admin"] });
+  return {
+    train: useMutation({ mutationFn: () => trainFn(), onSuccess: done }),
+    activate: useMutation({ mutationFn: (version: string) => activateFn({ data: { version } }), onSuccess: done }),
+  };
 }

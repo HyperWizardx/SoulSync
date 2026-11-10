@@ -20,6 +20,7 @@ describe("alertFor", () => {
     expect(alertFor(row({ who5Raw: 10 }), NOW)?.priority).toBe("atencion");
     expect(alertFor(row({ riskLevel: "moderado", trend: "empeorando" }), NOW)?.priority).toBe("vigilar");
     expect(alertFor(row({ lastCheckin: "2026-11-03" }), NOW)).toEqual({ priority: "vigilar", reasons: ["Sin check-in hace 7 días"] });
+    expect(alertFor(row({ forecastDip: true }), NOW)).toEqual({ priority: "vigilar", reasons: ["Pronóstico: posible bajada de ánimo"] });
   });
   it("sin check-ins en la ventana, la desconexión se mide con la última misión", () => {
     expect(alertFor(row({ lastCheckin: null, lastActivity: "2026-10-01T18:00:00Z" }), NOW)).toEqual({ priority: "vigilar", reasons: ["Sin actividad hace 40 días"] });

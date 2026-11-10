@@ -6,6 +6,7 @@ import { useAdminAccess, usePsychologistDashboard, useStudents } from "@/present
 import { ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
 import type { StudentRow } from "@/service/server-functions/admin.functions";
 import { AlertsPanel } from "@/presentation/components/admin/AlertsPanel";
+import { ProfilesPanel } from "@/presentation/components/admin/ProfilesPanel";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminStudentsPage,
@@ -114,6 +115,7 @@ function AdminStudentsPage() {
               ]} />
             </ChartCard>
           </div>
+          <ProfilesPanel profiles={dash.profiles} />
           <h2 className="mb-2 font-semibold text-foreground">Todos los estudiantes</h2>
         </>
       )}

@@ -13,6 +13,8 @@ import { InsightPanel } from "@/presentation/components/wellbeing/InsightPanel";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
 import { ErrorState, LoadingState } from "@/presentation/components/common/QueryStatus";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
+import { MoodForecastCard } from "@/presentation/components/wellbeing/MoodForecastCard";
+import { ParticipantProfileCard } from "@/presentation/components/wellbeing/ParticipantProfileCard";
 
 export const Route = createFileRoute("/ai")({
   head: () => ({
@@ -129,6 +131,9 @@ function AIPage() {
                   </section>
                 )}
 
+                {/* Pronóstico propio (Holt): anticipa una posible bajada para prepararse a tiempo */}
+                {data.forecast && <MoodForecastCard forecast={data.forecast} checkins={data.checkins} />}
+
                 {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
                   <InsightPanel prediction={data.prediction} previous={data.previous} checkins={data.checkins} />
                 )}
@@ -150,6 +155,8 @@ function AIPage() {
                 >
                   Elegir una misión de autocuidado →
                 </Link>
+
+                <ParticipantProfileCard />
 
                 {consentCard}
               </>

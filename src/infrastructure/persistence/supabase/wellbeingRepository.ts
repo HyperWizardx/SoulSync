@@ -10,7 +10,9 @@ import type {
   WellbeingPrediction,
 } from "@/domain/wellbeing/types";
 import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features";
-import { activeModel, isExamPeriod } from "@/domain/wellbeing/inference";
+import { isExamPeriod } from "@/domain/wellbeing/inference";
+import { forecastMood, type MoodForecast } from "@/domain/wellbeing/forecast";
+import { loadActiveModel } from "./modelRegistry";
 import type { RiskLevel } from "@/domain/wellbeing/types";
 import { deriveWorldState } from "@/domain/world/world";
 import { WHO5_CODE } from "@/domain/wellbeing/who5";
@@ -49,6 +51,8 @@ export type WellbeingPayload = {
   lastScale: { code: string; raw: number; max: number; answeredAt: string } | null;
   /** Última señal de un día anterior, para mostrar "qué cambió". */
   previous?: { riskLevel: RiskLevel; score: number | null; generatedAt: string } | null;
+  /** Pronóstico de ánimo de los próximos registros (con al menos 7 check-ins en 3 semanas). */
+  forecast?: MoodForecast | null;
 };
 
 export const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -259,13 +263,15 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
 
   const featureSet = extractFeatures(input);
   // Contexto de decisión: niveles previos (histéresis) y calendario académico.
-  const [{ data: prevPreds }, { data: calendar }] = await Promise.all([
+  const [{ data: prevPreds }, { data: calendar }, model] = await Promise.all([
     supabase.from("wellbeing_predictions").select("risk_level, score, generated_at").eq("user_id", userId)
       .order("generated_at", { ascending: false }).limit(5),
     supabase.from("academic_calendar").select("start_date, end_date"),
+    // Brújula activa: la entrenada si el equipo de investigación activó una; si no, la experta.
+    loadActiveModel(supabase),
   ]);
   const previousPreds = (prevPreds ?? []).filter((p) => String(p.generated_at).slice(0, 10) !== today);
-  const prediction = activeModel.predict(featureSet, {
+  const prediction = model.predict(featureSet, {
     previousLevels: previousPreds.map((p) => p.risk_level as RiskLevel),
     examPeriod: isExamPeriod(today, (calendar ?? []).map((c) => ({ start: String(c.start_date), end: String(c.end_date) }))),
     checkins,
@@ -382,5 +388,5 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     }
   }
 
-  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous, lastScale };
+  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous, lastScale, forecast: forecastMood(checkins, today) };
 }

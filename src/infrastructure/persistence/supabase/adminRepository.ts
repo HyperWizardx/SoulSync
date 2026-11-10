@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 import { DATASET_COLUMNS, type AdminRepository } from '@/domain/research/ports';
 import type { CheckinRecord } from '@/domain/wellbeing/types';
+import { activateCompassVersion, fetchAll, loadActiveCompassParams, saveCompassVersion } from './modelRegistry';
 
 // El cliente privilegiado se suministra desde el handler y solo se solicita tras comprobar el rol.
 export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityClient: () => Promise<SupabaseClient<Database>>) {
@@ -47,12 +48,12 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
     },
     async loadStudents(withEmails, since, sinceTs) {
   const [profiles, consents, checkins, missions, tasks, scales] = await Promise.all([
-    supabase.from("profiles").select("user_id, name, level, streak, archetype, daily_goal, last_mission_date"),
-    supabase.from("research_consent").select("user_id, consent_version, revoked_at, accepted_at").order("accepted_at", { ascending: false }),
-    supabase.from("wellbeing_checkins").select("user_id, checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds").gte("checkin_date", since),
-    supabase.from("mission_completions").select("user_id, completed_date, completed_at").gte("completed_at", sinceTs),
-    supabase.from("task_events").select("user_id, occurred_date, mission_id, status, category, duration_seconds").gte("occurred_date", since),
-    supabase.from("wellbeing_scales").select("user_id, scale_code, raw_score, max_score, answered_at").gte("answered_at", `${since}T00:00:00Z`).order("answered_at", { ascending: false }),
+    fetchAll((a, b) => supabase.from("profiles").select("user_id, name, level, streak, archetype, daily_goal, last_mission_date").order("user_id").range(a, b)),
+    fetchAll((a, b) => supabase.from("research_consent").select("user_id, consent_version, revoked_at, accepted_at").order("accepted_at", { ascending: false }).range(a, b)),
+    fetchAll((a, b) => supabase.from("wellbeing_checkins").select("user_id, checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds").gte("checkin_date", since).order("checkin_date").order("user_id").range(a, b)),
+    fetchAll((a, b) => supabase.from("mission_completions").select("user_id, completed_date, completed_at").gte("completed_at", sinceTs).order("completed_at").range(a, b)),
+    fetchAll((a, b) => supabase.from("task_events").select("user_id, occurred_date, mission_id, status, category, duration_seconds").gte("occurred_date", since).order("occurred_date").order("user_id").range(a, b)),
+    fetchAll((a, b) => supabase.from("wellbeing_scales").select("user_id, scale_code, raw_score, max_score, answered_at").gte("answered_at", `${since}T00:00:00Z`).order("answered_at", { ascending: false }).range(a, b)),
   ]);
 
   const emails = new Map<string, string>();
@@ -63,7 +64,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
   }
 
 
-      return { profiles: profiles.data ?? [], consents: consents.data ?? [], checkins: checkins.data ?? [], missions: missions.data ?? [], tasks: tasks.data ?? [], scales: (scales.data ?? []).map((s) => ({ ...s, raw_score: Number(s.raw_score), max_score: Number(s.max_score), answered_at: String(s.answered_at) })), emails };
+      return { profiles, consents, checkins, missions, tasks, scales: scales.map((s) => ({ ...s, raw_score: Number(s.raw_score), max_score: Number(s.max_score), answered_at: String(s.answered_at) })), emails };
     },
     async loadDetail(uid, since30) {
     const [checkinRes, predRes, missionRes, taskRes, timelineRes, scaleRes, worldRes, statRes, attrRes] =
@@ -142,10 +143,32 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
     },
     async loadDataset(dataset, ids) {
       const tables = { checkins: 'wellbeing_checkins', task_events: 'task_events', missions: 'mission_completions', predictions: 'wellbeing_predictions', scales: 'wellbeing_scales' } as const;
-      const { data, error } = await supabase.from(tables[dataset]).select(DATASET_COLUMNS[dataset]).in('user_id', ids).limit(20000);
-      if (error) throw new Error('No se pudo exportar el conjunto de datos.');
-      return (data ?? []) as unknown as Record<string, unknown>[];
+      const rows = await fetchAll((a, b) => supabase.from(tables[dataset]).select(DATASET_COLUMNS[dataset]).in('user_id', ids).range(a, b) as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: unknown }>);
+      return rows;
     },
+    loadActiveCompass: () => loadActiveCompassParams(supabase),
+    async loadTrainingSnapshot(since) {
+      const [profiles, consents, checkins, missions, tasks, scales, participants] = await Promise.all([
+        fetchAll((a, b) => supabase.from('profiles').select('user_id, archetype, daily_goal').order('user_id').range(a, b)),
+        fetchAll((a, b) => supabase.from('research_consent').select('user_id, consent_version, revoked_at, accepted_at').order('accepted_at', { ascending: false }).range(a, b)),
+        fetchAll((a, b) => supabase.from('wellbeing_checkins').select('user_id, checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds').gte('checkin_date', since).order('checkin_date').order('user_id').range(a, b)),
+        fetchAll((a, b) => supabase.from('mission_completions').select('user_id, completed_date').gte('completed_date', since).order('completed_date').order('user_id').range(a, b)),
+        fetchAll((a, b) => supabase.from('task_events').select('user_id, occurred_date, mission_id, status, category, duration_seconds').gte('occurred_date', since).order('occurred_date').order('user_id').range(a, b)),
+        fetchAll((a, b) => supabase.from('wellbeing_scales').select('user_id, scale_code, raw_score, max_score, answered_at').gte('answered_at', `${since}T00:00:00Z`).order('answered_at').range(a, b)),
+        // Solo el rol de investigación puede leerla (RLS); para psicología llega vacía.
+        fetchAll((a, b) => supabase.from('participant_profile').select('user_id, age_band, gender, semester_band').order('user_id').range(a, b)),
+      ]);
+      return {
+        profiles, consents, checkins, missions, tasks, participants,
+        scales: scales.map((s) => ({ ...s, raw_score: Number(s.raw_score), max_score: Number(s.max_score), answered_at: String(s.answered_at) })),
+      };
+    },
+    async loadCompassVersions() {
+      const { data } = await supabase.from('model_versions').select('version, description, active, created_at, metrics, params').eq('kind', 'brujula').order('created_at', { ascending: false }).limit(20);
+      return (data ?? []).map((m) => ({ version: m.version, description: m.description, active: m.active, createdAt: m.created_at, metrics: m.metrics, params: m.params }));
+    },
+    saveCompass: (v) => saveCompassVersion(supabase, v),
+    activateCompass: (version) => activateCompassVersion(supabase, version),
   };
   return { repository, now: () => new Date() };
 }

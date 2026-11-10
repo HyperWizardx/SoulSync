@@ -45,6 +45,19 @@ export type DetailSnapshot = Omit<StudentDetail, 'row' | 'explanation' | 'insuff
   tasks: { status: string; category: string }[];
 };
 export interface FollowUp { id: string; studentId: string; note: string; createdAt: string; }
+
+/** Historia larga de los estudiantes para entrenar y evaluar modelos (fase 4). */
+export interface TrainingSnapshot {
+  profiles: { user_id: string; archetype: number | null; daily_goal: number | null }[];
+  consents: ConsentRow[];
+  checkins: StudentSnapshot['checkins'];
+  missions: { user_id: string; completed_date: string }[];
+  tasks: StudentSnapshot['tasks'];
+  scales: NonNullable<StudentSnapshot['scales']>;
+  /** Ficha opcional (solo la recibe el rol de investigación). */
+  participants: { user_id: string; age_band: string; gender: string; semester_band: string }[];
+}
+export interface CompassVersionRow { version: string; description: string; active: boolean; createdAt: string; metrics: unknown; params: unknown }
 export interface CalendarPeriod { id: string; label: string; start: string; end: string; kind: string; }
 export interface DecisionSnapshot {
   calendar: CalendarPeriod[];
@@ -63,6 +76,12 @@ export interface AdminRepository {
   loadDetail(userId: string, since: string): Promise<DetailSnapshot>;
   loadConsents(): Promise<ConsentRow[]>;
   loadDataset(dataset: Exclude<DatasetKey, 'resumen'>, ids: string[]): Promise<Record<string, unknown>[]>;
+  /** Parámetros de la brújula entrenada activa (null = criterio experto). */
+  loadActiveCompass(): Promise<unknown>;
+  loadTrainingSnapshot(since: string): Promise<TrainingSnapshot>;
+  loadCompassVersions(): Promise<CompassVersionRow[]>;
+  saveCompass(v: { version: string; description: string; params: unknown; metrics: unknown }): Promise<void>;
+  activateCompass(version: string): Promise<void>;
 }
 export interface AdminDeps { repository: AdminRepository; now: () => Date; }
 

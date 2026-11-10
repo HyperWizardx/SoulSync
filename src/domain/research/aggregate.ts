@@ -36,6 +36,8 @@ export interface StudentRow {
   lastFollowUp?: string | null;
   /** Último WHO-5 (0–25) de las últimas 4 semanas, solo con consentimiento vigente. */
   who5Raw?: number | null;
+  /** El pronóstico de ánimo anticipa una bajada en los próximos registros. */
+  forecastDip?: boolean;
 }
 
 export interface PopulationMetrics {

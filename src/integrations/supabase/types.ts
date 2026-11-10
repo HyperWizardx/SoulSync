@@ -296,6 +296,30 @@ export type Database = {
         }
         Relationships: []
       }
+      participant_profile: {
+        Row: {
+          age_band: string
+          gender: string
+          semester_band: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_band?: string
+          gender?: string
+          semester_band?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          age_band?: string
+          gender?: string
+          semester_band?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mission_completions: {
         Row: {
           category: string
@@ -800,6 +824,11 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: { user_id: string; name: string; archetype: number | null; level: number; joined_at: string }[]
       }
+      save_compass_version: {
+        Args: { _version: string; _description: string; _params: Json; _metrics: Json }
+        Returns: undefined
+      }
+      activate_compass: { Args: { _version: string }; Returns: undefined }
       claim_guild_chest: {
         Args: { _week_start: string }
         Returns: { reward_coins: number; reward_gems: number }[]
