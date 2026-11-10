@@ -6,6 +6,7 @@
  */
 import { baselineLogisticModel, toRiskLevel } from "@/domain/wellbeing/baselineLogistic";
 import { FEATURE_LABELS } from "@/domain/wellbeing/copy";
+import { SEVERE_SCALE_DISTRESS } from "@/domain/wellbeing/who5";
 import type {
   CheckinRecord, DecisionContext, FeatureKey, FeatureSet, RiskLevel, SafetyFlag,
   SignalConfidence, WellbeingModel, WellbeingPrediction,
@@ -49,7 +50,7 @@ export function evaluateSafetyRules(fs: FeatureSet): SafetyFlag[] {
   const stress = val(fs, "stressHigh"), sleep = val(fs, "sleepDeficit"), social = val(fs, "socialWithdrawal");
   if (stress !== null && sleep !== null && social !== null && stress >= 0.75 && sleep >= 0.6 && social >= 0.6) flags.push("triada_estres_sueno_aislamiento");
   const scale = val(fs, "scaleDistress");
-  if (scale !== null && scale >= 0.75) flags.push("escala_severa");
+  if (scale !== null && scale >= SEVERE_SCALE_DISTRESS) flags.push("escala_severa"); // = WHO-5 bruto ≤ 7
   const mood = val(fs, "moodLow"), decline = val(fs, "moodDecline");
   if (mood !== null && decline !== null && mood >= 0.85 && decline >= 0.5) flags.push("animo_muy_bajo_sostenido");
   return flags;

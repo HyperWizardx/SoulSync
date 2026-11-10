@@ -48,6 +48,9 @@ export interface WellbeingEventRepository {
   upsertCheckin(userId: string, date: string, input: CheckinInput): Promise<void>;
   insertTaskEvent(userId: string, date: string, input: TaskEventInput): Promise<void>;
   addTimeline(userId: string, entry: TimelineInput): Promise<void>;
+  /** Escalas validadas (WHO-5): última fecha de respuesta y registro de una nueva. */
+  lastScaleAt(userId: string, code: string): Promise<string | null>;
+  insertScale(userId: string, code: string, raw: number, max: number): Promise<void>;
 }
 
 /** Lectura del estado agregado (incluye inferencia) en un tipo P definido fuera del dominio. */

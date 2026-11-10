@@ -8,7 +8,8 @@
  * (no fueron aprendidos de un dataset etiquetado).
  */
 export const FEATURE_VERSION = "fv4";
-export const CONSENT_VERSION = "consent-2026-08-v1";
+// v2 (nov 2026): añade el pergamino WHO-5, la actividad física y el entrenamiento de modelos propios.
+export const CONSENT_VERSION = "consent-2026-11-v2";
 export type RiskLevel = "bajo" | "moderado" | "alto" | "insuficiente";
 export interface CheckinRecord { date: string; mood: number; stress: number; energy: number; social: number; sleepHours?: number | null; localHour?: number | null; responseSeconds?: number | null; }
 export interface ScaleRecord { code: string; raw: number; max: number; answeredAt: string; }

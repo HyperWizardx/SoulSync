@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { withTimeout } from "@/presentation/components/common/QueryStatus";
-import { getWellbeing, logTaskEvent, saveCheckin, setResearchConsent } from "@/service/server-functions/wellbeing.functions";
+import { getWellbeing, logTaskEvent, saveCheckin, setResearchConsent, submitWho5 } from "@/service/server-functions/wellbeing.functions";
+import { emitFeedback } from "@/shared/feedback";
 import type { WellbeingPayload } from "@/service/server-functions/wellbeing.functions";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
 
@@ -12,6 +13,7 @@ export function useWellbeing() {
   const checkinFn = useServerFn(saveCheckin);
   const consentFn = useServerFn(setResearchConsent);
   const taskEventFn = useServerFn(logTaskEvent);
+  const who5Fn = useServerFn(submitWho5);
   const { hasSession } = useAuthSession();
 
   const query = useQuery<WellbeingPayload>({
@@ -73,5 +75,18 @@ export function useWellbeing() {
     onSuccess: (data) => setPayload(data),
   });
 
-  return { ...query, checkin, consent, logTask };
+  // Pergamino del bienestar (WHO-5): guarda, actualiza la brújula y celebra logros nuevos.
+  const who5 = useMutation({
+    mutationFn: (answers: number[]) => who5Fn({ data: { answers } }),
+    onSuccess: ({ unlockedAchievements, ...data }) => {
+      setPayload(data);
+      toast.success("¡Pergamino del bienestar sellado!");
+      for (const code of unlockedAchievements) emitFeedback({ type: "achievement", code });
+      qc.invalidateQueries({ queryKey: ["progress"] });
+      qc.invalidateQueries({ queryKey: ["profile-summary"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "No se pudo guardar tu pergamino"),
+  });
+
+  return { ...query, checkin, consent, logTask, who5 };
 }

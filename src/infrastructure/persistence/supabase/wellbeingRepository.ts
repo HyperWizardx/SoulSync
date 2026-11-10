@@ -13,6 +13,7 @@ import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features"
 import { activeModel, isExamPeriod } from "@/domain/wellbeing/inference";
 import type { RiskLevel } from "@/domain/wellbeing/types";
 import { deriveWorldState } from "@/domain/world/world";
+import { WHO5_CODE } from "@/domain/wellbeing/who5";
 import { RISK_COPY } from "@/domain/wellbeing/copy";
 import { TREND_COPY } from "@/domain/wellbeing/trend";
 import type { WorldState } from "@/domain/world/world";
@@ -44,6 +45,8 @@ export type WellbeingPayload = {
   timeline: TimelineEntry[];
   /** Aura del avatar según el autocuidado de los últimos 7 días. */
   aura: AuraState;
+  /** Última WHO-5 respondida (pergamino del bienestar), o null. */
+  lastScale: { code: string; raw: number; max: number; answeredAt: string } | null;
   /** Última señal de un día anterior, para mostrar "qué cambió". */
   previous?: { riskLevel: RiskLevel; score: number | null; generatedAt: string } | null;
 };
@@ -188,8 +191,13 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     new Set([...checkinDays, ...selfcareDays]).size,
   );
 
+  const who5Row = (scaleRes.data ?? []).find((s) => s.scale_code === WHO5_CODE);
+  const lastScale = who5Row
+    ? { code: WHO5_CODE, raw: Number(who5Row.raw_score), max: Number(who5Row.max_score), answeredAt: String(who5Row.answered_at).slice(0, 10) }
+    : null;
+
   if (!consent.accepted) {
-    return { consent, todayCheckin, checkins, prediction: null, world: null, timeline, aura };
+    return { consent, todayCheckin, checkins, prediction: null, world: null, timeline, aura, lastScale };
   }
 
   // Hito en la historia cuando el aura sube de nivel respecto al último registrado.
@@ -374,5 +382,5 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     }
   }
 
-  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous };
+  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous, lastScale };
 }

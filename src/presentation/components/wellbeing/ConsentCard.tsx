@@ -8,9 +8,11 @@ interface Props {
   wearablesOptIn: boolean;
   pending: boolean;
   onChange: (accepted: boolean, wearablesOptIn: boolean) => void;
+  /** Aceptó una versión anterior: se pide aceptar la nueva. */
+  outdated?: boolean;
 }
 
-export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onChange }: Props) {
+export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onChange, outdated = false }: Props) {
   const [wearables, setWearables] = useState(wearablesOptIn);
 
   if (accepted) {
@@ -41,7 +43,12 @@ export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onC
       <div className="flex items-start gap-2">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
         <div>
-          <h2 className="font-cinzel font-semibold text-foreground">Activa tu brújula de bienestar</h2>
+          <h2 className="font-cinzel font-semibold text-foreground">{outdated ? "Actualizamos tu consentimiento" : "Activa tu brújula de bienestar"}</h2>
+          {outdated && (
+            <p className="mt-1 text-xs font-semibold text-soul-gold">
+              Sumamos nuevas funciones. Revisa los cambios y vuelve a aceptar para seguir usando tu brújula.
+            </p>
+          )}
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Tu brújula te orienta en el viaje y hace crecer tu Mundo. Forma parte de un prototipo de investigación
             con estudiantes de Ingeniería de Sistemas de la Universidad del Sinú (Montería), por eso necesitamos tu
@@ -50,8 +57,13 @@ export function ConsentCard({ accepted, acceptedAt, wearablesOptIn, pending, onC
           <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
             <li>• Tus check-ins de ánimo, estrés, energía, conexión social y sueño.</li>
             <li>• Tu patrón de uso de la app (misiones completadas, constancia).</li>
-            <li>• Escalas de bienestar que respondas dentro de la app, si las hay.</li>
+            <li>• El pergamino del bienestar (escala WHO-5 de la OMS) que respondes cada dos semanas.</li>
+            <li>• Los minutos de actividad física que registres.</li>
           </ul>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            Con estos datos, seudonimizados, el equipo de investigación entrena los modelos propios de la app (por
+            ejemplo, el recomendador de misiones) para que te orienten mejor. Nunca se venden ni se comparten fuera del estudio.
+          </p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             También se registra la hora de tu check-in y cuánto tardas en responderlo (para detectar trasnocho o cambios de rutina). No se recogen textos libres ni información clínica. Puedes revocar el consentimiento cuando quieras y tus
             datos del módulo se eliminan.

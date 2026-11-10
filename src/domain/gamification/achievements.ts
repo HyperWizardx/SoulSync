@@ -15,6 +15,10 @@ export interface AchievementContext {
   zonesUnlocked: number;
   purchases: number;
   itemsUsed: number;
+  /** Pergaminos del bienestar (WHO-5) respondidos. */
+  scales: number;
+  /** Semanas que alcanzaron la meta OMS de 150 min de actividad. */
+  activeWeeks: number;
 }
 
 export interface Achievement {
@@ -103,6 +107,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   { code: "checkin_7", name: "Voz propia", icon: "talk", description: "Haz tu check-in de Bienestar 7 días", rarity: "comun", group: "bienestar", target: 7, metric: (c) => c.checkins },
   { code: "checkin_30", name: "Diario del alma", icon: "book-cover", description: "Haz tu check-in de Bienestar 30 días", rarity: "epico", group: "bienestar", target: 30, metric: (c) => c.checkins },
   { code: "first_prediction", name: "Brújula despierta", icon: "telescope", description: "Recibe la primera lectura de tu brújula de bienestar", rarity: "raro", group: "bienestar", target: 1, metric: (c) => c.predictions },
+  { code: "who5_first", name: "Primer pergamino", icon: "scroll-quill", description: "Responde tu primer pergamino del bienestar", rarity: "comun", group: "bienestar", target: 1, metric: (c) => c.scales },
+  { code: "who5_4", name: "Cronista del alma", icon: "book-cover", description: "Responde 4 pergaminos del bienestar", rarity: "raro", group: "bienestar", target: 4, metric: (c) => c.scales },
+  { code: "active_week", name: "Semana activa", icon: "run", description: "Llega a 150 min de actividad física en una semana", rarity: "raro", group: "bienestar", target: 1, metric: (c) => c.activeWeeks },
+  { code: "active_4_weeks", name: "Cuerpo de héroe", icon: "muscle-up", description: "Cumple la meta de 150 min en 4 semanas", rarity: "epico", group: "bienestar", target: 4, metric: (c) => c.activeWeeks },
   { code: "daily_goal", name: "Meta cumplida", icon: "check-mark", description: "Completa tu meta diaria de misiones un día", rarity: "comun", group: "bienestar", target: 1, metric: (c) => c.goalDays },
   { code: "daily_goal_7", name: "Semana perfecta", icon: "calendar", description: "Completa tu meta diaria de misiones 7 días", rarity: "epico", group: "bienestar", target: 7, metric: (c) => c.goalDays },
 

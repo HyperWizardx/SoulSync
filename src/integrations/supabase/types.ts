@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_logs: {
+        Row: {
+          activity_date: string
+          created_at: string
+          id: string
+          intensity: string
+          minutes: number
+          strength: boolean
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          created_at?: string
+          id?: string
+          intensity: string
+          minutes: number
+          strength?: boolean
+          user_id?: string
+        }
+        Update: {
+          activity_date?: string
+          created_at?: string
+          id?: string
+          intensity?: string
+          minutes?: number
+          strength?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           code: string

@@ -15,6 +15,9 @@ import { Reveal } from "@/presentation/components/motion/Reveal";
 import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
 import { CATEGORY_LABEL, getArchetypeStyle } from "@/domain/identity/archetype";
 import { DailyGoalCard } from "@/presentation/components/layout/DailyGoalCard";
+import { ActivityCard } from "@/presentation/components/wellbeing/ActivityCard";
+import { SupportBanner } from "@/presentation/components/wellbeing/SupportSheet";
+import { supportReasons } from "@/domain/wellbeing/support";
 import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
 import { SEASON_COPY } from "@/domain/world/world";
 
@@ -68,6 +71,11 @@ function DashboardPage() {
 
         <ResourceBar streak={user.streak} coins={user.coins} gems={user.gems} className="mt-4" />
 
+        {/* Protocolo de apoyo: visible en el campamento cuando la brújula o el pergamino lo sugieren */}
+        {supportReasons({ riskLevel: wb?.prediction?.riskLevel, safetyFlags: wb?.prediction?.safetyFlags, lastScale: wb?.lastScale }).length > 0 && (
+          <div className="mt-4"><SupportBanner /></div>
+        )}
+
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
           <AuraHalo aura={wb?.aura} color={archStyle.glow} showLabel={false}>
             <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} />
@@ -92,6 +100,10 @@ function DashboardPage() {
 
         <Reveal index={2} className="mt-4">
           <DailyGoalCard />
+        </Reveal>
+
+        <Reveal index={2} className="mt-4">
+          <ActivityCard />
         </Reveal>
 
         <Reveal index={3}>

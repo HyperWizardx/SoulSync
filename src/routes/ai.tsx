@@ -4,6 +4,10 @@ import { Brain, RefreshCw } from "lucide-react";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { ConsentCard } from "@/presentation/components/wellbeing/ConsentCard";
 import { CheckinCard } from "@/presentation/components/wellbeing/CheckinCard";
+import { Who5Card } from "@/presentation/components/wellbeing/Who5Card";
+import { SupportBanner, SupportButton } from "@/presentation/components/wellbeing/SupportSheet";
+import { supportReasons } from "@/domain/wellbeing/support";
+import { localToday } from "@/presentation/hooks/useActivity";
 import { RiskCard } from "@/presentation/components/wellbeing/RiskCard";
 import { InsightPanel } from "@/presentation/components/wellbeing/InsightPanel";
 import { TimelineFeed } from "@/presentation/components/wellbeing/TimelineFeed";
@@ -32,7 +36,7 @@ export const Route = createFileRoute("/ai")({
 });
 
 function AIPage() {
-  const { data, isLoading, isError, error, checkin, consent, refetch, isFetching } = useWellbeing();
+  const { data, isLoading, isError, error, checkin, consent, refetch, isFetching, who5 } = useWellbeing();
   const consentCard = data && (
     <ConsentCard
       accepted={data.consent.accepted}
@@ -40,6 +44,7 @@ function AIPage() {
       wearablesOptIn={data.consent.wearablesOptIn}
       pending={consent.isPending}
       onChange={(accepted, wearablesOptIn) => consent.mutate({ accepted, wearablesOptIn })}
+      outdated={!data.consent.accepted && !!data.consent.consentVersion && data.consent.consentVersion !== data.consent.currentVersion}
     />
   );
 
@@ -51,6 +56,8 @@ function AIPage() {
             <h1 className="text-2xl font-cinzel font-bold text-foreground">Brújula de bienestar</h1>
             <p className="mt-1 text-sm text-muted-foreground">Escucha cómo va tu viaje interior</p>
           </div>
+          <div className="flex shrink-0 items-center gap-2">
+          <SupportButton />
           <button
             onClick={() => refetch()}
             aria-label="Actualizar tu brújula"
@@ -58,6 +65,7 @@ function AIPage() {
           >
             <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
           </button>
+          </div>
         </div>
 
         {isError && !data ? (
@@ -83,6 +91,12 @@ function AIPage() {
                   pending={checkin.isPending}
                   onSubmit={(v) => checkin.mutate(v)}
                 />
+
+                {/* Protocolo de apoyo: aviso cuando la brújula o el pergamino lo sugieren */}
+                {supportReasons({ riskLevel: data.prediction?.riskLevel, safetyFlags: data.prediction?.safetyFlags, lastScale: data.lastScale }).length > 0 && <SupportBanner />}
+
+                {/* Pergamino del bienestar (WHO-5), cada 14 días */}
+                <Who5Card lastScale={data.lastScale} today={localToday()} pending={who5.isPending} onSubmit={(a) => who5.mutate(a)} />
 
                 {/* La brújula primero: es lo que el usuario viene a ver */}
                 {data.prediction ? (

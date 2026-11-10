@@ -15,6 +15,7 @@ import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
 import { playSound } from "@/shared/sound";
 import { tap as hapticTap } from "@/shared/haptics";
 import { WeeklyChart } from "@/presentation/components/layout/WeeklyChart";
+import { SupportButton } from "@/presentation/components/wellbeing/SupportSheet";
 import {
   ACHIEVEMENTS,
   achievementProgress,
@@ -117,6 +118,8 @@ function ProfilePage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-cinzel font-bold text-foreground">Perfil</h1>
+          <div className="flex items-center gap-2">
+          <SupportButton />
           <button
             onClick={() => setShowSettings(!showSettings)}
             aria-label="Configuración"
@@ -124,6 +127,7 @@ function ProfilePage() {
           >
             <Settings className={`h-5 w-5 transition-transform duration-300 ${showSettings ? "rotate-90" : ""}`} />
           </button>
+          </div>
         </div>
 
         {/* Settings Panel */}

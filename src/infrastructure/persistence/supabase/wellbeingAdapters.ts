@@ -20,7 +20,7 @@ export const supabaseConsentRepository = (db: Db): ConsentRepository => ({
   async revokeAndPurge(userId) {
     await db.from("research_consent").update({ revoked_at: new Date().toISOString() }).eq("user_id", userId).is("revoked_at", null);
     // Minimización de datos: se elimina todo lo recogido por el módulo.
-    for (const t of ["wellbeing_predictions", "wellbeing_checkins", "wellbeing_scales", "timeline_events", "task_events"] as const) {
+    for (const t of ["wellbeing_predictions", "wellbeing_checkins", "wellbeing_scales", "timeline_events", "task_events", "activity_logs"] as const) {
       await db.from(t).delete().eq("user_id", userId);
     }
   },
@@ -41,6 +41,15 @@ export const supabaseWellbeingEventRepository = (db: Db): WellbeingEventReposito
     });
   },
   addTimeline: (userId, entry) => addTimelineEvent(db, userId, entry),
+  async lastScaleAt(userId, code) {
+    const { data } = await db.from("wellbeing_scales").select("answered_at").eq("user_id", userId).eq("scale_code", code)
+      .order("answered_at", { ascending: false }).limit(1).maybeSingle();
+    return data ? String(data.answered_at).slice(0, 10) : null;
+  },
+  async insertScale(userId, code, raw, max) {
+    const { error } = await db.from("wellbeing_scales").insert({ user_id: userId, scale_code: code, raw_score: raw, max_score: max });
+    if (error) throw new Error("No se pudo guardar tu pergamino del bienestar.");
+  },
 });
 
 /** Lector del estado agregado (ejecuta la inferencia del dominio). */

@@ -6,7 +6,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { recordTaskEvent, registerCheckin, updateConsent } from "@/application/wellbeing/useCases";
+import { recordTaskEvent, recordWho5, registerCheckin, updateConsent } from "@/application/wellbeing/useCases";
+import { evaluateAndGrant } from "@/infrastructure/persistence/supabase/gamificationRepository";
 import { buildWellbeingDeps } from "@/infrastructure/persistence/supabase/wellbeingAdapters";
 import type { WellbeingPayload } from "@/infrastructure/persistence/supabase/wellbeingRepository";
 
@@ -64,3 +65,13 @@ export const logTaskEvent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<WellbeingPayload> =>
     recordTaskEvent(buildWellbeingDeps(context.supabase), context.userId, data),
   );
+
+/** Pergamino del bienestar: las 5 respuestas de la WHO-5 (0–5 cada una), cada 14 días. */
+export const submitWho5 = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ answers: z.array(z.number().int().min(0).max(5)).length(5) }).parse(d))
+  .handler(async ({ data, context }): Promise<WellbeingPayload & { unlockedAchievements: string[] }> => {
+    const payload = await recordWho5(buildWellbeingDeps(context.supabase), context.userId, data.answers);
+    const unlockedAchievements = await evaluateAndGrant(context.supabase, context.userId);
+    return { ...payload, unlockedAchievements };
+  });

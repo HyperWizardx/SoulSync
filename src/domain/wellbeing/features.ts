@@ -5,6 +5,7 @@ import type {
   PredictionInput,
 } from "@/domain/wellbeing/types";
 import { FEATURE_VERSION } from "@/domain/wellbeing/types";
+import { scaleDistress } from "@/domain/wellbeing/who5";
 
 export const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
@@ -127,7 +128,7 @@ export function extractFeatures(input: PredictionInput): FeatureSet {
     })
     .sort((a, b) => (a.answeredAt < b.answeredAt ? 1 : -1))[0];
   features.scaleDistress = recentScale
-    ? available("scaleDistress", clamp01(recentScale.raw / recentScale.max))
+    ? available("scaleDistress", scaleDistress(recentScale.code, recentScale.raw, recentScale.max)) // WHO-5: más puntaje = menos malestar
     : unavailable("scaleDistress");
 
   // --- Tareas diarias: omisión y hueco de autocuidado ---

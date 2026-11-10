@@ -9,6 +9,8 @@ import {
 } from "@/domain/gamification/achievements";
 
 const baseCtx: AchievementContext = {
+  scales: 0,
+  activeWeeks: 0,
   missions: 0,
   missionsAR: 0,
   streak: 0,

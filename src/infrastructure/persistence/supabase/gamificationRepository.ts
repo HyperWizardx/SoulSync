@@ -7,6 +7,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { REWARD_BY_RARITY, evaluateAchievements, type AchievementContext } from "@/domain/gamification/achievements";
 import { applyXp } from "@/domain/gamification/progression";
+import { WHO5_CODE } from "@/domain/wellbeing/who5";
+import { weeksWithGoal } from "@/domain/wellbeing/activity";
+import { loadActivityLogs } from "./activityRepository";
 
 export type Db = SupabaseClient<Database>;
 
@@ -29,13 +32,15 @@ export async function buildAchievementContext(
   overrides: Partial<AchievementContext> = {},
 ): Promise<AchievementContext> {
   const today = new Date().toISOString().slice(0, 10);
-  const [profRes, misRes, checkRes, predRes, worldRes, invRes] = await Promise.all([
+  const [profRes, misRes, checkRes, predRes, worldRes, invRes, scaleRes, activity] = await Promise.all([
     db.from("profiles").select("level,streak,daily_goal").eq("user_id", userId).maybeSingle(),
     db.from("mission_completions").select("category,is_ar,completed_date").eq("user_id", userId).limit(2000),
     db.from("wellbeing_checkins").select("id", { count: "exact", head: true }).eq("user_id", userId),
     db.from("wellbeing_predictions").select("id", { count: "exact", head: true }).eq("user_id", userId),
     db.from("world_state").select("zones_unlocked").eq("user_id", userId).maybeSingle(),
     db.from("inventory").select("quantity").eq("user_id", userId),
+    db.from("wellbeing_scales").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("scale_code", WHO5_CODE),
+    loadActivityLogs(db, userId),
   ]);
 
   // Conteos por categoría y por día a partir del historial de misiones.
@@ -70,6 +75,8 @@ export async function buildAchievementContext(
     zonesUnlocked: (worldRes.data?.zones_unlocked as number | undefined) ?? 0,
     purchases,
     itemsUsed: 0,
+    scales: scaleRes.count ?? 0,
+    activeWeeks: weeksWithGoal(activity),
     ...overrides,
   };
 }

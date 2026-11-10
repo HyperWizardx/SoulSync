@@ -4,6 +4,7 @@
  * (por eso se prueban con repositorios simulados). Principio S: un caso por acción.
  */
 import { CATEGORY_LABEL } from "@/domain/identity/archetype";
+import { WHO5_CODE, WHO5_MAX, who5Due, who5Percent, who5Raw } from "@/domain/wellbeing/who5";
 import type {
   CheckinInput,
   ConsentRepository,
@@ -26,6 +27,36 @@ export class ConsentRequiredError extends Error {
   constructor() {
     super("Consentimiento requerido antes de registrar check-ins.");
   }
+}
+
+/** Error de regla de negocio: la WHO-5 pregunta por dos semanas y no se repite antes. */
+export class ScaleNotDueError extends Error {
+  constructor() {
+    super("Tu pergamino del bienestar ya está al día. Vuelve en unos días.");
+  }
+}
+
+/** Respuestas inválidas (deben ser 5 valores enteros de 0 a 5). */
+export class InvalidScaleError extends Error {
+  constructor() {
+    super("Faltan respuestas en el pergamino del bienestar.");
+  }
+}
+
+/** Registra la escala WHO-5 (requiere consentimiento y que hayan pasado 14 días). */
+export async function recordWho5<P>(deps: WellbeingDeps<P>, userId: string, answers: readonly number[]): Promise<P> {
+  if (!(await deps.consent.hasActiveConsent(userId))) throw new ConsentRequiredError();
+  const raw = who5Raw(answers);
+  if (raw === null) throw new InvalidScaleError();
+  if (!who5Due(await deps.events.lastScaleAt(userId, WHO5_CODE), deps.today())) throw new ScaleNotDueError();
+  await deps.events.insertScale(userId, WHO5_CODE, raw, WHO5_MAX);
+  await deps.events.addTimeline(userId, {
+    kind: "milestone",
+    title: "Pergamino del bienestar",
+    detail: `Bienestar de estas dos semanas: ${who5Percent(raw)}/100`,
+    payload: { scale: WHO5_CODE, raw },
+  });
+  return deps.reader.load(userId);
 }
 
 /** Acepta o revoca el consentimiento; al revocar se purgan los datos. */
