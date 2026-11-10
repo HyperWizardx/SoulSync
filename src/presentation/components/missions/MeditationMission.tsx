@@ -48,7 +48,7 @@ export function MeditationMission({ durationSec = 120, onComplete, onClose, titl
         }
       } catch { /* noop */ }
     }
-  }, [remaining, durationSec, step]);
+  }, [remaining, durationSec, step, STEPS]);
 
   useEffect(() => {
     if (remaining <= 0 && !completedRef.current) {
@@ -57,6 +57,9 @@ export function MeditationMission({ durationSec = 120, onComplete, onClose, titl
       onComplete();
     }
   }, [remaining, onComplete]);
+
+  // Si la misión se cierra de cualquier forma (cambio de pantalla incluido), la voz se detiene.
+  useEffect(() => () => { try { window.speechSynthesis?.cancel(); } catch { /* noop */ } }, []);
 
   const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
   const ss = String(remaining % 60).padStart(2, "0");
