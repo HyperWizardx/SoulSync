@@ -6,7 +6,7 @@ const SCALES = [
   { key: "mood" as const, label: "¿Cómo está tu ánimo hoy?", low: "Muy bajo", high: "Muy bien" },
   { key: "stress" as const, label: "¿Cuánto estrés sientes?", low: "Nada", high: "Muchísimo" },
   { key: "energy" as const, label: "¿Cuánta energía tienes?", low: "Ninguna", high: "Mucha" },
-  { key: "social" as const, label: "¿Qué tan conectado te sientes con otros?", low: "Aislado", high: "Muy conectado" },
+  { key: "social" as const, label: "¿Cuánta conexión sientes con otras personas?", low: "Ninguna", high: "Mucha" },
 ];
 
 interface Props {
