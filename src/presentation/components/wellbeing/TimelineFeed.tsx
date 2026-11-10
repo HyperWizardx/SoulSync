@@ -24,7 +24,7 @@ function formatWhen(iso: string) {
 /** Títulos antiguos guardados como "Señal bajo · tendencia estable": se muestran con concordancia. */
 const LEGACY_LEVEL: Record<string, string> = { bajo: "baja", moderado: "moderada", alto: "alta" };
 function displayTitle(title: string): string {
-  return title.replace(/^Señal (bajo|moderado|alto)/, (_, level: string) => `Señal ${LEGACY_LEVEL[level]}`);
+  return title.replace(/^Señal (bajo|moderado|alto)\b/, (_, level: string) => `Señal ${LEGACY_LEVEL[level]}`);
 }
 
 export function TimelineFeed({
