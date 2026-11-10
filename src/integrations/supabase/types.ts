@@ -194,6 +194,36 @@ export type Database = {
         }
         Relationships: []
       }
+      model_versions: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          kind: string
+          metrics: Json
+          params: Json
+          version: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description: string
+          kind: string
+          metrics?: Json
+          params?: Json
+          version: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          kind?: string
+          metrics?: Json
+          params?: Json
+          version?: string
+        }
+        Relationships: []
+      }
       mission_completions: {
         Row: {
           category: string
@@ -284,6 +314,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           xp?: number
+        }
+        Relationships: []
+      }
+      recommendation_log: {
+        Row: {
+          category: string
+          id: string
+          mission_id: string
+          model_version: string
+          rank: number
+          rec_date: string
+          score: number
+          shown_at: string
+          taken_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          id?: string
+          mission_id: string
+          model_version: string
+          rank: number
+          rec_date: string
+          score: number
+          shown_at?: string
+          taken_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          mission_id?: string
+          model_version?: string
+          rank?: number
+          rec_date?: string
+          score?: number
+          shown_at?: string
+          taken_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

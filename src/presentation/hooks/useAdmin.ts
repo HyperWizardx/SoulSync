@@ -13,6 +13,7 @@ import {
   addCalendarPeriod,
   removeCalendarPeriod,
   type DatasetKey,
+  getModelsReport,
 } from "@/service/server-functions/admin.functions";
 
 export function useAdminAccess() {
@@ -94,4 +95,10 @@ export function useCalendarActions() {
     add: useMutation({ mutationFn: (p: { label: string; start: string; end: string }) => add({ data: p }), onSuccess: done }),
     remove: useMutation({ mutationFn: (id: string) => remove({ data: { id } }), onSuccess: done }),
   };
+}
+
+/** Modelos de IA y desempeño del recomendador (panel de investigación). */
+export function useModelsReport(enabled: boolean) {
+  const fn = useServerFn(getModelsReport);
+  return useQuery({ queryKey: ["admin", "models"], queryFn: () => withTimeout(fn()), enabled, retry: 1 });
 }

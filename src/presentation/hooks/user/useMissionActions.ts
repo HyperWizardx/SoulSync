@@ -31,6 +31,7 @@ export function useMissionActions(level: number) {
       // Trofeos y gráfica semanal de Perfil dependen de las misiones completadas.
       qc.invalidateQueries({ queryKey: ["profile-summary"] });
       qc.invalidateQueries({ queryKey: ["weekly-stats"] });
+      qc.invalidateQueries({ queryKey: ["recommendations"] });
     },
   });
 

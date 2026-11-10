@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { buildAdminDeps } from '@/infrastructure/persistence/supabase/adminRepository';
 import { getAdminAccessUseCase, listStudentsUseCase, getPopulationMetricsUseCase, getStudentDetailUseCase, exportDatasetUseCase, getPsychologistDashboardUseCase, addFollowUpUseCase, addCalendarPeriodUseCase, removeCalendarPeriodUseCase } from '@/application/research/useCases';
 import { DATASETS } from '@/domain/research/ports';
+import { summarizeRecommendations } from '@/domain/wellbeing/recommender';
 export { DATASETS } from '@/domain/research/ports';
 export type { AdminAccess, StudentDetail, DatasetKey } from '@/domain/research/ports';
 export type { StudentRow, PopulationMetrics } from '@/domain/research/aggregate';
@@ -86,3 +87,20 @@ export const removeCalendarPeriod = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => { await removeCalendarPeriodUseCase(adminDeps(context.supabase), context.userId, data.id); return { ok: true }; });
+
+/** Modelos de IA: versiones registradas y aceptación del recomendador (30 días). Solo equipo. */
+export const getModelsReport = createServerFn({ method: 'GET' })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const access = await getAdminAccessUseCase(adminDeps(context.supabase), context.userId);
+    if (!access.isAdmin) throw new Error('Acceso restringido al equipo de investigación.');
+    const since = new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+    const [models, recs] = await Promise.all([
+      context.supabase.from('model_versions').select('version, kind, description, active, created_at').order('created_at', { ascending: false }),
+      context.supabase.from('recommendation_log').select('category, taken_at').gte('rec_date', since).limit(20000),
+    ]);
+    return {
+      models: (models.data ?? []).map((m) => ({ version: m.version, kind: m.kind, description: m.description, active: m.active })),
+      recommender: summarizeRecommendations((recs.data ?? []).map((r) => ({ category: r.category, taken: r.taken_at !== null }))),
+    };
+  });

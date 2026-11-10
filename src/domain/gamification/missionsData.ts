@@ -28,7 +28,11 @@ export interface Mission {
   isAR?: boolean;
   /** Categoría propia cuando no coincide con la de su tipo (p. ej. un temporizador de autocuidado). */
   category?: TaskCategoryName;
+  /** Ruta guiada a la que pertenece y su paso (1 = primero): se desbloquea al cumplir el anterior. */
+  path?: { id: PathId; step: number };
 }
+
+export type PathId = "dwm";
 
 export const MISSIONS: Mission[] = [
   { id: "breath-4", type: "breathing", title: "Respiración guiada", desc: "4 ciclos de respiración consciente", icon: "meditation", rarity: "Común", reward: { xp: 50, coins: 15, stats: { bienestar: 4, energia: 3 }, attributes: { mindfulness: 3, resiliencia: 1 } } },
@@ -83,6 +87,12 @@ export const MISSIONS: Mission[] = [
   { id: "ar-gratitude", type: "ar-focus", title: "Altar de gratitud (AR)", desc: "Mantén al avatar centrado mientras agradeces", icon: "candle-light", rarity: "Épica", isAR: true, reward: { xp: 110, coins: 34, gems: 1, stats: { bienestar: 7, claridad: 4 }, attributes: { mindfulness: 4, empatia: 2 } } },
   { id: "ar-calm-aura", type: "ar-aura", title: "Aura de calma nocturna (AR)", desc: "Respira lento con tu avatar antes de dormir", icon: "galaxy", rarity: "Épica", isAR: true, reward: { xp: 105, coins: 32, gems: 1, stats: { bienestar: 8 }, attributes: { mindfulness: 5 } } },
   { id: "ar-power", type: "ar-energy", title: "Chispa de ánimo (AR)", desc: "Recarga a tu avatar cuando la energía baje", icon: "battery-pack", rarity: "Raro", isAR: true, reward: { xp: 85, coins: 28, stats: { energia: 7, bienestar: 2 }, attributes: { resiliencia: 3 } } },
+  // ——— Ruta "Hacer lo que importa" (guía de la OMS para tiempos de estrés, 2020) ———
+  { id: "dwm-1", type: "timer", category: "autocuidado", path: { id: "dwm", step: 1 }, title: "Anclarse", desc: "Siente tus pies en el suelo, nota 5 cosas que ves y 3 que oyes", icon: "anchor", rarity: "Raro", durationSec: 60, reward: { xp: 70, coins: 22, stats: { bienestar: 5, claridad: 3 }, attributes: { mindfulness: 4 } } },
+  { id: "dwm-2", type: "journal", category: "reflexion", path: { id: "dwm", step: 2 }, title: "Desengancharse", desc: "Nombra un pensamiento difícil sin pelear con él", icon: "fishing-hook", rarity: "Raro", reward: { xp: 75, coins: 24, stats: { claridad: 6 }, attributes: { autoconocimiento: 4 } } },
+  { id: "dwm-3", type: "journal", category: "reflexion", path: { id: "dwm", step: 3 }, title: "Actuar según tus valores", desc: "Elige un valor y una acción pequeña para hoy", icon: "compass", rarity: "Épica", reward: { xp: 90, coins: 28, gems: 1, stats: { claridad: 5, bienestar: 3 }, attributes: { autoconocimiento: 5 } } },
+  { id: "dwm-4", type: "journal", category: "reflexion", path: { id: "dwm", step: 4 }, title: "Ser amable", desc: "Háblate como le hablarías a un buen amigo", icon: "heart-plus", rarity: "Épica", reward: { xp: 90, coins: 28, gems: 1, stats: { bienestar: 6 }, attributes: { empatia: 5 } } },
+  { id: "dwm-5", type: "meditation", category: "autocuidado", path: { id: "dwm", step: 5 }, title: "Hacer espacio", desc: "Deja estar una emoción difícil mientras respiras", icon: "lotus", rarity: "Legendaria", durationSec: 120, reward: { xp: 120, coins: 40, gems: 2, stats: { bienestar: 6, resiliencia: 5 }, attributes: { mindfulness: 5, resiliencia: 3 } } },
   { id: "ar-walk-60", type: "ar-walk", title: "Ruta larga AR", desc: "60 pasos conscientes con tu avatar", icon: "walking-boot", rarity: "Legendaria", isAR: true, requiredLevel: 6, reward: { xp: 170, coins: 60, gems: 2, stats: { energia: 11, bienestar: 6 }, attributes: { mindfulness: 5, resiliencia: 4 } } },
 ];
 
@@ -134,6 +144,9 @@ export function attributeSourceCategory(attribute: AttributeKey, missions: reado
 
 /** Preguntas guía de las misiones de escritura (diario y sociales); sin entrada, se usa el Diario emocional. */
 export const WRITING_PROMPTS: Record<string, readonly string[]> = {
+  "dwm-2": ["Escribe un pensamiento difícil que te ronda. Ahora reescríbelo empezando por \"Estoy notando el pensamiento de que…\". ¿Se siente distinto?"],
+  "dwm-3": ["¿Qué tipo de persona quieres ser esta semana? Elige un valor (amable, valiente, constante…) y escribe una acción pequeña para hoy que vaya con él."],
+  "dwm-4": ["Piensa en algo que hoy te cuesta. Escríbete como le hablarías a un buen amigo que pasa por lo mismo."],
   "journal-worry": ["¿Qué te está pesando hoy? Escríbelo sin filtros y déjalo aquí.", "Si esa preocupación fuera una mochila, ¿qué sacarías primero?"],
   "journal-win": ["¿Qué victoria, por pequeña que sea, lograste hoy?", "¿Qué hiciste hoy de lo que te sientas orgulloso u orgullosa?"],
   "journal-future": ["Escríbele a tu yo de dentro de un mes: ¿qué quieres recordarle?", "¿Qué esperas haber conquistado cuando leas esta carta?"],
@@ -149,3 +162,22 @@ export const GRATITUDE_HINTS: Record<string, string> = {
   "gratitude-people": "Escribe tres personas que te sumaron esta semana y por qué.",
   "gratitude-self": "Escribe tres cosas que agradeces de ti: tus fuerzas, tus logros, tu forma de ser.",
 };
+
+/** Rutas guiadas: nombre, fuente y pasos en orden. */
+export const PATHS: Record<PathId, { name: string; source: string; sourceUrl: string }> = {
+  dwm: {
+    name: "Hacer lo que importa",
+    source: "Guía de la OMS \"Doing What Matters in Times of Stress\" (2020)",
+    sourceUrl: "https://www.who.int/publications/i/item/9789240003927",
+  },
+};
+
+export const pathMissions = (id: PathId): Mission[] =>
+  MISSIONS.filter((m) => m.path?.id === id).sort((a, b) => (a.path?.step ?? 0) - (b.path?.step ?? 0));
+
+/** Paso de ruta bloqueado: falta cumplir alguna vez el paso anterior. Devuelve el que falta, o null. */
+export function pathBlocker(mission: Pick<Mission, "path">, done: ReadonlySet<string>): Mission | null {
+  if (!mission.path || mission.path.step <= 1) return null;
+  const prev = MISSIONS.find((m) => m.path?.id === mission.path!.id && m.path.step === mission.path!.step - 1);
+  return prev && !done.has(prev.id) ? prev : null;
+}

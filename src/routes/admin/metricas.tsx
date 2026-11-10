@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { WhatIfSimulator } from "@/presentation/components/admin/WhatIfSimulator";
+import { ModelsPanel } from "@/presentation/components/admin/ModelsPanel";
 import { AdminShell } from "@/presentation/components/admin/AdminShell";
 import { useAdminAccess, useCalendarActions, useExportDataset, usePopulationMetrics } from "@/presentation/hooks/useAdmin";
 import { ActivityChart, CategoryChart, ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
@@ -206,6 +207,8 @@ function AdminMetricsPage() {
               </section>
             </div>
           )}
+
+          <ModelsPanel enabled={!!access?.isAdmin} />
 
           <CalendarManager periods={data?.calendar ?? []} />
 

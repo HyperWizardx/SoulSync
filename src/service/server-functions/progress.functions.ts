@@ -39,6 +39,8 @@ export type ProgressPayload = {
   items: InventoryItem[];
   effects: ActiveEffect[];
   achievements: string[];
+  /** Misiones de rutas guiadas cumplidas alguna vez (desbloquean el paso siguiente). */
+  pathDone: string[];
 };
 
 export type InventoryItem = {
@@ -65,7 +67,7 @@ export const getProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ProgressPayload> => {
     const { supabase, userId } = context;
-    const [pRes, sRes, aRes, hRes, iRes, achRes, efRes] = await Promise.all([
+    const [pRes, sRes, aRes, hRes, iRes, achRes, efRes, pathRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
@@ -78,6 +80,7 @@ export const getProgress = createServerFn({ method: "GET" })
       supabase.from("inventory").select("*").eq("user_id", userId),
       supabase.from("achievements").select("code").eq("user_id", userId),
       supabase.from("item_effects").select("*").eq("user_id", userId),
+      supabase.from("mission_completions").select("mission_id").eq("user_id", userId).like("mission_id", "dwm-%").limit(500),
     ]);
 
 
@@ -155,6 +158,7 @@ export const getProgress = createServerFn({ method: "GET" })
         }))
         .filter(isEffectActive),
       achievements: (achRes.data ?? []).map((r) => r.code),
+      pathDone: [...new Set((pathRes.data ?? []).map((r) => r.mission_id as string))],
 
     };
   });

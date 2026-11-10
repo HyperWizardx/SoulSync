@@ -9,7 +9,9 @@ import { ResourceBar } from "@/presentation/components/layout/ResourceBar";
 import { toast } from "sonner";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
-import { GRATITUDE_HINTS, MISSIONS, WRITING_PROMPTS, missionCategory, getMissionById, type Mission } from "@/domain/gamification/missionsData";
+import { GRATITUDE_HINTS, MISSIONS, WRITING_PROMPTS, missionCategory, getMissionById, pathBlocker, type Mission } from "@/domain/gamification/missionsData";
+import { RecommendedStrip } from "@/presentation/components/missions/RecommendedStrip";
+import { PathCard } from "@/presentation/components/missions/PathCard";
 import { AFFINITY_XP_MULT, CATEGORY_LABEL, getArchetypeStyle, isAffine } from "@/domain/identity/archetype";
 import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
 import type { ZoneKey } from "@/domain/world/dioramas";
@@ -96,9 +98,9 @@ function MissionsPage() {
   useEffect(() => {
     if (!missionParam) return;
     const m = getMissionById(missionParam);
-    if (m && (!m.requiredLevel || user.level >= m.requiredLevel)) { openMission(m); setFromZone(fromParam ?? null); }
+    if (m && (!m.requiredLevel || user.level >= m.requiredLevel) && !pathBlocker(m, new Set(user.pathDone))) { openMission(m); setFromZone(fromParam ?? null); }
     void navigate({ search: {}, replace: true });
-  }, [missionParam, fromParam, navigate, user.level]);
+  }, [missionParam, fromParam, navigate, user.level, user.pathDone]);
   // Al cerrar o terminar una misión abierta desde una zona, se vuelve a esa zona del Mundo.
   const closeMission = () => {
     setActive(null);
@@ -106,17 +108,21 @@ function MissionsPage() {
   };
   const today = new Date().toDateString();
   const completedToday = useMemo(() => new Set(user.missionHistory.filter((m) => m.date === today).map((m) => m.id)), [user.missionHistory, today]);
+  const pathDone = useMemo(() => new Set(user.pathDone), [user.pathDone]);
   const { activas, ar, completadas, bloqueadas } = useMemo(() => {
     const activas: Mission[] = [], ar: Mission[] = [], completadas: Mission[] = [], bloqueadas: Mission[] = [];
     for (const m of MISSIONS) {
-      if (m.requiredLevel && user.level < m.requiredLevel) bloqueadas.push(m);
+      if ((m.requiredLevel && user.level < m.requiredLevel) || pathBlocker(m, pathDone)) bloqueadas.push(m);
       else if (completedToday.has(m.id)) completadas.push(m);
+      else if (m.path) continue; // los pasos de la ruta viven en su tarjeta
       else if (m.isAR) ar.push(m); else activas.push(m);
     }
     // Las misiones afines al arquetipo van primero (el orden del catálogo se mantiene entre iguales).
     const byAffinity = (list: Mission[]) => [...list.filter((m) => isAffine(user.archetype, missionCategory(m))), ...list.filter((m) => !isAffine(user.archetype, missionCategory(m)))];
     return { activas: byAffinity(activas), ar: byAffinity(ar), completadas, bloqueadas };
-  }, [user.level, user.archetype, completedToday]);
+  }, [user.level, user.archetype, completedToday, pathDone]);
+  // Por qué está bloqueada: nivel o paso anterior de la ruta.
+  const lockText = (m: Mission) => { const b = pathBlocker(m, pathDone); return b ? `Primero cumple «${b.title}»` : `Requiere nivel ${m.requiredLevel}`; };
   const skipMission = (m: Mission) => {
     setSkipped((prev) => new Set(prev).add(m.id));
     logTask.mutate({ missionId: m.id, title: m.title, status: "skipped", category: missionCategory(m), isAR: m.isAR ?? false });
@@ -149,10 +155,10 @@ function MissionsPage() {
     <div className="flex items-start justify-between"><div className="flex items-center gap-3"><ArchetypeCrest archetype={user.archetype} level={user.level} size={40} /><div><h1 className="text-2xl font-cinzel font-bold">Misiones</h1><p className="mt-1 text-sm text-muted-foreground">{archStyle.affinity.length ? <>Afines a tu {archStyle.name}: {archStyle.affinity.map((c) => CATEGORY_LABEL[c]).join(" y ")} <span className="text-soul-gold">(+{Math.round((AFFINITY_XP_MULT - 1) * 100)} % XP)</span></> : "Tu camino de crecimiento"}</p></div></div><div className="rounded-full border border-soul-gold/30 bg-soul-gold/10 px-2.5 py-1 text-xs font-bold text-soul-gold"><AnimatedNumber value={user.xp} /> XP</div></div>
     <ResourceBar streak={user.streak} coins={user.coins} gems={user.gems} className="mt-4" />
     <div className="mt-5 flex rounded-xl bg-card p-1">{tabs.map((t) => { const count = t === "Activas" ? activas.length : t === "AR" ? ar.length : t === "Completadas" ? completadas.length : bloqueadas.length; return <button key={t} onClick={() => setTab(t)} className={`flex-1 rounded-lg py-2 text-xs font-semibold ${tab === t ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"}`}>{t === "AR" && <Camera className="mr-0.5 inline h-3 w-3" />}{t} <span className="opacity-70">({count})</span></button>; })}</div>
-    <div className="mt-4 space-y-3">{tab === "Activas" && (activas.length === 0 ? <EmptyState text="¡Cumpliste todas las misiones de hoy, héroe! Descansa y vuelve mañana por más." /> : activas.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} affine={affine(m) ? archStyle.name : undefined} onStart={() => openMission(m)} onSkip={skipped.has(m.id) ? undefined : () => skipMission(m)} skipped={skipped.has(m.id)} /></Reveal>))}
+    <div className="mt-4 space-y-3">{tab === "Activas" && <><RecommendedStrip onStart={openMission} exclude={completedToday} /><PathCard id="dwm" done={pathDone} doneToday={completedToday} onStart={openMission} /></>}{tab === "Activas" && (activas.length === 0 ? <EmptyState text="¡Cumpliste todas las misiones de hoy, héroe! Descansa y vuelve mañana por más." /> : activas.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} affine={affine(m) ? archStyle.name : undefined} onStart={() => openMission(m)} onSkip={skipped.has(m.id) ? undefined : () => skipMission(m)} skipped={skipped.has(m.id)} /></Reveal>))}
     {tab === "AR" && <>{<div className="flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> Abre la cámara y lleva a tu héroe a tu mundo real: cada zona tiene su propia misión mágica.</div>}{ar.length === 0 ? <EmptyState text="Ya completaste las misiones AR de hoy." /> : ar.map((m, i) => <Reveal key={m.id} index={i}><MissionCard mission={m} affine={affine(m) ? archStyle.name : undefined} onStart={() => openMission(m)} ar /></Reveal>)}</>}
     {tab === "Completadas" && (completadas.length === 0 ? <EmptyState text="Aún no completas misiones hoy. ¡Tu primera hazaña te espera en Activas!" /> : completadas.map((m) => <div key={m.id} className="flex items-center gap-3 rounded-xl border border-soul-teal/30 bg-soul-teal/5 p-4"><CheckCircle2 className="h-6 w-6 shrink-0 text-soul-teal" /><div className="flex-1"><p className="font-semibold line-through opacity-80">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p></div><span className="text-xs font-bold text-soul-gold">+{m.reward.xp} XP</span></div>))}
-    {tab === "Bloqueadas" && (bloqueadas.length === 0 ? <EmptyState text="¡Ya desbloqueaste todas las misiones!" /> : bloqueadas.map((m) => <button key={m.id} onClick={() => toast(`Se desbloquea en el nivel ${m.requiredLevel}. ¡Sigue sumando XP!`, { icon: <Lock className="h-4 w-4" /> })} className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70"><div className="flex items-center gap-3"><Lock className="h-6 w-6 text-muted-foreground" /><div><p className="font-semibold">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p><span className="mt-1 inline-block rounded-full bg-primary/20 px-2 py-0.5 text-xs text-primary">{m.rarity} • Requiere nivel {m.requiredLevel}</span></div></div></button>))}</div>
+    {tab === "Bloqueadas" && (bloqueadas.length === 0 ? <EmptyState text="¡Ya desbloqueaste todas las misiones!" /> : bloqueadas.map((m) => <button key={m.id} onClick={() => toast(pathBlocker(m, pathDone) ? `${lockText(m)} para abrir este paso de la ruta.` : `Se desbloquea en el nivel ${m.requiredLevel}. ¡Sigue sumando XP!`, { icon: <Lock className="h-4 w-4" /> })} className="w-full rounded-xl border border-border bg-card/50 p-4 text-left opacity-70"><div className="flex items-center gap-3"><Lock className="h-6 w-6 text-muted-foreground" /><div><p className="font-semibold">{m.title}</p><p className="text-xs text-muted-foreground">{m.desc}</p><span className="mt-1 inline-block rounded-full bg-primary/20 px-2 py-0.5 text-xs text-primary">{m.rarity} • {lockText(m)}</span></div></div></button>))}</div>
     <Suspense fallback={<MissionLoading />}>
     {active?.type === "breathing" && <BreathingMission cycles={active.id === "deep-breath" ? 8 : active.id === "breath-box" || active.id === "breath-night" ? 6 : 4} onComplete={() => finishMission(active, "Respiración completada")} onClose={closeMission} />}
     {(active?.type === "journal" || active?.type === "social") && <JournalMission title={active.title} icon={active.icon} prompts={WRITING_PROMPTS[active.id]} onComplete={(_t, mood) => finishMission(active, `Ánimo: ${mood}`)} onClose={closeMission} />}

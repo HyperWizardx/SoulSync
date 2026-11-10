@@ -28,6 +28,8 @@ export interface UserData {
   stats: UserStats;
   attributes: UserAttributes;
   achievements: string[];
+  /** Pasos de rutas guiadas ya cumplidos. */
+  pathDone: string[];
   settings: UserSettings;
 }
 
@@ -56,6 +58,7 @@ export const DEFAULT_USER: UserData = {
     creatividad: 30,
   },
   achievements: [],
+  pathDone: [],
   settings: { theme: "dark", textSize: "normal", dailyGoal: 3, onboarded: false },
 };
 
@@ -94,6 +97,7 @@ export function toUserData(data: ProgressPayload | undefined): UserData {
             }
           : DEFAULT_USER.attributes,
         achievements: data.achievements ?? [],
+        pathDone: data.pathDone ?? [],
         settings: {
           theme: (data.profile.theme as "dark" | "light") ?? "dark",
           textSize: (data.profile.text_size as "normal" | "large" | "xl") ?? "normal",

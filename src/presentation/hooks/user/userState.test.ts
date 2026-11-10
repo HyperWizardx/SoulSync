@@ -9,7 +9,7 @@ const progress: ProgressPayload = {
   attributes: { resiliencia: 41, empatia: 42, mindfulness: 43, autoconocimiento: 44, conexion_social: 75, creatividad: 46 },
   history: [{ id: 'registro', mission_id: 'respirar', title: 'Respiración', xp_earned: 35, is_ar: false, completed_at: '2026-10-21T12:00:00Z', completed_date: '2026-10-21' }],
   inventory: ['Escudo'], items: [{ id: 'objeto', item_key: 'escudo', item_name: 'Escudo', quantity: 2, kind: 'consumable', equipped: false }],
-  effects: [{ id: 'efecto', item_key: 'escudo', effect: 'streak_shield', magnitude: 1, uses_left: 1, expires_at: null }], achievements: ['primera_mision'],
+  effects: [{ id: 'efecto', item_key: 'escudo', effect: 'streak_shield', magnitude: 1, uses_left: 1, expires_at: null }], achievements: ['primera_mision'], pathDone: [],
 };
 describe('Traducción del progreso', () => {
   it('mantiene los valores reales de progreso y preferencias', () => {

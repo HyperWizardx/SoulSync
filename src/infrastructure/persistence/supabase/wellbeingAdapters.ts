@@ -20,7 +20,7 @@ export const supabaseConsentRepository = (db: Db): ConsentRepository => ({
   async revokeAndPurge(userId) {
     await db.from("research_consent").update({ revoked_at: new Date().toISOString() }).eq("user_id", userId).is("revoked_at", null);
     // Minimización de datos: se elimina todo lo recogido por el módulo.
-    for (const t of ["wellbeing_predictions", "wellbeing_checkins", "wellbeing_scales", "timeline_events", "task_events", "activity_logs"] as const) {
+    for (const t of ["wellbeing_predictions", "wellbeing_checkins", "wellbeing_scales", "timeline_events", "task_events", "activity_logs", "recommendation_log"] as const) {
       await db.from(t).delete().eq("user_id", userId);
     }
   },

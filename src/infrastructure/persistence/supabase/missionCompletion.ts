@@ -5,12 +5,13 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { getMissionById, missionCategory } from "@/domain/gamification/missionsData";
+import { getMissionById, missionCategory, pathBlocker } from "@/domain/gamification/missionsData";
 import { isEffectActive } from "@/domain/gamification/progression";
 import { CATEGORY_LABEL, isAffine } from "@/domain/identity/archetype";
 import { planMissionCompletion } from "@/application/gamification/completeMission";
 import { addTimelineEvent, hasActiveConsent } from "./wellbeingRepository";
 import { consumeUses, evaluateAndGrant } from "./gamificationRepository";
+import { markRecommendationTaken } from "./recommendationRepository";
 
 type Db = SupabaseClient<Database>;
 
@@ -36,6 +37,11 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
   if (!pRes.data || !sRes.data || !aRes.data) throw new Error("Perfil no inicializado");
   const p = pRes.data, s = sRes.data, a = aRes.data;
   if (mission.requiredLevel && p.level < mission.requiredLevel) throw new Error(`Requiere nivel ${mission.requiredLevel}`);
+  if (mission.path) {
+    const { data: doneRows } = await db.from("mission_completions").select("mission_id").eq("user_id", userId).like("mission_id", `${mission.path.id}-%`);
+    const blocker = pathBlocker(mission, new Set((doneRows ?? []).map((r) => r.mission_id as string)));
+    if (blocker) throw new Error(`Primero cumple «${blocker.title}»`);
+  }
 
   const effects = (efRes.data ?? [])
     .map((row) => ({
@@ -113,6 +119,7 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
   const [unlocked] = await Promise.all([
     evaluateAndGrant(db, userId, { level: plan.profile.level, streak: plan.profile.streak }),
     recordTelemetry(),
+    markRecommendationTaken(db, userId, mission.id, plan.today), // evalúa el recomendador
   ]);
 
   return {
