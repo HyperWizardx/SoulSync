@@ -46,12 +46,13 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
       if (error) throw new Error('No se pudo eliminar el periodo.');
     },
     async loadStudents(withEmails, since, sinceTs) {
-  const [profiles, consents, checkins, missions, tasks] = await Promise.all([
+  const [profiles, consents, checkins, missions, tasks, scales] = await Promise.all([
     supabase.from("profiles").select("user_id, name, level, streak, archetype, daily_goal, last_mission_date"),
     supabase.from("research_consent").select("user_id, consent_version, revoked_at, accepted_at").order("accepted_at", { ascending: false }),
     supabase.from("wellbeing_checkins").select("user_id, checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds").gte("checkin_date", since),
     supabase.from("mission_completions").select("user_id, completed_date, completed_at").gte("completed_at", sinceTs),
     supabase.from("task_events").select("user_id, occurred_date, mission_id, status, category, duration_seconds").gte("occurred_date", since),
+    supabase.from("wellbeing_scales").select("user_id, scale_code, raw_score, max_score, answered_at").gte("answered_at", `${since}T00:00:00Z`).order("answered_at", { ascending: false }),
   ]);
 
   const emails = new Map<string, string>();
@@ -62,7 +63,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
   }
 
 
-      return { profiles: profiles.data ?? [], consents: consents.data ?? [], checkins: checkins.data ?? [], missions: missions.data ?? [], tasks: tasks.data ?? [], emails };
+      return { profiles: profiles.data ?? [], consents: consents.data ?? [], checkins: checkins.data ?? [], missions: missions.data ?? [], tasks: tasks.data ?? [], scales: (scales.data ?? []).map((s) => ({ ...s, raw_score: Number(s.raw_score), max_score: Number(s.max_score), answered_at: String(s.answered_at) })), emails };
     },
     async loadDetail(uid, since30) {
     const [checkinRes, predRes, missionRes, taskRes, timelineRes, scaleRes, worldRes, statRes, attrRes] =

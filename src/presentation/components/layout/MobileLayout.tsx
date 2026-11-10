@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { BottomNav } from "@/presentation/components/layout/BottomNav";
 import { PageTransition } from "@/presentation/components/motion/PageTransition";
 import { useAuthSession } from "@/presentation/components/layout/AuthSessionProvider";
+import { ReminderNudge } from "@/presentation/components/layout/ReminderNudge";
 
 export function MobileLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto min-h-screen max-w-[430px] bg-background pb-20">
       <PageTransition>{children}</PageTransition>
+      <ReminderNudge />
       <BottomNav />
     </div>
   );

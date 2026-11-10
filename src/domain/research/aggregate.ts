@@ -34,6 +34,8 @@ export interface StudentRow {
   safetyFlags?: number;
   topFactors?: string[];
   lastFollowUp?: string | null;
+  /** Último WHO-5 (0–25) de las últimas 4 semanas, solo con consentimiento vigente. */
+  who5Raw?: number | null;
 }
 
 export interface PopulationMetrics {

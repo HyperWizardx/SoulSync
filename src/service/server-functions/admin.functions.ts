@@ -9,6 +9,7 @@ import { summarizeRecommendations } from '@/domain/wellbeing/recommender';
 export { DATASETS } from '@/domain/research/ports';
 export type { AdminAccess, StudentDetail, DatasetKey } from '@/domain/research/ports';
 export type { StudentRow, PopulationMetrics } from '@/domain/research/aggregate';
+export type { StudentAlert, AlertPriority } from '@/domain/research/alerts';
 export type { DashboardSeries } from '@/domain/research/dashboard';
 
 export const getAdminAccess = createServerFn({ method: 'GET' })

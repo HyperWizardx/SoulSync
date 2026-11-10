@@ -5,6 +5,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAddFollowUp, useAdminAccess, useStudentDetail } from "@/presentation/hooks/useAdmin";
 import { CategoryChart, ChartCard, MoodStressChart, ScoreHistoryChart, SleepChart } from "@/presentation/components/admin/DashboardCharts";
+import { PRIORITY_STYLE, followUpText } from "@/presentation/components/admin/AlertsPanel";
+import { alertFor, FOLLOW_UP_WINDOW_DAYS } from "@/domain/research/alerts";
+import type { StudentRow } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/estudiante/$id")({
   component: StudentDetailPage,
@@ -98,6 +101,23 @@ function FollowUpSection({ studentId, items }: { studentId: string; items: { id:
   );
 }
 
+/** Alerta vigente del estudiante (misma regla que la cola del panel). */
+function StudentAlertBanner({ row }: { row: StudentRow }) {
+  const now = new Date();
+  const alert = alertFor(row, now);
+  if (!alert) return null;
+  const s = PRIORITY_STYLE[alert.priority];
+  const days = row.lastFollowUp ? Math.floor((now.getTime() - Date.parse(row.lastFollowUp)) / 86_400_000) : null;
+  const pending = days === null || days > FOLLOW_UP_WINDOW_DAYS[alert.priority];
+  return (
+    <div className={`rounded-2xl border border-border p-4 ${s.chip}`} role="status">
+      <p className="flex items-center gap-2 text-sm font-semibold"><s.Icon className="h-4 w-4" aria-hidden /> Alerta: {s.label}</p>
+      <p className="mt-1 text-xs text-foreground">{alert.reasons.join(" · ")}</p>
+      <p className="mt-1 text-xs">{followUpText({ priority: alert.priority, daysSinceFollowUp: days, followUpPending: pending })}</p>
+    </div>
+  );
+}
+
 function StudentDetailPage() {
   const { id } = Route.useParams();
   const { data: access } = useAdminAccess();
@@ -177,6 +197,7 @@ function StudentDetailPage() {
             )}
           </Section>
 
+          <StudentAlertBanner row={data.row} />
           <FollowUpSection studentId={id} items={data.followUps ?? []} />
 
           <ChartCard title="Ánimo y estrés (30 días)">

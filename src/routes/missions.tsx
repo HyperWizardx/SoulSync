@@ -69,9 +69,11 @@ export const Route = createFileRoute("/missions")({
     { name: "twitter:card", content: "summary" },
   ] }),
   // from: zona del Mundo desde la que se abrió la misión (para volver a ella al terminar).
-  validateSearch: (search: Record<string, unknown>): { mission?: string; from?: ZoneKey } => ({
+  validateSearch: (search: Record<string, unknown>): { mission?: string; from?: ZoneKey; cat?: TaskCategoryName } => ({
     mission: typeof search.mission === "string" ? search.mission : undefined,
     from: typeof search.from === "string" && ZONE_KEYS.includes(search.from as ZoneKey) ? (search.from as ZoneKey) : undefined,
+    // Abre la pantalla con el filtro de una categoría (p. ej. desde el reto del gremio).
+    cat: typeof search.cat === "string" && CATEGORY_KEYS.includes(search.cat as TaskCategoryName) ? (search.cat as TaskCategoryName) : undefined,
   }),
   component: MissionsPage,
 });
@@ -85,6 +87,7 @@ const SECTIONS: { key: TaskCategoryName; label: string; chip?: string; icon: str
   { key: "ar", label: "Realidad aumentada", chip: "AR", icon: "smartphone", hint: "Lleva a tu héroe a tu mundo real" },
 ];
 type Filter = "todas" | TaskCategoryName;
+const CATEGORY_KEYS: TaskCategoryName[] = ["autocuidado", "reflexion", "movimiento", "social", "cognitivo", "ar"];
 
 function MissionsPage() {
   const { user, completeMission, isLoading } = useUserStore();
@@ -93,7 +96,7 @@ function MissionsPage() {
   const [filter, setFilter] = useState<Filter>("todas");
   const [showLocked, setShowLocked] = useState(false);
   const [active, setActive] = useState<Mission | null>(null);
-  const { mission: missionParam, from: fromParam } = Route.useSearch();
+  const { mission: missionParam, from: fromParam, cat: catParam } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [fromZone, setFromZone] = useState<ZoneKey | null>(null);
   // Momento en que se abrió la misión: su duración real se guarda con la tarea completada.
@@ -109,6 +112,11 @@ function MissionsPage() {
   const archStyle = getArchetypeStyle(user.archetype);
   const affine = (m: Mission) => isAffine(user.archetype, missionCategory(m));
   useEffect(() => { preloadMissions(); }, []);
+  useEffect(() => {
+    if (!catParam) return;
+    setFilter(catParam);
+    void navigate({ search: {}, replace: true });
+  }, [catParam, navigate]);
   useEffect(() => {
     if (!missionParam) return;
     const m = getMissionById(missionParam);

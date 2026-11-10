@@ -7,7 +7,9 @@ describe("Preferencias del dispositivo", () => {
   it("usa valores por defecto si no hay nada guardado o está dañado", () => {
     expect(parsePrefs(null)).toEqual(DEFAULT_PREFS);
     expect(parsePrefs("{no es json")).toEqual(DEFAULT_PREFS);
-    expect(parsePrefs(JSON.stringify({ sound: "sí", haptics: false }))).toEqual({ reduceMotion: null, sound: false, haptics: false });
+    expect(parsePrefs(JSON.stringify({ sound: "sí", haptics: false }))).toEqual({ ...DEFAULT_PREFS, reduceMotion: null, sound: false, haptics: false });
+    expect(parsePrefs(JSON.stringify({ reminderEnabled: true, reminderTime: "8pm" }))).toMatchObject({ reminderEnabled: true, reminderTime: "19:00" });
+    expect(DEFAULT_PREFS.reminderEnabled).toBe(false);
   });
   it("los sonidos vienen apagados y la vibración encendida", () => {
     expect(DEFAULT_PREFS.sound).toBe(false);

@@ -19,6 +19,10 @@ export interface AchievementContext {
   scales: number;
   /** Semanas que alcanzaron la meta OMS de 150 min de actividad. */
   activeWeeks: number;
+  /** 1 si pertenece a un gremio. */
+  guildMember: number;
+  /** Cofres del gremio abiertos (retos semanales superados en equipo). */
+  guildChests: number;
 }
 
 export interface Achievement {
@@ -27,7 +31,7 @@ export interface Achievement {
   icon: string; // ícono de game-icons.net (ver GameIcon)
   description: string;
   rarity: Rarity;
-  group: "constancia" | "volumen" | "categorias" | "ar" | "nivel" | "bienestar" | "mundo" | "tienda";
+  group: "constancia" | "volumen" | "categorias" | "ar" | "nivel" | "bienestar" | "gremio" | "mundo" | "tienda";
   target: number;
   metric: (c: AchievementContext) => number;
 }
@@ -61,6 +65,7 @@ export const ACHIEVEMENT_GROUPS: { key: Achievement["group"]; label: string }[] 
   { key: "ar", label: "Realidad aumentada" },
   { key: "nivel", label: "Nivel" },
   { key: "bienestar", label: "Bienestar" },
+  { key: "gremio", label: "Gremio" },
   { key: "mundo", label: "Mundo" },
   { key: "tienda", label: "Tienda" },
 ];
@@ -112,6 +117,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   { code: "active_week", name: "Semana activa", icon: "run", description: "Llega a 150 min de actividad física en una semana", rarity: "raro", group: "bienestar", target: 1, metric: (c) => c.activeWeeks },
   { code: "active_4_weeks", name: "Cuerpo de héroe", icon: "muscle-up", description: "Cumple la meta de 150 min en 4 semanas", rarity: "epico", group: "bienestar", target: 4, metric: (c) => c.activeWeeks },
   { code: "daily_goal", name: "Meta cumplida", icon: "check-mark", description: "Completa tu meta diaria de misiones un día", rarity: "comun", group: "bienestar", target: 1, metric: (c) => c.goalDays },
+  { code: "guild_join", name: "Juramento del gremio", icon: "flying-flag", description: "Funda un gremio o únete a uno", rarity: "comun", group: "gremio", target: 1, metric: (c) => c.guildMember },
+  { code: "guild_chest_1", name: "Cofre compartido", icon: "open-treasure-chest", description: "Superen juntos un reto semanal del gremio", rarity: "raro", group: "gremio", target: 1, metric: (c) => c.guildChests },
+  { code: "guild_chest_4", name: "Hermandad forjada", icon: "three-friends", description: "Superen juntos 4 retos semanales del gremio", rarity: "epico", group: "gremio", target: 4, metric: (c) => c.guildChests },
   { code: "daily_goal_7", name: "Semana perfecta", icon: "calendar", description: "Completa tu meta diaria de misiones 7 días", rarity: "epico", group: "bienestar", target: 7, metric: (c) => c.goalDays },
 
   // Mundo

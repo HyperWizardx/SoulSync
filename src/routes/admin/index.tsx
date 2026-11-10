@@ -5,6 +5,7 @@ import { AdminShell } from "@/presentation/components/admin/AdminShell";
 import { useAdminAccess, usePsychologistDashboard, useStudents } from "@/presentation/hooks/useAdmin";
 import { ChartCard, DonutChart, HorizontalBars, MoodStressChart, RiskHistoryChart, StatTile } from "@/presentation/components/admin/DashboardCharts";
 import type { StudentRow } from "@/service/server-functions/admin.functions";
+import { AlertsPanel } from "@/presentation/components/admin/AlertsPanel";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminStudentsPage,
@@ -87,11 +88,12 @@ function AdminStudentsPage() {
 
       {dash && (
         <>
+          <AlertsPanel alerts={dash.alerts} />
           <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatTile label="Reglas de seguridad activas" value={dash.dashboard.safetyFlagged} tone={dash.dashboard.safetyFlagged ? "danger" : "ok"} />
             <StatTile label="Sin check-in hace 3+ días" value={dash.dashboard.noCheckin3d} tone={dash.dashboard.noCheckin3d ? "warn" : "ok"} />
             <StatTile label="Señal moderada" value={(students ?? []).filter((s) => s.riskLevel === "moderado").length} tone="warn" />
-            <StatTile label="Sin seguimiento registrado (alto/moderado)" value={(students ?? []).filter((s) => (s.riskLevel === "alto" || s.riskLevel === "moderado") && !s.lastFollowUp).length} />
+            <StatTile label="Seguimientos pendientes" value={dash.alerts.filter((a) => a.followUpPending).length} tone={dash.alerts.some((a) => a.followUpPending) ? "warn" : "ok"} />
           </div>
           <div className="mb-5 grid gap-3 lg:grid-cols-2">
             <ChartCard title="Ánimo y estrés del grupo" hint="Promedio diario (1–5), últimos 14 días, solo con consentimiento.">
@@ -112,7 +114,7 @@ function AdminStudentsPage() {
               ]} />
             </ChartCard>
           </div>
-          <h2 className="mb-2 font-semibold text-foreground">Cola de atención priorizada</h2>
+          <h2 className="mb-2 font-semibold text-foreground">Todos los estudiantes</h2>
         </>
       )}
 
@@ -156,7 +158,7 @@ function AdminStudentsPage() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase text-muted-foreground">
               <tr>
-                {["Estudiante", "Código", "Señal", "Confianza", "Tendencia", "Seguimiento", "Cobertura", "Check-ins 14d", "Misiones 7d", "Omitidas 7d", "Racha", "Último check-in", "Consentimiento"].map((h) => (
+                {["Estudiante", "Código", "Señal", "Confianza", "Tendencia", "WHO-5", "Seguimiento", "Cobertura", "Check-ins 14d", "Misiones 7d", "Omitidas 7d", "Racha", "Último check-in", "Consentimiento"].map((h) => (
                   <th key={h} className="px-3 py-3 font-medium">{h}</th>
                 ))}
               </tr>
@@ -180,6 +182,7 @@ function AdminStudentsPage() {
                   </td>
                   <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.confidence ?? "—"}{s.safetyFlags ? <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-destructive" aria-label="Revisión prioritaria" /> : null}</td>
                   <td className="px-3 py-3 text-xs capitalize text-muted-foreground">{s.trend ?? "—"}</td>
+                  <td className={`px-3 py-3 text-xs ${s.who5Raw != null && s.who5Raw <= 7 ? "font-semibold text-destructive" : s.who5Raw != null && s.who5Raw < 13 ? "text-amber-500" : "text-muted-foreground"}`}>{s.who5Raw != null ? `${s.who5Raw}/25` : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.lastFollowUp ? new Date(s.lastFollowUp).toLocaleDateString("es-CO") : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.consent === "vigente" ? `${Math.round(s.coverage * 100)}%` : "—"}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">{s.consent === "vigente" ? s.checkins14 : "—"}</td>

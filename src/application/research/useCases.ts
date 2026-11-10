@@ -4,7 +4,9 @@ import { buildDashboardSeries } from '@/domain/research/dashboard';
 import { SAFETY_FLAG_COPY } from '@/domain/wellbeing/decision';
 import type { RiskLevel } from '@/domain/wellbeing/types';
 import { CONSENT_VERSION } from '@/domain/wellbeing/types';
-import type { CheckinRecord, PredictionInput, TaskCategory, TaskStatus, FactorExplanation } from '@/domain/wellbeing/types';
+import type { CheckinRecord, PredictionInput, ScaleRecord, TaskCategory, TaskStatus, FactorExplanation } from '@/domain/wellbeing/types';
+import { WHO5_CODE } from '@/domain/wellbeing/who5';
+import { buildAlerts } from '@/domain/research/alerts';
 import { aggregatePopulation, participantCode, toCsv, type StudentRow } from '@/domain/research/aggregate';
 import { DATASET_COLUMNS, type AdminDeps, type AdminRole, type StudentDetail, type DatasetKey } from '@/domain/research/ports';
 
@@ -29,11 +31,13 @@ function buildInput(
   dailyGoal: number,
   lastMissionDate: string | null,
   taskEvents: { date: string; missionId: string; status: TaskStatus; category: TaskCategory; durationSeconds: number }[],
+  scales: ScaleRecord[] = [],
 ): PredictionInput {
   return {
     today,
     checkins,
     telemetry: { missionsByDate, dailyGoal, lastMissionDate },
+    scales,
     taskEvents,
   };
 }
@@ -62,6 +66,7 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
     deps.repository.loadDecisionContext(daysAgoISO(deps, 29)),
   ]);
   const { profiles, consents, checkins, missions, tasks, emails } = snapshot;
+  const scales = snapshot.scales ?? [];
   const examPeriod = isExamPeriod(today, ctx.calendar);
   const levelsByUser = new Map<string, RiskLevel[]>();
   for (const p of [...ctx.predictions].sort((a, b) => b.generated_at.localeCompare(a.generated_at))) {
@@ -76,6 +81,7 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
   const checkinsByUser = groupBy(checkins);
   const missionsByUser = groupBy(missions);
   const tasksByUser = groupBy(tasks);
+  const scalesByUser = groupBy(scales);
 
   const rows = profiles.map((p) => {
     const consent = consentState(consentByUser.get(p.user_id));
@@ -125,8 +131,13 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
     };
 
     if (consent !== "vigente") {
-      return { ...base, riskLevel: null, score: null, trend: null, coverage: 0, confidence: null, safetyFlags: 0, topFactors: [] } satisfies StudentRow;
+      return { ...base, riskLevel: null, score: null, trend: null, coverage: 0, confidence: null, safetyFlags: 0, topFactors: [], who5Raw: null } satisfies StudentRow;
     }
+    // Mismas escalas que usa la inferencia del estudiante (más recientes primero).
+    const userScales: ScaleRecord[] = (scalesByUser.get(p.user_id) ?? [])
+      .slice().sort((a, b) => b.answered_at.localeCompare(a.answered_at))
+      .map((s) => ({ code: s.scale_code, raw: Number(s.raw_score), max: Number(s.max_score), answeredAt: s.answered_at.slice(0, 10) }));
+    const who5 = userScales.find((s) => s.code === WHO5_CODE);
 
     const prediction = runInference(
       buildInput(
@@ -142,6 +153,7 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
           category: t.category as TaskCategory,
           durationSeconds: Number(t.duration_seconds ?? 0),
         })),
+        userScales,
       ),
       { previousLevels: levelsByUser.get(p.user_id), examPeriod },
     );
@@ -155,6 +167,7 @@ async function loadStudentData(deps: AdminDeps, withEmails: boolean) {
       score: prediction.score,
       trend: prediction.trend,
       coverage: prediction.coverage,
+      who5Raw: who5 ? who5.raw : null,
     } satisfies StudentRow;
   });
   return { rows, snapshot, ctx, today };
@@ -193,7 +206,7 @@ function dashboardFrom(data: Awaited<ReturnType<typeof loadStudentData>>, rows: 
 export async function getPsychologistDashboardUseCase(deps: AdminDeps, userId: string) {
   await requireRole(deps, userId, 'psicologo');
   const data = await loadStudentData(deps, true);
-  return { dashboard: dashboardFrom(data, data.rows) };
+  return { dashboard: dashboardFrom(data, data.rows), alerts: buildAlerts(data.rows, deps.now()) };
 }
 
 export async function addFollowUpUseCase(deps: AdminDeps, userId: string, studentId: string, note: string) {
@@ -230,6 +243,7 @@ export async function getStudentDetailUseCase(deps: AdminDeps, userId: string, t
   if (row.consent === 'vigente') {
     const prediction = runInference(buildInput(todayISO(deps), detail.checkins, {}, 3, null,
       tasks.map(t => ({ date: todayISO(deps), missionId: '', status: t.status as TaskStatus, category: t.category as TaskCategory, durationSeconds: 0 })),
+      detail.scales.map(s => ({ code: s.code, raw: s.raw, max: s.max, answeredAt: s.answeredAt.slice(0, 10) })),
     ), { previousLevels: data.ctx.predictions.filter(p => p.user_id === targetId && p.generated_at.slice(0, 10) !== todayISO(deps)).sort((a, b) => b.generated_at.localeCompare(a.generated_at)).map(p => p.risk_level as RiskLevel), examPeriod: isExamPeriod(todayISO(deps), data.ctx.calendar) });
     explanation = prediction.explanation;
     decision = {

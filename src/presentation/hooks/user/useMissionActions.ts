@@ -32,6 +32,7 @@ export function useMissionActions(level: number) {
       qc.invalidateQueries({ queryKey: ["profile-summary"] });
       qc.invalidateQueries({ queryKey: ["weekly-stats"] });
       qc.invalidateQueries({ queryKey: ["recommendations"] });
+      qc.invalidateQueries({ queryKey: ["guild"] });
     },
   });
 

@@ -11,6 +11,8 @@ import { AuraHalo } from "@/presentation/components/avatars/AuraHalo";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { getArchetypeStyle } from "@/domain/identity/archetype";
 import { useDevicePrefs } from "@/presentation/hooks/useDevicePrefs";
+import { PrefSwitch } from "@/presentation/components/layout/PrefSwitch";
+import { ReminderSettings } from "@/presentation/components/layout/ReminderSettings";
 import { PageSkeleton } from "@/presentation/components/layout/PageSkeleton";
 import { playSound } from "@/shared/sound";
 import { tap as hapticTap } from "@/shared/haptics";
@@ -191,6 +193,7 @@ function ProfilePage() {
                 />
                 <PrefSwitch label="Sonidos" hint="Efectos cortos al completar misiones y subir de nivel" checked={devicePrefs.prefs.sound} onChange={(v) => { devicePrefs.setPrefs({ sound: v }); if (v) playSound("coin"); }} />
                 <PrefSwitch label="Vibración" hint="Respuesta táctil en el móvil" checked={devicePrefs.prefs.haptics} onChange={(v) => { devicePrefs.setPrefs({ haptics: v }); if (v) hapticTap(); }} />
+                <ReminderSettings archetype={user.archetype} />
               </div>
             </div>
 
@@ -451,26 +454,5 @@ function ProfilePage() {
         )}
       </div>
     </MobileLayout>
-  );
-}
-
-// Interruptor accesible para una preferencia del dispositivo.
-function PrefSwitch({ label, hint, checked, onChange }: { label: string; hint: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-3 rounded-lg bg-secondary px-3 py-2 text-left min-h-[44px]"
-    >
-      <span>
-        <span className="block text-sm text-foreground">{label}</span>
-        <span className="block text-xs text-muted-foreground">{hint}</span>
-      </span>
-      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-primary" : "bg-muted"}`} aria-hidden>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-transform ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`} />
-      </span>
-    </button>
   );
 }

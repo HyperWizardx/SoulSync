@@ -37,6 +37,8 @@ export interface StudentSnapshot {
   checkins: { user_id: string; checkin_date: string; mood: number; stress: number; energy: number; social: number; sleep_hours: number | null; checkin_local_hour?: number | null; response_seconds?: number | null }[];
   missions: { user_id: string; completed_date: string; completed_at: string }[];
   tasks: { user_id: string; occurred_date: string; mission_id: string; status: string; category: string; duration_seconds: number }[];
+  /** Escalas respondidas en la ventana (WHO-5 cada 14 días), para el modelo y las alertas. */
+  scales?: { user_id: string; scale_code: string; raw_score: number; max_score: number; answered_at: string }[];
   emails: Map<string, string>;
 }
 export type DetailSnapshot = Omit<StudentDetail, 'row' | 'explanation' | 'insufficientReason' | 'tasksByCategory'> & {

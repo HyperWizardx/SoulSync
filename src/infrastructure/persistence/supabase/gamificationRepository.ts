@@ -32,7 +32,7 @@ export async function buildAchievementContext(
   overrides: Partial<AchievementContext> = {},
 ): Promise<AchievementContext> {
   const today = new Date().toISOString().slice(0, 10);
-  const [profRes, misRes, checkRes, predRes, worldRes, invRes, scaleRes, activity] = await Promise.all([
+  const [profRes, misRes, checkRes, predRes, worldRes, invRes, scaleRes, activity, guildRes, chestRes] = await Promise.all([
     db.from("profiles").select("level,streak,daily_goal").eq("user_id", userId).maybeSingle(),
     db.from("mission_completions").select("category,is_ar,completed_date").eq("user_id", userId).limit(2000),
     db.from("wellbeing_checkins").select("id", { count: "exact", head: true }).eq("user_id", userId),
@@ -41,6 +41,8 @@ export async function buildAchievementContext(
     db.from("inventory").select("quantity").eq("user_id", userId),
     db.from("wellbeing_scales").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("scale_code", WHO5_CODE),
     loadActivityLogs(db, userId),
+    db.from("guild_members").select("guild_id", { count: "exact", head: true }).eq("user_id", userId),
+    db.from("guild_chest_claims").select("week_start", { count: "exact", head: true }).eq("user_id", userId),
   ]);
 
   // Conteos por categoría y por día a partir del historial de misiones.
@@ -77,6 +79,8 @@ export async function buildAchievementContext(
     itemsUsed: 0,
     scales: scaleRes.count ?? 0,
     activeWeeks: weeksWithGoal(activity),
+    guildMember: (guildRes.count ?? 0) > 0 ? 1 : 0,
+    guildChests: chestRes.count ?? 0,
     ...overrides,
   };
 }

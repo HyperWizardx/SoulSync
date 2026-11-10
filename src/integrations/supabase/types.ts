@@ -74,6 +74,78 @@ export type Database = {
         }
         Relationships: []
       }
+      guild_chest_claims: {
+        Row: {
+          claimed_at: string
+          coins: number
+          gems: number
+          guild_id: string | null
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          claimed_at?: string
+          coins?: number
+          gems?: number
+          guild_id?: string | null
+          user_id?: string
+          week_start: string
+        }
+        Update: {
+          claimed_at?: string
+          coins?: number
+          gems?: number
+          guild_id?: string | null
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      guild_members: {
+        Row: {
+          guild_id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          guild_id: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          guild_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      guilds: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          emblem: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          emblem?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          emblem?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           code: string
@@ -720,6 +792,18 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      my_guild_id: { Args: Record<PropertyKey, never>; Returns: string }
+      create_guild: { Args: { _name: string; _emblem: string }; Returns: string }
+      join_guild: { Args: { _code: string }; Returns: string }
+      leave_guild: { Args: Record<PropertyKey, never>; Returns: undefined }
+      guild_roster: {
+        Args: Record<PropertyKey, never>
+        Returns: { user_id: string; name: string; archetype: number | null; level: number; joined_at: string }[]
+      }
+      guild_week_progress: {
+        Args: { _since: string; _categories: string[] }
+        Returns: { total: number; contributors: number }[]
+      }
     }
     Enums: {
       app_role: "psicologo" | "investigador"

@@ -1,5 +1,6 @@
-// Comunidad: las misiones sociales reales del catálogo (con el progreso del usuario y la afinidad
-// de su arquetipo) y, aparte, la vista previa de la futura red de apoyo con datos de ejemplo.
+// Comunidad: el gremio del estudiante (reto semanal compartido, sin ranking), las misiones
+// sociales del catálogo (con su progreso y la afinidad de su arquetipo) y, aparte, la vista
+// previa de la futura red de apoyo con datos de ejemplo.
 import { Moon, ChevronRight, MapPin, MessageCircle } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { baseCategory, missionCategory, visibleMissions } from "@/domain/gamification/missionsData";
 import { AFFINITY_XP_MULT, getArchetypeStyle, isAffine } from "@/domain/identity/archetype";
 import { useProfileSummary, useUserStore } from "@/presentation/hooks/useUserStore";
+import { GuildSection } from "@/presentation/components/community/GuildSection";
 
 export const Route = createFileRoute("/community")({
   head: () => ({ meta: [
@@ -49,8 +51,10 @@ function CommunityPage() {
         </div>
         <p className="mt-1 text-sm text-muted-foreground">Conectar con otros también es una misión</p>
 
+        <GuildSection archetype={user.archetype} />
+
         {/* Misiones sociales reales: abren la misión y cuentan para tu progreso */}
-        <section className="mt-5">
+        <section className="mt-8">
           <div className="flex items-center justify-between">
             <h2 className="font-cinzel font-semibold text-foreground">Misiones sociales</h2>
             <span className="text-xs text-muted-foreground">{social30} en 30 días</span>
