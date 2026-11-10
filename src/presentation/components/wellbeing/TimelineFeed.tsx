@@ -1,4 +1,5 @@
 import { CheckCircle2, Globe, NotebookPen, SkipForward, TrendingUp, Trophy, type LucideIcon } from "lucide-react";
+import { displayTimelineTitle } from "@/domain/wellbeing/copy";
 import type { TimelineEntry } from "@/service/server-functions/wellbeing.functions";
 
 const KIND_META: Record<TimelineEntry["kind"], { Icon: LucideIcon; tone: string; label: string }> = {
@@ -21,11 +22,6 @@ function formatWhen(iso: string) {
 }
 
 
-/** Títulos antiguos guardados como "Señal bajo · tendencia estable": se muestran con concordancia. */
-const LEGACY_LEVEL: Record<string, string> = { bajo: "baja", moderado: "moderada", alto: "alta" };
-function displayTitle(title: string): string {
-  return title.replace(/^Señal (bajo|moderado|alto)\b/, (_, level: string) => `Señal ${LEGACY_LEVEL[level]}`);
-}
 
 export function TimelineFeed({
   entries,
@@ -60,7 +56,7 @@ export function TimelineFeed({
             </div>
             <div className={`flex-1 rounded-xl border bg-card p-3 ${meta.tone}`}>
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-medium text-foreground">{displayTitle(e.title)}</p>
+                <p className="text-sm font-medium text-foreground">{displayTimelineTitle(e.title)}</p>
                 <span className="shrink-0 text-xs text-muted-foreground">{formatWhen(e.occurredAt)}</span>
               </div>
               {/* La etiqueta solo se muestra si el título no la repite ("Misión cumplida: …", "Check-in del día") */}

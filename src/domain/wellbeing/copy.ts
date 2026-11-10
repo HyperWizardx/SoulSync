@@ -86,3 +86,9 @@ export const RECOMMENDATIONS: Record<FeatureKey, string> = {
   scheduleIrregularity: "Elige una hora fija para tu check-in; una rutina estable ayuda a tu descanso.",
   responseLatency: "Si te cuesta responder, tómate un respiro: una Respiración guiada corta puede despejarte.",
 };
+
+/** Títulos antiguos guardados como "Señal bajo · tendencia estable": se muestran con concordancia. */
+const LEGACY_LEVEL: Record<string, string> = { bajo: "baja", moderado: "moderada", alto: "alta" };
+export function displayTimelineTitle(title: string): string {
+  return title.replace(/^Señal (bajo|moderado|alto)\b/, (_, level: string) => `Señal ${LEGACY_LEVEL[level]}`);
+}

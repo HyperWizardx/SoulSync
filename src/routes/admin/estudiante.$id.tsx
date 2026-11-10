@@ -7,6 +7,7 @@ import { useAddFollowUp, useAdminAccess, useStudentDetail } from "@/presentation
 import { CategoryChart, ChartCard, MoodStressChart, ScoreHistoryChart, SleepChart } from "@/presentation/components/admin/DashboardCharts";
 import { PRIORITY_STYLE, followUpText } from "@/presentation/components/admin/AlertsPanel";
 import { alertFor, FOLLOW_UP_WINDOW_DAYS } from "@/domain/research/alerts";
+import { displayTimelineTitle } from "@/domain/wellbeing/copy";
 import type { StudentRow } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/estudiante/$id")({
@@ -278,7 +279,7 @@ function StudentDetailPage() {
               <ul className="max-h-64 space-y-2 overflow-y-auto text-xs">
                 {data.timeline.map((t) => (
                   <li key={t.id}>
-                    <p className="text-foreground">{t.title}</p>
+                    <p className="text-foreground">{displayTimelineTitle(t.title)}</p>
                     <p className="text-muted-foreground">{t.occurredAt.slice(0, 16).replace("T", " ")}{t.detail ? ` · ${t.detail}` : ""}</p>
                   </li>
                 ))}
