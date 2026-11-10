@@ -33,7 +33,11 @@ export interface GuildView {
 
 /** Mensaje claro para el estudiante a partir del error de la función SQL. */
 function friendly(message: string | undefined, fallback: string): Error {
-  const known = ["Ya perteneces a un gremio", "Código de gremio no encontrado", "El gremio ya está completo"];
+  const known = [
+    "Ya perteneces a un gremio", "Código de gremio no encontrado", "El gremio ya está completo",
+    "Ya abriste el cofre de esta semana", "El gremio aún no supera el reto de la semana",
+    "Completa una misión del reto para abrir tu cofre", "Aún no perteneces a un gremio",
+  ];
   return new Error(known.find((k) => message?.includes(k)) ?? fallback);
 }
 
@@ -93,7 +97,11 @@ export async function leaveGuild(db: Db): Promise<void> {
   if (error) throw new Error("No se pudo salir del gremio. Intenta de nuevo.");
 }
 
-/** Abre el cofre de la semana: una vez por héroe, si el gremio superó el reto y él aportó. */
+/**
+ * Abre el cofre de la semana: una vez por héroe, si el gremio superó el reto y él aportó.
+ * Las comprobaciones previas dan mensajes claros; la función SQL lo valida de nuevo y entrega
+ * la recompensa en la misma transacción en que registra el cofre.
+ */
 export async function claimGuildChest(db: Db, userId: string, today: string): Promise<{ xp: number; coins: number; gems: number }> {
   const guild = await loadGuild(db, userId, today);
   if (!guild) throw new Error("Aún no perteneces a un gremio.");
@@ -101,14 +109,8 @@ export async function claimGuildChest(db: Db, userId: string, today: string): Pr
   if (!guild.challenge.completed) throw new Error("El gremio aún no supera el reto de la semana.");
   if (guild.challenge.mine === 0) throw new Error("Completa una misión del reto para abrir tu cofre.");
 
-  const { error } = await db.from("guild_chest_claims").insert({
-    user_id: userId, week_start: guild.challenge.weekStart, guild_id: guild.id, coins: GUILD_CHEST.coins, gems: GUILD_CHEST.gems,
-  });
-  if (error) throw new Error("Ya abriste el cofre de esta semana.");
-  const { data: profile } = await db.from("profiles").select("coins, gems").eq("user_id", userId).maybeSingle();
-  await db.from("profiles").update({
-    coins: (profile?.coins ?? 0) + GUILD_CHEST.coins,
-    gems: (profile?.gems ?? 0) + GUILD_CHEST.gems,
-  }).eq("user_id", userId);
-  return { ...GUILD_CHEST };
+  const { data, error } = await db.rpc("claim_guild_chest", { _week_start: guild.challenge.weekStart });
+  if (error) throw friendly(error.message, "No se pudo abrir el cofre. Intenta de nuevo.");
+  const row = data?.[0];
+  return { xp: 0, coins: row?.reward_coins ?? GUILD_CHEST.coins, gems: row?.reward_gems ?? GUILD_CHEST.gems };
 }

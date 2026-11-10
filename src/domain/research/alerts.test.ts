@@ -21,6 +21,11 @@ describe("alertFor", () => {
     expect(alertFor(row({ riskLevel: "moderado", trend: "empeorando" }), NOW)?.priority).toBe("vigilar");
     expect(alertFor(row({ lastCheckin: "2026-11-03" }), NOW)).toEqual({ priority: "vigilar", reasons: ["Sin check-in hace 7 días"] });
   });
+  it("sin check-ins en la ventana, la desconexión se mide con la última misión", () => {
+    expect(alertFor(row({ lastCheckin: null, lastActivity: "2026-10-01T18:00:00Z" }), NOW)).toEqual({ priority: "vigilar", reasons: ["Sin actividad hace 40 días"] });
+    expect(alertFor(row({ lastCheckin: null, lastActivity: "2026-11-09T18:00:00Z" }), NOW)).toBeNull();
+    expect(alertFor(row({ lastCheckin: null, lastActivity: null }), NOW)).toBeNull();
+  });
   it("sin consentimiento vigente o sin señales no hay alerta", () => {
     expect(alertFor(row({ consent: "revocado", safetyFlags: 2 }), NOW)).toBeNull();
     expect(alertFor(row({ riskLevel: "moderado", trend: "estable", who5Raw: 18 }), NOW)).toBeNull();

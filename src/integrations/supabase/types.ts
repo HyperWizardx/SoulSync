@@ -800,6 +800,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: { user_id: string; name: string; archetype: number | null; level: number; joined_at: string }[]
       }
+      claim_guild_chest: {
+        Args: { _week_start: string }
+        Returns: { reward_coins: number; reward_gems: number }[]
+      }
       guild_week_progress: {
         Args: { _since: string; _categories: string[] }
         Returns: { total: number; contributors: number }[]

@@ -53,15 +53,6 @@ export function shouldNudge(s: NudgeState): boolean {
   return s.nowMinutes >= toMinutes(clampReminderTime(s.time));
 }
 
-/** Milisegundos hasta la hora del aviso de hoy, o null si ya pasó. */
-export function msUntilReminder(time: string, now: Date): number | null {
-  const target = new Date(now);
-  const min = toMinutes(clampReminderTime(time));
-  target.setHours(Math.floor(min / 60), min % 60, 0, 0);
-  const ms = target.getTime() - now.getTime();
-  return ms > 0 ? ms : null;
-}
-
 /** Mensajes con el tono de cada arquetipo; rotan cada día. */
 const MESSAGES: Record<number | 'default', readonly string[]> = {
   0: ['Tu escudo te espera: una misión corta basta para mantener tu guardia.', 'Un caballero cuida su fuerza: ¿un paseo o un estiramiento hoy?'],

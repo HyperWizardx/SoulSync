@@ -27,7 +27,8 @@ export interface StudentAlert {
 
 const ORDER: Record<AlertPriority, number> = { urgente: 0, atencion: 1, vigilar: 2 };
 const DAY = 86_400_000;
-const daysBetween = (from: string, now: Date) => Math.floor((now.getTime() - Date.parse(from.length === 10 ? `${from}T00:00:00Z` : from)) / DAY);
+/** Días de calendario entre una fecha (o marca de tiempo) y ahora. */
+const daysBetween = (from: string, now: Date) => Math.floor((now.getTime() - Date.parse(`${from.slice(0, 10)}T00:00:00Z`)) / DAY);
 
 /** Prioridad y motivos de un estudiante, o null si no necesita alerta. */
 export function alertFor(row: StudentRow, now: Date): { priority: AlertPriority; reasons: string[] } | null {
@@ -47,6 +48,10 @@ export function alertFor(row: StudentRow, now: Date): { priority: AlertPriority;
   if (row.lastCheckin) {
     const idle = daysBetween(row.lastCheckin, now);
     if (idle >= INACTIVE_DAYS) watch.push(`Sin check-in hace ${idle} días`);
+  } else if (row.lastActivity) {
+    // Sin check-ins en las últimas 4 semanas: la desconexión se mide con la última misión.
+    const idle = daysBetween(row.lastActivity, now);
+    if (idle >= INACTIVE_DAYS) watch.push(`Sin actividad hace ${idle} días`);
   }
 
   if (urgent.length) return { priority: 'urgente', reasons: [...urgent, ...attention, ...watch] };

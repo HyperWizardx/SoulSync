@@ -1,7 +1,7 @@
 // Pruebas del recordatorio diario: horario permitido, silencio nocturno, aviso y calendario.
 import { describe, expect, it } from "vitest";
 import {
-  REMINDER_SLOTS, buildReminderIcs, clampReminderTime, isQuietHour, msUntilReminder, reminderMessage, shouldNudge, toMinutes,
+  REMINDER_SLOTS, buildReminderIcs, clampReminderTime, isQuietHour, reminderMessage, shouldNudge, toMinutes,
 } from "./reminders";
 
 describe("horario del recordatorio", () => {
@@ -36,11 +36,6 @@ describe("aviso", () => {
     expect(shouldNudge({ ...base, doneToday: true })).toBe(false);
     expect(shouldNudge({ ...base, dismissedToday: true })).toBe(false);
     expect(shouldNudge({ ...base, time: "21:00", nowMinutes: toMinutes("22:15") })).toBe(false);
-  });
-  it("calcula cuánto falta para la hora de hoy", () => {
-    const now = new Date(2026, 10, 10, 18, 0, 0);
-    expect(msUntilReminder("19:00", now)).toBe(3_600_000);
-    expect(msUntilReminder("17:00", now)).toBeNull();
   });
   it("el mensaje usa el tono del arquetipo y rota por día", () => {
     expect(reminderMessage(0, 0).body).toMatch(/escudo/);
