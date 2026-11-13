@@ -1,6 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { supabaseForUser } from "@/infrastructure/persistence/supabase/mcpClient";
+import { gameWriter } from "@/infrastructure/persistence/supabase/gameWriter";
 
 export default defineTool({
   name: "update_profile",
@@ -17,7 +18,7 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const patch: Record<string, unknown> = {};
+    const patch: { name?: string; avatar?: number; archetype?: number } = {};
     if (typeof input.name === "string") {
       const name = input.name.trim().slice(0, 40);
       if (!name) return { content: [{ type: "text", text: "El nombre no puede estar vacío." }], isError: true };
@@ -29,11 +30,14 @@ export default defineTool({
       return { content: [{ type: "text", text: "Nada que actualizar." }], isError: true };
     }
 
-    const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase
+    // El perfil lo escribe solo el servidor (gameWriter), siempre filtrando por el usuario autenticado.
+    const userId = ctx.getUserId();
+    if (!userId) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    const writer = await gameWriter(supabaseForUser(ctx));
+    const { data, error } = await writer
       .from("profiles")
       .update(patch)
-      .eq("user_id", ctx.getUserId())
+      .eq("user_id", userId)
       .select("name, avatar, archetype")
       .maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };

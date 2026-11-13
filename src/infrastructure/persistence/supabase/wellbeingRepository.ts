@@ -13,6 +13,7 @@ import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features"
 import { isExamPeriod } from "@/domain/wellbeing/inference";
 import { forecastMood, type MoodForecast } from "@/domain/wellbeing/forecast";
 import { loadActiveCompassParams, loadActiveModel } from "./modelRegistry";
+import { gameWriter } from "./gameWriter";
 import { isUsableParams, type TrainedParams } from "@/domain/wellbeing/trainedLogistic";
 import type { RiskLevel } from "@/domain/wellbeing/types";
 import { deriveWorldState } from "@/domain/world/world";
@@ -327,7 +328,9 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
   };
 
 
-  await supabase.from("world_state").upsert(
+  // El Mundo da logros (zonas abiertas): lo guarda solo el servidor.
+  const writer = await gameWriter(supabase);
+  await writer.from("world_state").upsert(
     {
       user_id: userId,
       vitality: world.vitality,

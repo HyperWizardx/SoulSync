@@ -10,17 +10,21 @@ import { applyXp } from "@/domain/gamification/progression";
 import { WHO5_CODE } from "@/domain/wellbeing/who5";
 import { weeksWithGoal } from "@/domain/wellbeing/activity";
 import { loadActivityLogs } from "./activityRepository";
+import { gameWriter } from "./gameWriter";
 
 export type Db = SupabaseClient<Database>;
 
-/** Descuenta un uso a los efectos consumibles y borra los agotados (en paralelo: filas independientes). */
-export async function consumeUses(db: Db, rows: Array<{ id: string; uses_left: number | null }>) {
+/**
+ * Descuenta un uso a los efectos consumibles y borra los agotados (en paralelo: filas independientes).
+ * `writer` es el cliente de gameWriter: siempre se filtra también por el usuario dueño.
+ */
+export async function consumeUses(writer: Db, userId: string, rows: Array<{ id: string; uses_left: number | null }>) {
   await Promise.all(
     rows.map((r) => {
       const left = (r.uses_left ?? 1) - 1;
       return left <= 0
-        ? db.from("item_effects").delete().eq("id", r.id)
-        : db.from("item_effects").update({ uses_left: left }).eq("id", r.id);
+        ? writer.from("item_effects").delete().eq("id", r.id).eq("user_id", userId)
+        : writer.from("item_effects").update({ uses_left: left }).eq("id", r.id).eq("user_id", userId);
     }),
   );
 }
@@ -102,13 +106,16 @@ async function grantAchievements(db: Db, userId: string, ctx: AchievementContext
     gemTotal += reward.gems;
     return { user_id: userId, code: a.code, reward_xp: reward.xp, reward_coins: reward.coins, reward_gems: reward.gems };
   });
-  const { error } = await db.from("achievements").insert(rows);
+  // Logros y su recompensa los escribe solo el servidor. Si el logro ya existía (otra petición
+  // ganó la carrera), el insert falla por la clave única y no se paga dos veces.
+  const writer = await gameWriter(db);
+  const { error } = await writer.from("achievements").insert(rows);
   if (error) return [];
 
   const { data: prof } = await db.from("profiles").select("xp,level,coins,gems").eq("user_id", userId).maybeSingle();
   if (prof) {
     const { xp, level } = applyXp(prof.xp as number, prof.level as number, xpTotal);
-    await db
+    await writer
       .from("profiles")
       .update({ xp, level, coins: (prof.coins as number) + coinTotal, gems: (prof.gems as number) + gemTotal })
       .eq("user_id", userId);

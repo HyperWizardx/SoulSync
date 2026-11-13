@@ -34,17 +34,10 @@ export function useProgressQuery() {
       const parsed = JSON.parse(raw);
       migrateFn({
         data: {
+          // Solo lo cosmético: el progreso vive en el servidor.
           name: parsed.name,
           avatar: parsed.avatar,
           archetype: parsed.archetype,
-          level: parsed.level,
-          xp: parsed.xp,
-          coins: parsed.coins,
-          gems: parsed.gems,
-          streak: parsed.streak,
-          stats: parsed.stats,
-          attributes: parsed.attributes,
-          inventory: parsed.inventory,
         },
       })
         .then(() => {

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildAchievementContext } from "@/infrastructure/persistence/supabase/gamificationRepository";
 import { isEffectActive } from "@/domain/gamification/progression";
+import { gameWriter } from "@/infrastructure/persistence/supabase/gameWriter";
 
 export type ProgressPayload = {
   profile: {
@@ -84,12 +85,14 @@ export const getProgress = createServerFn({ method: "GET" })
     ]);
 
 
-    // Self-heal: if signup trigger missed (e.g. legacy users), create rows.
-    if (!pRes.data) {
-      await supabase.from("profiles").insert({ user_id: userId });
+    // Self-heal: si el trigger de registro falló (usuarios antiguos), se crean las filas con los
+    // valores por defecto de la base. Solo el servidor puede crearlas.
+    if (!pRes.data || !sRes.data || !aRes.data) {
+      const writer = await gameWriter(supabase);
+      if (!pRes.data) await writer.from("profiles").insert({ user_id: userId });
+      if (!sRes.data) await writer.from("user_stats").insert({ user_id: userId });
+      if (!aRes.data) await writer.from("user_attributes").insert({ user_id: userId });
     }
-    if (!sRes.data) await supabase.from("user_stats").insert({ user_id: userId });
-    if (!aRes.data) await supabase.from("user_attributes").insert({ user_id: userId });
 
     const profile = pRes.data ?? {
       user_id: userId, name: "Héroe", avatar: 0, archetype: null,
@@ -163,10 +166,11 @@ export const getProgress = createServerFn({ method: "GET" })
     };
   });
 
+/** Lo único del perfil que el estudiante puede cambiar: nombre, avatar y arquetipo (0–3). */
 const ProfileUpdate = z.object({
-  name: z.string().min(1).max(40).optional(),
+  name: z.string().trim().min(1).max(40).optional(),
   avatar: z.number().int().min(0).max(20).optional(),
-  archetype: z.number().int().min(0).max(10).nullable().optional(),
+  archetype: z.number().int().min(0).max(3).nullable().optional(),
 });
 
 export const updateProfile = createServerFn({ method: "POST" })
@@ -174,7 +178,8 @@ export const updateProfile = createServerFn({ method: "POST" })
   .inputValidator((d) => ProfileUpdate.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase.from("profiles").update(data).eq("user_id", userId);
+    const writer = await gameWriter(supabase);
+    const { error } = await writer.from("profiles").update(data).eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -232,18 +237,15 @@ export const getProfileSummary = createServerFn({ method: "GET" })
   });
 
 
+/**
+ * Migración de la versión antigua que guardaba todo en el teléfono. Solo se traen el nombre,
+ * el avatar y el arquetipo: el progreso (nivel, XP, monedas, inventario…) lo calcula el
+ * servidor y nunca se acepta desde el navegador. Los campos de más se descartan.
+ */
 const MigrateSchema = z.object({
-  name: z.string().min(1).max(40).optional(),
-  avatar: z.number().int().min(0).max(20).optional(),
-  archetype: z.number().int().min(0).max(10).nullable().optional(),
-  level: z.number().int().min(1).max(99).optional(),
-  xp: z.number().int().min(0).max(10000).optional(),
-  coins: z.number().int().min(0).max(100000).optional(),
-  gems: z.number().int().min(0).max(10000).optional(),
-  streak: z.number().int().min(0).max(999).optional(),
-  stats: z.record(z.string(), z.number().int().min(0).max(100)).optional(),
-  attributes: z.record(z.string(), z.number().int().min(0).max(100)).optional(),
-  inventory: z.array(z.string().min(1).max(80)).max(100).optional(),
+  name: z.string().trim().min(1).max(40).optional().catch(undefined),
+  avatar: z.number().int().min(0).max(20).optional().catch(undefined),
+  archetype: z.number().int().min(0).max(3).nullable().optional().catch(undefined),
 });
 
 export const migrateLocalProgress = createServerFn({ method: "POST" })
@@ -251,42 +253,13 @@ export const migrateLocalProgress = createServerFn({ method: "POST" })
   .inputValidator((d) => MigrateSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const profUpdate: {
-      name?: string; avatar?: number; archetype?: number | null;
-      level?: number; xp?: number; coins?: number; gems?: number; streak?: number;
-    } = {};
+    const profUpdate: { name?: string; avatar?: number; archetype?: number | null } = {};
     if (data.name !== undefined) profUpdate.name = data.name;
     if (data.avatar !== undefined) profUpdate.avatar = data.avatar;
     if (data.archetype !== undefined) profUpdate.archetype = data.archetype;
-    if (data.level !== undefined) profUpdate.level = data.level;
-    if (data.xp !== undefined) profUpdate.xp = data.xp;
-    if (data.coins !== undefined) profUpdate.coins = data.coins;
-    if (data.gems !== undefined) profUpdate.gems = data.gems;
-    if (data.streak !== undefined) profUpdate.streak = data.streak;
     if (Object.keys(profUpdate).length) {
-      await supabase.from("profiles").update(profUpdate).eq("user_id", userId);
-    }
-    if (data.stats) {
-      const s = data.stats;
-      await supabase.from("user_stats").update({
-        bienestar: s.bienestar, resiliencia: s.resiliencia,
-        energia: s.energia, claridad: s.claridad,
-      }).eq("user_id", userId);
-    }
-    if (data.attributes) {
-      const a = data.attributes;
-      await supabase.from("user_attributes").update({
-        resiliencia: a.resiliencia, empatia: a.empatia, mindfulness: a.mindfulness,
-        autoconocimiento: a.autoconocimiento,
-        conexion_social: a.conexionSocial ?? a.conexion_social,
-        creatividad: a.creatividad,
-      }).eq("user_id", userId);
-    }
-    if (data.inventory?.length) {
-      await supabase.from("inventory").upsert(
-        data.inventory.map((item_name) => ({ user_id: userId, item_name })),
-        { onConflict: "user_id,item_name" }
-      );
+      const writer = await gameWriter(supabase);
+      await writer.from("profiles").update(profUpdate).eq("user_id", userId);
     }
     return { ok: true };
   });
@@ -314,7 +287,8 @@ export const updateSettings = createServerFn({ method: "POST" })
     if (data.dailyGoal !== undefined) update.daily_goal = data.dailyGoal;
     if (data.onboarded !== undefined) update.onboarded = data.onboarded;
     if (Object.keys(update).length === 0) return { ok: true };
-    const { error } = await supabase.from("profiles").update(update).eq("user_id", userId);
+    const writer = await gameWriter(supabase);
+    const { error } = await writer.from("profiles").update(update).eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

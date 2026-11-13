@@ -78,6 +78,13 @@
       "when": 1794750932226,
       "tag": "0010_mission_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794837332226,
+      "tag": "0011_server_owned_progress",
+      "breakpoints": true
     }
   ]
 }

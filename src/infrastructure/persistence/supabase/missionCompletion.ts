@@ -2,6 +2,7 @@
  * Registro de una misión completada — capa de Infraestructura.
  * La recompensa sale SIEMPRE del catálogo de misiones (no del teléfono) y la afinidad del
  * arquetipo guardado en el perfil suma XP. Lo usan la server function y la herramienta MCP.
+ * Lee con la sesión del usuario (RLS) y escribe el progreso con gameWriter: el navegador no puede.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -12,6 +13,8 @@ import { planMissionCompletion } from "@/application/gamification/completeMissio
 import { addTimelineEvent, hasActiveConsent } from "./wellbeingRepository";
 import { consumeUses, evaluateAndGrant } from "./gamificationRepository";
 import { markRecommendationTaken } from "./recommendationRepository";
+import { gameWriter } from "./gameWriter";
+import { ALREADY_CLAIMED_MESSAGE, canClaimMission, claimWindowStart } from "@/domain/gamification/missionRepeat";
 
 type Db = SupabaseClient<Database>;
 
@@ -19,22 +22,34 @@ export class UnknownMissionError extends Error {
   constructor(id: string) { super(`Misión desconocida: ${id}`); }
 }
 
-export async function completeCatalogMission(db: Db, userId: string, input: { missionId: string; durationSeconds?: number }) {
+type CompletionResult = {
+  leveledUp: boolean; newLevel: number; xp: number; streak: number; unlockedAchievements: string[];
+  gainedXp: number; gainedCoins: number; gainedGems: number; boosted: boolean; affinity: boolean;
+};
+
+export async function completeCatalogMission(
+  db: Db, userId: string, input: { missionId: string; durationSeconds?: number }, attempt = 0,
+): Promise<CompletionResult> {
   const mission = getMissionById(input.missionId);
   if (!mission) throw new UnknownMissionError(input.missionId);
   const category = missionCategory(mission);
   const isAR = mission.isAR ?? false;
   const r = mission.reward;
 
-  // 1. Estado actual y objetos activos/equipados.
-  const [pRes, sRes, aRes, efRes, invRes] = await Promise.all([
+  // 1. Estado actual, objetos activos/equipados y cobros recientes de esta misión.
+  const now = Date.now();
+  const [pRes, sRes, aRes, efRes, invRes, recentRes, writer] = await Promise.all([
     db.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
     db.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
     db.from("user_attributes").select("*").eq("user_id", userId).maybeSingle(),
     db.from("item_effects").select("*").eq("user_id", userId),
     db.from("inventory").select("*").eq("user_id", userId).eq("equipped", true),
+    db.from("mission_completions").select("completed_at").eq("user_id", userId).eq("mission_id", mission.id).gte("completed_at", claimWindowStart(now)),
+    gameWriter(db),
   ]);
   if (!pRes.data || !sRes.data || !aRes.data) throw new Error("Perfil no inicializado");
+  // Una misión se cobra una vez por día: repetir la petición no da recompensas extra.
+  if (!canClaimMission((recentRes.data ?? []).map((row) => String(row.completed_at)), now)) throw new Error(ALREADY_CLAIMED_MESSAGE);
   const p = pRes.data, s = sRes.data, a = aRes.data;
   if (mission.requiredLevel && p.level < mission.requiredLevel) throw new Error(`Requiere nivel ${mission.requiredLevel}`);
   if (mission.archetype !== undefined && mission.archetype !== p.archetype) throw new Error("Esta misión es exclusiva de otro arquetipo.");
@@ -76,16 +91,24 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
     },
     effects,
     equippedKeys,
-    Date.now(),
+    now,
     affinity,
   );
 
-  // 3. Persistir gamificación.
+  // 3. Persistir gamificación (solo el servidor escribe el progreso). El perfil se guarda solo si
+  // nadie lo cambió desde que se leyó: si llegan varias peticiones a la vez, una gana y las demás
+  // vuelven a empezar con el estado nuevo (y el límite diario ya las cuenta).
+  const { data: saved, error: saveErr } = await writer.from("profiles").update(plan.profile)
+    .eq("user_id", userId).eq("xp", p.xp).eq("coins", p.coins).eq("gems", p.gems).select("user_id");
+  if (saveErr) throw new Error(saveErr.message);
+  if (!saved?.length) {
+    if (attempt >= 2) throw new Error("Tu progreso se está guardando. Intenta de nuevo en un momento.");
+    return completeCatalogMission(db, userId, input, attempt + 1);
+  }
   const results = await Promise.all([
-    db.from("profiles").update(plan.profile).eq("user_id", userId),
-    db.from("user_stats").update(plan.stats).eq("user_id", userId),
-    db.from("user_attributes").update(plan.attributes).eq("user_id", userId),
-    db.from("mission_completions").insert({
+    writer.from("user_stats").update(plan.stats).eq("user_id", userId),
+    writer.from("user_attributes").update(plan.attributes).eq("user_id", userId),
+    writer.from("mission_completions").insert({
       user_id: userId, mission_id: mission.id, title: mission.title, xp_earned: plan.gainedXp,
       is_ar: isAR, category, completed_date: plan.today,
     }),
@@ -95,7 +118,7 @@ export async function completeCatalogMission(db: Db, userId: string, input: { mi
 
   // 4. Telemetría de bienestar (solo con consentimiento) y logros, en paralelo: tablas distintas.
   const recordTelemetry = async () => {
-    const [, consented] = await Promise.all([consumeUses(db, plan.effectsToConsume), hasActiveConsent(db, userId)]);
+    const [, consented] = await Promise.all([consumeUses(writer, userId, plan.effectsToConsume), hasActiveConsent(db, userId)]);
     if (!consented) return;
     await Promise.all([
       db.from("task_events").insert({

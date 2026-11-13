@@ -8,6 +8,7 @@ import { AdventureBackdrop } from "@/presentation/components/layout/AdventureBac
 import { WorldDiorama } from "@/presentation/components/world/WorldDiorama";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { OnboardingSteps } from "@/presentation/components/layout/OnboardingSteps";
+import { safeNext } from "@/shared/safeRedirect"; // solo rutas internas tras iniciar sesión
 
 // Validación manual de la búsqueda: evita cargar zod en el paquete inicial del navegador.
 type AuthMode = "login" | "signup" | "reset";
@@ -42,12 +43,6 @@ function friendlyAuthError(err: unknown, fallback: string): string {
   if (msg.includes("rate limit") || msg.includes("too many") || msg.includes("security purposes")) return "Demasiados intentos. Espera un momento y vuelve a intentarlo.";
   if (msg.includes("network") || msg.includes("fetch")) return "No hay conexión. Revisa tu internet e inténtalo de nuevo.";
   return fallback;
-}
-
-/** Only same-origin relative paths are accepted as post-login destinations. */
-function safeNext(next?: string) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
-  return next;
 }
 
 /** Vistas del acceso: formulario, correo de confirmación enviado, recuperar contraseña y nueva contraseña. */
