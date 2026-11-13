@@ -22,11 +22,36 @@ export function archetypeModelKey(archetype: number | null | undefined) {
 }
 
 // Nombres de las animaciones incluidas en los modelos KayKit recortados (public/models).
-export type AvatarAnimation = "Idle" | "Walking_A" | "Cheer";
+// Wave, Hop y Signature son gestos breves; Signature es el propio de cada arquetipo
+// (Caballero alza el escudo, Bárbaro gira el hacha, Pícaro recarga la ballesta, Mago alza la mano).
+export type AvatarGesture = "Wave" | "Hop" | "Signature";
+export type AvatarAnimation = "Idle" | "Walking_A" | "Cheer" | AvatarGesture;
+export const AVATAR_GESTURES: readonly AvatarGesture[] = ["Wave", "Hop", "Signature"];
+
+// Pausa entre gestos en Inicio (ms): ni tan seguido que distraiga ni tan espaciado que no se note.
+export const GESTURE_DELAY = { min: 8000, max: 16000 } as const;
+export function nextGestureDelay(random: number) {
+  const r = Math.max(0, Math.min(1, Number.isFinite(random) ? random : 0.5));
+  return Math.round(GESTURE_DELAY.min + r * (GESTURE_DELAY.max - GESTURE_DELAY.min));
+}
+
+// Elige el siguiente gesto al azar sin repetir el anterior.
+export function pickGesture(random: number, previous?: AvatarGesture | null): AvatarGesture {
+  const options = AVATAR_GESTURES.filter((g) => g !== previous);
+  const r = Math.max(0, Math.min(0.999999, Number.isFinite(random) ? random : 0));
+  return options[Math.floor(r * options.length)];
+}
 
 // Elige la animación del personaje; con movimiento reducido solo se usa la pose de reposo.
-export function avatarAnimation(state: { walking?: boolean; celebrating?: boolean; reducedMotion?: boolean }): AvatarAnimation {
+// Caminar y celebrar tienen prioridad sobre un gesto ocasional.
+export function avatarAnimation(state: { walking?: boolean; celebrating?: boolean; gesture?: AvatarGesture | null; reducedMotion?: boolean }): AvatarAnimation {
   if (state.reducedMotion) return "Idle";
   if (state.celebrating) return "Cheer";
-  return state.walking ? "Walking_A" : "Idle";
+  if (state.walking) return "Walking_A";
+  return state.gesture ?? "Idle";
+}
+
+// Animaciones que se reproducen una sola vez (las demás se repiten).
+export function playsOnce(name: AvatarAnimation) {
+  return name !== "Idle" && name !== "Walking_A";
 }

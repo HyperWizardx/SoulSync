@@ -13,12 +13,14 @@ import { statSync } from "node:fs";
 
 const [, , srcDir, outDir] = process.argv;
 const ANIMS = ["Idle", "Walking_A", "Cheer"];
+// Gestos ocasionales en Inicio: saludo y saltito comunes + uno propio de cada arquetipo (se renombran).
+const GESTURES = { Interact: "Wave", Jump_Full_Short: "Hop" };
 const SPECS = [
-  { out: "warrior.glb", src: "Knight.glb", props: ["Knight_Helmet", "Knight_Cape", "1H_Sword", "Badge_Shield"] },
+  { out: "warrior.glb", src: "Knight.glb", props: ["Knight_Helmet", "Knight_Cape", "1H_Sword", "Badge_Shield"], signature: "Block" },
   // El hacha a dos manos se sostiene mejor con la postura de reposo a dos manos.
-  { out: "barbarian.glb", src: "Barbarian.glb", props: ["Barbarian_Hat", "Barbarian_Cape", "2H_Axe"], idle: "2H_Melee_Idle" },
-  { out: "explorer.glb", src: "Rogue_Hooded.glb", props: ["Rogue_Cape", "1H_Crossbow", "Knife_Offhand"] },
-  { out: "sage.glb", src: "Mage.glb", props: ["Mage_Hat", "Mage_Cape", "Spellbook_open"] },
+  { out: "barbarian.glb", src: "Barbarian.glb", props: ["Barbarian_Hat", "Barbarian_Cape", "2H_Axe"], idle: "2H_Melee_Idle", signature: "2H_Melee_Attack_Spin" },
+  { out: "explorer.glb", src: "Rogue_Hooded.glb", props: ["Rogue_Cape", "1H_Crossbow", "Knife_Offhand"], signature: "1H_Ranged_Reload" },
+  { out: "sage.glb", src: "Mage.glb", props: ["Mage_Hat", "Mage_Cape", "Spellbook_open"], signature: "Spellcast_Raise" },
 ];
 // Partes del cuerpo que siempre se conservan.
 const BODY = /_(ArmLeft|ArmRight|Body|Head|Head_Hooded|LegLeft|LegRight)$/;
@@ -36,6 +38,8 @@ for (const spec of SPECS) {
   for (const anim of root.listAnimations()) {
     const idle = spec.idle ?? "Idle";
     if (anim.getName() === idle) { anim.setName("Idle"); continue; }
+    if (anim.getName() === spec.signature) { anim.setName("Signature"); continue; }
+    if (GESTURES[anim.getName()]) { anim.setName(GESTURES[anim.getName()]); continue; }
     if (ANIMS.includes(anim.getName()) && anim.getName() !== "Idle") continue;
     for (const s of anim.listSamplers()) s.dispose();
     for (const c of anim.listChannels()) c.dispose();

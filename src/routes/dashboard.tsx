@@ -78,7 +78,7 @@ function DashboardPage() {
 
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
           <AuraHalo aura={wb?.aura} color={archStyle.glow} showLabel={false}>
-            <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} />
+            <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} gestures />
           </AuraHalo>
           <p className="mt-2 font-cinzel font-semibold">{archStyle.name}</p>
           {archStyle.trait && <p className="text-xs text-muted-foreground">{archStyle.trait}</p>}

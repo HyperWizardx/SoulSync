@@ -1,11 +1,11 @@
 // Renderiza una copia independiente del personaje medieval del arquetipo y reproduce
-// sus animaciones reales (reposo, caminar, celebrar). Modelos: KayKit Adventurers (CC0).
+// sus animaciones reales (reposo, caminar, celebrar y gestos ocasionales). Modelos: KayKit Adventurers (CC0).
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls, useAnimations, useGLTF } from "@react-three/drei";
-import { Box3, Group, LoopOnce, LoopRepeat, MathUtils, Vector3, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
+import { Box3, Group, LoopOnce, LoopRepeat, MathUtils, Vector3, type AnimationAction, type Mesh, type MeshStandardMaterial, type Object3D } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { archetypeModelKey, avatarAnimation } from "@/domain/identity/avatarMotion";
+import { archetypeModelKey, avatarAnimation, nextGestureDelay, pickGesture, playsOnce, type AvatarGesture } from "@/domain/identity/avatarMotion";
 import { isMotionReduced } from "@/shared/devicePrefs";
 import { AR_PLATFORMS, type ZoneKey } from "@/domain/world/dioramas";
 import { WORLD_KIT_URL, cloneKitPiece } from "@/presentation/components/world/worldKit";
@@ -13,10 +13,11 @@ import { WORLD_KIT_URL, cloneKitPiece } from "@/presentation/components/world/wo
 const MODEL_URL = (key: ReturnType<typeof archetypeModelKey>) => `/models/${key}.glb`;
 // facing: giro del personaje en grados elegido por el usuario (misiones AR).
 // zone: zona del Mundo en la que se ambienta la misión AR (isla bajo el personaje).
-interface Props { archetype?: number | null; rotate?: boolean; interactive?: boolean; walking?: boolean; celebrating?: boolean; facing?: number; zone?: ZoneKey | null; exposure?: number; onReady?: () => void }
+// gestures: en reposo hace de vez en cuando un gesto breve (y uno al tocarlo), como en Inicio.
+interface Props { archetype?: number | null; rotate?: boolean; interactive?: boolean; walking?: boolean; celebrating?: boolean; facing?: number; zone?: ZoneKey | null; exposure?: number; gestures?: boolean; onReady?: () => void }
 
 // También lo usan los dioramas del Mundo para colocar al personaje dentro de la zona.
-export function ArchetypeCharacter({ archetype, walking, celebrating, facing = 0, reducedMotion, onReady }: Props & { reducedMotion: boolean }) {
+export function ArchetypeCharacter({ archetype, walking, celebrating, facing = 0, gestures = false, reducedMotion, onReady }: Props & { reducedMotion: boolean }) {
   const { scene, animations } = useGLTF(MODEL_URL(archetypeModelKey(archetype)));
   const group = useRef<Group>(null);
   const character = useMemo(() => {
@@ -29,8 +30,27 @@ export function ArchetypeCharacter({ archetype, walking, celebrating, facing = 0
     copy.position.set(-center.x * scale, -box.min.y * scale - 1, -center.z * scale);
     return copy;
   }, [scene]);
-  const { actions } = useAnimations(animations, group);
-  const name = avatarAnimation({ walking, celebrating, reducedMotion });
+  const { actions, mixer } = useAnimations(animations, group);
+  const [gesture, setGesture] = useState<AvatarGesture | null>(null);
+  const [tick, setTick] = useState(0);
+  const lastGesture = useRef<AvatarGesture | null>(null);
+  const canGesture = gestures && !walking && !celebrating && !reducedMotion;
+  const name = avatarAnimation({ walking, celebrating, gesture, reducedMotion });
+  const startGesture = () => { const g = pickGesture(Math.random(), lastGesture.current); lastGesture.current = g; setGesture(g); };
+
+  // Gesto ocasional: tras una pausa al azar, si la pestaña está visible; si no, vuelve a esperar.
+  useEffect(() => {
+    if (!canGesture) { setGesture(null); return; }
+    if (gesture) return;
+    const t = setTimeout(() => (document.hidden ? setTick((n) => n + 1) : startGesture()), nextGestureDelay(Math.random()));
+    return () => clearTimeout(t);
+  }, [canGesture, gesture, tick]);
+  // Al terminar el gesto vuelve al reposo.
+  useEffect(() => {
+    const done = (e: { action: AnimationAction }) => { if (gesture && e.action === actions[gesture]) setGesture(null); };
+    mixer.addEventListener("finished", done);
+    return () => mixer.removeEventListener("finished", done);
+  }, [mixer, actions, gesture]);
 
   useEffect(() => { onReady?.(); }, [onReady]);
   // Gira suavemente hacia la orientación pedida (directo si se prefiere movimiento reducido).
@@ -43,13 +63,18 @@ export function ArchetypeCharacter({ archetype, walking, celebrating, facing = 0
   useEffect(() => {
     const action = actions[name];
     if (!action) return;
-    action.reset().setLoop(name === "Cheer" ? LoopOnce : LoopRepeat, Infinity).fadeIn(0.25).play();
+    action.reset().setLoop(playsOnce(name) ? LoopOnce : LoopRepeat, Infinity).fadeIn(0.25).play();
     action.clampWhenFinished = true;
     if (reducedMotion) action.paused = true; // pose de reposo estática
     return () => { action.fadeOut(0.25); };
   }, [actions, name, reducedMotion]);
 
-  return <group ref={group}><primitive object={character} /></group>;
+  // Un toque corto (no un arrastre para girarlo) también lo hace saludar.
+  return (
+    <group ref={group} onClick={(e) => { if (canGesture && !gesture && e.delta < 6) startGesture(); }}>
+      <primitive object={character} />
+    </group>
+  );
 }
 
 // Isla de la zona (misiones AR): loseta y adornos del kit del Mundo bajo los pies del personaje,

@@ -24,6 +24,7 @@ interface Props {
   celebrating?: boolean;
   facing?: number;
   zone?: ZoneKey | null;
+  gestures?: boolean;
 }
 
 export function MiniAvatar3D({
@@ -39,6 +40,7 @@ export function MiniAvatar3D({
   celebrating = false,
   facing = 0,
   zone = null,
+  gestures = false,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
@@ -57,7 +59,7 @@ export function MiniAvatar3D({
       {/* Con isla de zona el personaje ya tiene suelo: no se dibuja la sombra de color. */}
       {!zone && <div className="avatar-ground absolute inset-x-8 bottom-3 h-3 rounded-full opacity-60" style={{ background: glowColor ?? style.glow }} />}
       {!ready && <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" role="status">{slow ? "Tu héroe viene en camino…" : "Invocando a tu héroe…"}</div>}
-      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} zone={zone} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
+      {mounted && <SceneBoundary key={archetype} fallback={fallback}><Suspense fallback={null}><ArchetypeScene archetype={archetype} rotate={rotate} interactive={interactive} walking={walking} celebrating={celebrating} facing={facing} zone={zone} gestures={gestures} exposure={exposure} onReady={() => setReady(true)} /></Suspense></SceneBoundary>}
     </div>
   );
 }
