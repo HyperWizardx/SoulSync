@@ -1,12 +1,15 @@
 // "Elegidas para ti": las misiones que el recomendador propio (muestreo de Thompson) eligió hoy,
-// cada una con su razón (lo aprendido de tus check-ins, la afinidad o la exploración).
-import { ChevronRight, Sparkles } from "lucide-react";
+// cada una con su razón (lo aprendido de tus check-ins y votos, la afinidad o la exploración).
+// "Otras opciones" pide otra muestra del mismo modelo, sin olvidar lo aprendido.
+import { useState } from "react";
+import { ChevronRight, Shuffle, Sparkles } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { useRecommendations } from "@/presentation/hooks/useRecommendations";
 import { getMissionById, type Mission } from "@/domain/gamification/missionsData";
 
 export function RecommendedStrip({ onStart, exclude }: { onStart: (m: Mission) => void; exclude: ReadonlySet<string> }) {
-  const { data, isLoading } = useRecommendations();
+  const [reroll, setReroll] = useState(0);
+  const { data, isLoading, isFetching } = useRecommendations(reroll);
   if (isLoading) return <div className="h-24 animate-pulse rounded-2xl bg-card" aria-busy="true" />;
   const recs = (data?.recommendations ?? []).filter((r) => !exclude.has(r.missionId));
   if (!data || recs.length === 0) return null;
@@ -16,8 +19,17 @@ export function RecommendedStrip({ onStart, exclude }: { onStart: (m: Mission) =
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
           <Sparkles className="h-3.5 w-3.5" aria-hidden /> Elegidas para ti
         </p>
-        <span className="text-xs text-muted-foreground">{data.learning ? "Aprende de tus check-ins" : "Aún te está conociendo"}</span>
+        <button
+          onClick={() => setReroll((r) => (r + 1) % 50)}
+          disabled={isFetching}
+          className="flex min-h-9 items-center gap-1 rounded-full px-2 text-xs font-semibold text-primary disabled:opacity-60"
+        >
+          <Shuffle className={`h-3.5 w-3.5 ${isFetching ? "animate-pulse" : ""}`} aria-hidden /> Otras opciones
+        </button>
       </div>
+      <p className="px-1 text-xs text-muted-foreground">
+        {data.insight ?? (data.learning ? "Aprende de tus check-ins y de lo que te sirve" : "Aún te está conociendo: dime si cada misión te sirvió")}
+      </p>
       <ul className="mt-2 space-y-2">
         {recs.map((r) => {
           const m = getMissionById(r.missionId);

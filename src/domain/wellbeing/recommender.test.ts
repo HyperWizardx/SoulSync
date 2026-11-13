@@ -1,6 +1,6 @@
 // Verifica el recomendador propio: recompensas, prior por afinidad, muestreo reproducible y que aprende.
 import { describe, expect, it } from "vitest";
-import { armStats, missionOutcomes, recommend, recommendationReason, sampleBeta, seededRandom, summarizeRecommendations, type ArmStats } from "./recommender";
+import { armStats, feedbackOutcomes, learnedInsight, missionOutcomes, recommend, recommendationReason, sampleBeta, seededRandom, summarizeRecommendations, type ArmStats } from "./recommender";
 
 describe("Recomendador (muestreo de Thompson)", () => {
   it("mide el efecto con el check-in siguiente (hasta 2 días después)", () => {
@@ -41,6 +41,18 @@ describe("Recomendador (muestreo de Thompson)", () => {
     expect(recommendationReason(learned, false, "Mago")).toContain("3 de 4");
     expect(recommendationReason({ ...learned, trials: 0, successes: 0 }, true, "Mago")).toContain("Mago");
     expect(recommendationReason({ ...learned, trials: 0, successes: 0 }, false, "Mago")).toContain("nuevo");
+  });
+  it("los votos ¿Te sirvió? cuentan como observaciones de su categoría", () => {
+    const out = feedbackOutcomes([{ date: "2026-11-10", category: "social", helpful: true }, { date: "2026-11-11", category: "social", helpful: false }]);
+    expect(out).toEqual([{ date: "2026-11-10", category: "social", success: true }, { date: "2026-11-11", category: "social", success: false }]);
+    expect(armStats(out).find((s) => s.category === "social")).toMatchObject({ alpha: 2, beta: 2, trials: 2 });
+  });
+  it("solo afirma lo aprendido con base suficiente", () => {
+    const yes = Array.from({ length: 3 }, (_, i) => ({ date: `2026-11-0${i + 1}`, category: "movimiento" as const, success: true }));
+    expect(learnedInsight(armStats(yes.slice(0, 2)))).toBeNull(); // 2 observaciones: aún no
+    expect(learnedInsight(armStats(yes))).toContain("movimiento");
+    const mixed = [...yes.map((o) => ({ ...o, success: false })), { date: "2026-11-05", category: "movimiento" as const, success: true }];
+    expect(learnedInsight(armStats(mixed))).toBeNull(); // media posterior baja
   });
   it("resume la aceptación para el panel", () => {
     const r = summarizeRecommendations([{ category: "social", taken: true }, { category: "social", taken: false }, { category: "ar", taken: false }]);

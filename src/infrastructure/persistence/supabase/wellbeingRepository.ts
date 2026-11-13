@@ -12,7 +12,8 @@ import type {
 import { extractFeatures, serializeFeatures } from "@/domain/wellbeing/features";
 import { isExamPeriod } from "@/domain/wellbeing/inference";
 import { forecastMood, type MoodForecast } from "@/domain/wellbeing/forecast";
-import { loadActiveModel } from "./modelRegistry";
+import { loadActiveCompassParams, loadActiveModel } from "./modelRegistry";
+import { isUsableParams, type TrainedParams } from "@/domain/wellbeing/trainedLogistic";
 import type { RiskLevel } from "@/domain/wellbeing/types";
 import { deriveWorldState } from "@/domain/world/world";
 import { WHO5_CODE } from "@/domain/wellbeing/who5";
@@ -55,6 +56,8 @@ export type WellbeingPayload = {
   previous?: { riskLevel: RiskLevel; score: number | null; generatedAt: string } | null;
   /** Pronóstico de ánimo de los próximos registros (con al menos 7 check-ins en 3 semanas). */
   forecast?: MoodForecast | null;
+  /** Pesos de la brújula entrenada activa (null = criterio experto): el "¿Y si…?" usa el mismo modelo. */
+  compassParams?: TrainedParams | null;
 };
 
 export const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -391,5 +394,8 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     }
   }
 
-  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous, lastScale, forecast: forecastMood(checkins, today) };
+  // Caché de 60 s en modelRegistry: no añade una consulta por carga.
+  const params = await loadActiveCompassParams(supabase);
+  const compassParams = isUsableParams(params) ? params : null;
+  return { consent, todayCheckin, checkins, prediction, world, timeline, aura, previous, lastScale, forecast: forecastMood(checkins, today), compassParams };
 }

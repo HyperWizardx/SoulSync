@@ -15,6 +15,7 @@ import { ErrorState, LoadingState } from "@/presentation/components/common/Query
 import { TREND_COPY } from "@/domain/wellbeing/trend";
 import { MoodForecastCard } from "@/presentation/components/wellbeing/MoodForecastCard";
 import { ParticipantProfileCard } from "@/presentation/components/wellbeing/ParticipantProfileCard";
+import { WhatIfCard } from "@/presentation/components/wellbeing/WhatIfCard";
 
 export const Route = createFileRoute("/ai")({
   head: () => ({
@@ -132,6 +133,11 @@ function AIPage() {
                       </p>
                     )}
                   </section>
+                )}
+
+                {/* ¿Y si…?: el estudiante prueba hábitos y ve cómo cambiaría su brújula (mismo modelo, no se guarda) */}
+                {data.prediction && data.prediction.riskLevel !== "insuficiente" && (
+                  <WhatIfCard prediction={data.prediction} params={data.compassParams ?? null} checkinCount={Math.min(14, data.checkins.length)} />
                 )}
 
                 {/* Pronóstico propio (Holt): anticipa una posible bajada para prepararse a tiempo */}

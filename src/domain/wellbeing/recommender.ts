@@ -41,6 +41,14 @@ export function missionOutcomes(missions: readonly MissionDone[], checkins: read
   return out;
 }
 
+/** Voto explícito del estudiante al terminar una misión ("¿Te sirvió?"). */
+export interface MissionFeedback { date: string; category: TaskCategoryName; helpful: boolean }
+
+/** Cada voto cuenta como una observación directa de la categoría (una por misión y día). */
+export function feedbackOutcomes(feedback: readonly MissionFeedback[]): Outcome[] {
+  return feedback.map((f) => ({ date: f.date, category: f.category, success: f.helpful }));
+}
+
 export interface ArmStats { category: TaskCategoryName; alpha: number; beta: number; successes: number; trials: number }
 
 /** Parámetros Beta por categoría: prior (afinidad del arquetipo) + éxitos y fracasos observados. */
@@ -106,7 +114,7 @@ const CATEGORY_IN_SENTENCE: Record<TaskCategoryName, string> = {
 /** Por qué se recomienda: lo aprendido si hay datos, si no la afinidad o la exploración. */
 export function recommendationReason(stat: ArmStats, affine: boolean, archetypeName: string): string {
   if (stat.trials >= 2) {
-    return `Después de misiones de ${CATEGORY_IN_SENTENCE[stat.category]} tu ánimo mejoró ${stat.successes} de ${stat.trials} veces.`;
+    return `Las misiones de ${CATEGORY_IN_SENTENCE[stat.category]} te ayudaron ${stat.successes} de ${stat.trials} veces.`;
   }
   if (affine) return `Afín a tu ${archetypeName}: la probamos primero.`;
   return "Probando algo nuevo para conocerte mejor.";
@@ -137,6 +145,23 @@ export function recommend(params: {
     if (out.length >= n) break;
   }
   return out;
+}
+
+/** Mínimo de observaciones y media posterior para afirmar "aprendí que te ayuda". */
+export const INSIGHT_MIN_TRIALS = 3;
+export const INSIGHT_MIN_MEAN = 0.6;
+
+/**
+ * Lo que el recomendador ya aprendió, en una frase para el estudiante: la categoría con mejor
+ * media posterior Beta entre las que tienen suficientes observaciones. null si aún no hay base.
+ */
+export function learnedInsight(stats: readonly ArmStats[]): string | null {
+  const best = stats
+    .filter((s) => s.trials >= INSIGHT_MIN_TRIALS)
+    .map((s) => ({ s, mean: s.alpha / (s.alpha + s.beta) }))
+    .filter((x) => x.mean >= INSIGHT_MIN_MEAN)
+    .sort((a, b) => b.mean - a.mean || b.s.trials - a.s.trials)[0];
+  return best ? `Aprendí que te ayudan las misiones de ${CATEGORY_IN_SENTENCE[best.s.category]}.` : null;
 }
 
 /** Resumen para el panel del equipo: cuántas recomendaciones se mostraron y se aceptaron. */

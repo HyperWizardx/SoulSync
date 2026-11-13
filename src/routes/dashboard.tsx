@@ -1,8 +1,8 @@
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MessageCircle } from "lucide-react";
 import { ResourceBar } from "@/presentation/components/layout/ResourceBar";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
@@ -20,6 +20,8 @@ import { SupportBanner } from "@/presentation/components/wellbeing/SupportSheet"
 import { supportReasons } from "@/domain/wellbeing/support";
 import { IntegratedStatus } from "@/presentation/components/wellbeing/IntegratedStatus";
 import { SEASON_COPY } from "@/domain/world/world";
+import { CompanionChat } from "@/presentation/components/companion/CompanionChat";
+import type { CompanionContext, CompanionMood } from "@/domain/companion/dialogue";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -53,6 +55,20 @@ function DashboardPage() {
   const today = new Date().toDateString();
   const completedToday = useMemo(() => new Set(user.missionHistory.filter((m) => m.date === today).map((m) => m.id)), [user.missionHistory, today]);
   const activeZone = world?.zones.filter((z) => z.unlocked).sort((a, b) => b.progress - a.progress)[0] ?? null;
+  // Conversación guiada con el héroe: se abre bajo el avatar y lo hace celebrar en los turnos alegres.
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMood, setChatMood] = useState<CompanionMood>("calma");
+  const showSupport = supportReasons({ riskLevel: wb?.prediction?.riskLevel, safetyFlags: wb?.prediction?.safetyFlags, lastScale: wb?.lastScale }).length > 0;
+  const companionContext = useMemo<Omit<CompanionContext, "recommendation">>(() => ({
+    name: user.name || "héroe",
+    archetypeName: archStyle.name,
+    hour: new Date().getHours(),
+    riskLevel: wb?.prediction?.riskLevel ?? null,
+    topFactor: wb?.prediction?.explanation.find((f) => f.direction === "riesgo" && f.contribution > 0)?.key ?? null,
+    forecastSky: wb?.forecast?.sky ?? null,
+    checkinToday: !!wb?.todayCheckin,
+    supportSuggested: showSupport,
+  }), [user.name, archStyle.name, wb?.prediction, wb?.forecast, wb?.todayCheckin, showSupport]);
 
   if (isLoading) return <MobileLayout><PageSkeleton variant="dashboard" /></MobileLayout>;
 
@@ -72,13 +88,13 @@ function DashboardPage() {
         <ResourceBar streak={user.streak} coins={user.coins} gems={user.gems} className="mt-4" />
 
         {/* Protocolo de apoyo: visible en el campamento cuando la brújula o el pergamino lo sugieren */}
-        {supportReasons({ riskLevel: wb?.prediction?.riskLevel, safetyFlags: wb?.prediction?.safetyFlags, lastScale: wb?.lastScale }).length > 0 && (
+        {showSupport && (
           <div className="mt-4"><SupportBanner /></div>
         )}
 
         <Reveal index={0} className="mt-6 flex flex-col items-center rounded-2xl border border-border bg-card p-4">
           <AuraHalo aura={wb?.aura} color={archStyle.glow} showLabel={false}>
-            <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting} gestures />
+            <MiniAvatar3D archetype={user.archetype} size={176} glowColor={archStyle.glow} exposure={archStyle.exposure} celebrating={greeting || (chatOpen && chatMood === "celebra")} gestures />
           </AuraHalo>
           <p className="mt-2 font-cinzel font-semibold">{archStyle.name}</p>
           {archStyle.trait && <p className="text-xs text-muted-foreground">{archStyle.trait}</p>}
@@ -91,6 +107,17 @@ function DashboardPage() {
             <p className="mt-2 text-center text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">Aura {wb.aura.name}</span> · {wb.aura.message}
             </p>
+          )}
+          {chatOpen ? (
+            <CompanionChat context={companionContext} accent={archStyle.accent} onMood={setChatMood} onClose={() => setChatOpen(false)} />
+          ) : (
+            <button
+              onClick={() => setChatOpen(true)}
+              className="mt-3 flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-transform active:scale-[0.97]"
+              style={{ borderColor: archStyle.accent, color: archStyle.accent }}
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden /> Hablar con tu {archStyle.name}
+            </button>
           )}
         </Reveal>
 

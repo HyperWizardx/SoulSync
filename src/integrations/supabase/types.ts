@@ -266,6 +266,36 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_feedback: {
+        Row: {
+          category: string
+          created_at: string
+          feedback_date: string
+          helpful: boolean
+          id: string
+          mission_id: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          feedback_date: string
+          helpful: boolean
+          id?: string
+          mission_id: string
+          user_id?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          feedback_date?: string
+          helpful?: boolean
+          id?: string
+          mission_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mission_responses: {
         Row: {
           category: string

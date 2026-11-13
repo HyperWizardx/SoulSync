@@ -1,5 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
-import { SkipForward } from "lucide-react";
+import { SkipForward, Sparkles } from "lucide-react";
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileLayout } from "@/presentation/components/layout/MobileLayout";
@@ -14,6 +14,7 @@ import { quizFor } from "@/domain/gamification/quizzes";
 import type { MissionResponseInput } from "@/domain/gamification/missionResponses";
 import type { TaskCategoryName } from "@/domain/gamification/rewards";
 import { RecommendedStrip } from "@/presentation/components/missions/RecommendedStrip";
+import { useMissionFeedback } from "@/presentation/hooks/useRecommendations";
 import { PathCard } from "@/presentation/components/missions/PathCard";
 import { AFFINITY_XP_MULT, CATEGORY_LABEL, getArchetypeStyle, isAffine, withAlpha } from "@/domain/identity/archetype";
 import { ArchetypeCrest } from "@/presentation/components/avatars/ArchetypeCrest";
@@ -93,6 +94,7 @@ const CATEGORY_KEYS: TaskCategoryName[] = ["autocuidado", "reflexion", "movimien
 function MissionsPage() {
   const { user, completeMission, isLoading } = useUserStore();
   const { logTask } = useWellbeing();
+  const feedback = useMissionFeedback();
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("todas");
   const [showLocked, setShowLocked] = useState(false);
@@ -169,7 +171,18 @@ function MissionsPage() {
     // 2. Después del aviso: recompensas que el servidor otorgó de verdad (catálogo + afinidad + objetos).
     emitFeedback({ type: "reward", xp: res.gainedXp, coins: res.gainedCoins, gems: res.gainedGems });
     const bonus = res.affinity ? ` · afín a tu ${archStyle.name}` : "";
-    toast.success(`¡${m.title} completada! +${res.gainedXp} XP${bonus}`, { icon: <GameIcon name={m.icon} className="h-5 w-5 text-soul-gold" />, description: extraNote });
+    // "¿Te sirvió?": el voto entra al recomendador como recompensa directa de esa categoría.
+    const vote = (helpful: boolean) => feedback.mutate({ missionId: m.id, helpful }, {
+      onSuccess: () => toast(helpful ? `Anotado: tu ${archStyle.name} te propondrá más misiones así.` : "Anotado: probaremos otro tipo de misión.", { icon: <Sparkles className="h-4 w-4 text-primary" /> }),
+      onError: () => toast.error("No se pudo guardar tu respuesta."),
+    });
+    toast.success(`¡${m.title} completada! +${res.gainedXp} XP${bonus}`, {
+      icon: <GameIcon name={m.icon} className="h-5 w-5 text-soul-gold" />,
+      description: `${extraNote ? `${extraNote} · ` : ""}¿Te sirvió esta misión?`,
+      duration: 9000,
+      action: { label: "Me sirvió", onClick: () => vote(true) },
+      cancel: { label: "No mucho", onClick: () => vote(false) },
+    });
     // Luego, si los hubo, la subida de nivel y los logros nuevos.
     if (res.leveledUp) emitFeedback({ type: "levelup", level: res.newLevel });
     for (const code of res.unlockedAchievements ?? []) emitFeedback({ type: "achievement", code });

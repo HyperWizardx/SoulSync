@@ -1,7 +1,12 @@
-import { Sparkles } from "lucide-react";
-import { AlertTriangle, LifeBuoy, TrendingUp } from "lucide-react";
-import type { WellbeingPrediction } from "@/domain/wellbeing/types";
+// Tarjeta de la brújula: nivel, índice orientativo y el "¿Por qué?" interactivo de cada factor.
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { AlertTriangle, ChevronDown, HelpCircle, LifeBuoy, Sparkles } from "lucide-react";
+import type { FactorExplanation, WellbeingPrediction } from "@/domain/wellbeing/types";
 import { DISCLAIMER, RECOMMENDATIONS, RISK_COPY, SAFETY_MESSAGE } from "@/domain/wellbeing/copy";
+import { FACTOR_MISSION } from "@/domain/wellbeing/factorActions";
+import { getMissionById } from "@/domain/gamification/missionsData";
+import { SupportSheet } from "@/presentation/components/wellbeing/SupportSheet";
 
 const TONE: Record<string, { border: string; bg: string; text: string }> = {
   teal: { border: "border-soul-teal/40", bg: "bg-soul-teal/5", text: "text-soul-teal" },
@@ -65,53 +70,87 @@ export function RiskCard({ prediction }: { prediction: WellbeingPrediction }) {
         </div>
       )}
 
-      {topFactors.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h3 className="font-cinzel font-semibold text-foreground">Lo que más mueve tu brújula</h3>
-          </div>
-          <div className="mt-3 space-y-3">
-            {topFactors.map((f) => (
-              <div key={f.key}>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium text-foreground">{f.label}</p>
-                  <span className="text-xs text-muted-foreground">{Math.round(f.contribution * 100)}%</span>
-                </div>
-                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
-                  <div
-                    className={`h-full rounded-full ${f.direction === "riesgo" ? "bg-soul-gold" : "bg-soul-teal"}`}
-                    style={{ width: `${Math.round(f.contribution * 100)}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {topFactors.length > 0 && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
-          <h3 className="font-cinzel font-semibold text-foreground">Consejos para tu viaje</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Ideas de autocuidado pensadas a partir de tus registros (no son indicaciones clínicas).
-          </p>
-          <ul className="mt-3 space-y-2">
-            {topFactors.slice(0, 3).map((f) => (
-              <li key={f.key} className="flex gap-2 text-xs text-muted-foreground">
-                <Sparkles aria-hidden="true" className="h-4 w-4 text-primary" />
-                <span>{RECOMMENDATIONS[f.key]}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {topFactors.length > 0 && <WhyPanel factors={topFactors} />}
 
       <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
         <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Brújula actualizada el {new Date(prediction.generatedAt).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
       </p>
+    </div>
+  );
+}
+
+/**
+ * "¿Por qué?": cada factor que mueve la brújula se puede tocar para ver qué significa,
+ * qué puedes hacer y una misión concreta para empezar hoy (o a quién acudir).
+ */
+function WhyPanel({ factors }: { factors: FactorExplanation[] }) {
+  const [open, setOpen] = useState<string | null>(factors[0]?.key ?? null);
+  const [support, setSupport] = useState(false);
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2">
+        <HelpCircle className="h-4 w-4 text-primary" aria-hidden="true" />
+        <h3 className="font-cinzel font-semibold text-foreground">¿Por qué está así tu brújula?</h3>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">Toca cada factor para ver qué significa y qué puedes hacer hoy.</p>
+      <ul className="mt-3 space-y-2">
+        {factors.map((f) => {
+          const expanded = open === f.key;
+          const missionId = FACTOR_MISSION[f.key];
+          const mission = missionId ? getMissionById(missionId) : undefined;
+          return (
+            <li key={f.key} className={`rounded-xl border transition-colors ${expanded ? "border-primary/40 bg-primary/5" : "border-border"}`}>
+              <button
+                onClick={() => setOpen(expanded ? null : f.key)}
+                aria-expanded={expanded}
+                className="flex min-h-11 w-full flex-col gap-1 px-3 py-2 text-left"
+              >
+                <span className="flex w-full items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-foreground">{f.label}</span>
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    {Math.round(f.contribution * 100)}%
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+                  </span>
+                </span>
+                <span className="block h-1.5 w-full overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+                  <span
+                    className={`block h-full rounded-full ${f.direction === "riesgo" ? "bg-soul-gold" : "bg-soul-teal"}`}
+                    style={{ width: `${Math.round(f.contribution * 100)}%` }}
+                  />
+                </span>
+              </button>
+              {expanded && (
+                <div className="space-y-2 px-3 pb-3">
+                  <p className="text-xs leading-relaxed text-muted-foreground">{f.description}</p>
+                  <p className="flex gap-2 text-xs leading-relaxed text-foreground">
+                    <Sparkles className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                    <span>{RECOMMENDATIONS[f.key]}</span>
+                  </p>
+                  {mission ? (
+                    <Link
+                      to="/missions"
+                      search={{ mission: mission.id }}
+                      className="flex min-h-11 items-center justify-center rounded-xl border border-primary/40 bg-card text-xs font-semibold text-primary transition-transform active:scale-[0.98]"
+                    >
+                      Empezar: {mission.title} →
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => setSupport(true)}
+                      className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-destructive/40 text-xs font-semibold text-destructive"
+                    >
+                      <LifeBuoy className="h-4 w-4" aria-hidden="true" /> Ver a quién acudir
+                    </button>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-3 text-xs text-muted-foreground">Ideas de autocuidado a partir de tus registros (no son indicaciones clínicas).</p>
+      <SupportSheet open={support} onOpenChange={setSupport} />
     </div>
   );
 }
