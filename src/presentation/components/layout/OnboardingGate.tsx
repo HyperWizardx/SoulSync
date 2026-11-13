@@ -30,7 +30,8 @@ export function OnboardingGate() {
     if (EXEMPT_PATHS.includes(window.location.pathname)) return;
 
     if (user.archetype === null) {
-      navigate({ to: "/create-avatar" });
+      // replace: el botón atrás no vuelve a una pantalla que redirige.
+      navigate({ to: "/create-avatar", replace: true });
     }
   }, [hasSession, isLoading, user.archetype, navigate]);
 

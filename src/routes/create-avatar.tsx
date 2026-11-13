@@ -1,13 +1,16 @@
 // Creación del héroe en dos pasos: elegir uno de los 4 arquetipos (con su personaje 3D) y darle nombre.
 import { GameIcon } from "@/presentation/components/icons/GameIcon";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StarField } from "@/presentation/components/layout/StarField";
 import { MiniAvatar3D } from "@/presentation/components/layout/MiniAvatar3D";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { AFFINITY_XP_MULT, ARCHETYPE_OPTIONS, CATEGORY_LABEL, getArchetypeStyle, withAlpha } from "@/domain/identity/archetype";
 import { toast } from "sonner";
+import { OnboardingSteps } from "@/presentation/components/layout/OnboardingSteps";
+import { knownHeroName } from "@/domain/identity/onboarding";
+import { fireConfetti } from "@/shared/confetti";
 
 export const Route = createFileRoute("/create-avatar")({
   head: () => ({ meta: [
@@ -28,9 +31,21 @@ function CreateAvatarPage() {
   const [name, setName] = useState("");
   const [archetype, setArchetype] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const { updateUser } = useUserStore();
+  const { user, updateUser } = useUserStore();
   const navigate = useNavigate();
   const style = getArchetypeStyle(archetype);
+
+  // El nombre que dio al registrarse (o el de Google) ya viene escrito: un paso menos.
+  const known = knownHeroName(user.name);
+  useEffect(() => { if (known) setName((n) => n || known); }, [known]);
+
+  // Los 4 personajes se descargan en segundo plano: al tocar un arquetipo aparece al instante.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void import("@/presentation/components/avatars/ArchetypeScene").then((m) => { for (const a of [0, 1, 2, 3]) m.preloadArchetype(a); }).catch(() => {});
+    }, 300);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleFinish = async () => {
     if (saving || archetype === null) return;
@@ -41,8 +56,9 @@ function CreateAvatarPage() {
     setSaving(true);
     try {
       await updateUser({ name: name.trim(), archetype });
+      fireConfetti({ particleCount: 90, spread: 75, origin: { y: 0.65 }, colors: ["#f5c542", "#8b5cf6", "#2dd4bf"] });
       toast.success(`¡Hola, ${name.trim()}! Tu aventura como ${style.name} comienza.`, { icon: <GameIcon name={style.icon} className="h-5 w-5" style={{ color: style.accent }} />, duration: 3000 });
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
     } catch {
       // El error ya se muestra vía el toast.error del propio hook
       // (profileMut.onError); simplemente no navegamos si falló el guardado.
@@ -51,15 +67,16 @@ function CreateAvatarPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background px-6 pt-12">
+    <div className="relative flex min-h-screen flex-col bg-background px-6 pt-8">
       <StarField />
 
-      {/* Progreso */}
-      <div className="relative z-10 mb-8 flex items-center gap-2">
+      {/* Recorrido de la primera vez y progreso dentro de este paso */}
+      <OnboardingSteps current="heroe" className="relative z-10 mb-4" />
+      <div className="relative z-10 mb-6 flex items-center gap-2">
         {Array.from({ length: STEPS }, (_, s) => (
           <div
             key={s}
-            className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+            className={`h-1 flex-1 rounded-full transition-all duration-500 ${
               s <= step ? "bg-primary shadow-[0_0_8px_oklch(0.55_0.25_280/0.5)]" : "bg-secondary"
             }`}
           />
