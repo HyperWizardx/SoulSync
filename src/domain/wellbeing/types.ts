@@ -9,7 +9,8 @@
  */
 export const FEATURE_VERSION = "fv4";
 // v2 (nov 2026): añade el pergamino WHO-5, la actividad física y el entrenamiento de modelos propios.
-export const CONSENT_VERSION = "consent-2026-11-v2";
+// v3 (nov 2026): el equipo de psicología ve las respuestas de las misiones; los escritos, solo con autorización.
+export const CONSENT_VERSION = "consent-2026-11-v3";
 export type RiskLevel = "bajo" | "moderado" | "alto" | "insuficiente";
 export interface CheckinRecord { date: string; mood: number; stress: number; energy: number; social: number; sleepHours?: number | null; localHour?: number | null; responseSeconds?: number | null; }
 export interface ScaleRecord { code: string; raw: number; max: number; answeredAt: string; }

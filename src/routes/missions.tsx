@@ -11,6 +11,7 @@ import { useUserStore } from "@/presentation/hooks/useUserStore";
 import { useWellbeing } from "@/presentation/hooks/useWellbeing";
 import { GRATITUDE_HINTS, MEDITATION_GUIDES, WRITING_PROMPTS, estimateMinutes, missionCategory, getMissionById, pathBlocker, visibleMissions, type Mission } from "@/domain/gamification/missionsData";
 import { quizFor } from "@/domain/gamification/quizzes";
+import type { MissionResponseInput } from "@/domain/gamification/missionResponses";
 import type { TaskCategoryName } from "@/domain/gamification/rewards";
 import { RecommendedStrip } from "@/presentation/components/missions/RecommendedStrip";
 import { PathCard } from "@/presentation/components/missions/PathCard";
@@ -152,14 +153,15 @@ function MissionsPage() {
     logTask.mutate({ missionId: m.id, title: m.title, status: "skipped", category: missionCategory(m), isAR: m.isAR ?? false });
     toast("Misión omitida por hoy. ¡Mañana habrá otra oportunidad!", { icon: <SkipForward className="h-4 w-4" /> });
   };
-  const finishMission = async (m: Mission, extraNote?: string) => {
+  // La respuesta (opciones, pasos, escritos) llega al panel de psicología solo con consentimiento.
+  const finishMission = async (m: Mission, extraNote?: string, response?: MissionResponseInput) => {
     // 1. Al instante: "¡Misión cumplida!" (si la misión AR no lo anunció ya) mientras se guarda.
     announce(m);
     setActive(null);
     const durationSeconds = startedAt.current ? Math.round((Date.now() - startedAt.current) / 1000) : 0;
     const bannerLeft = Math.max(0, MISSION_BANNER_MS - (Date.now() - announcedAt.current));
     const [res] = await Promise.all([
-      completeMission(m.id, { durationSeconds }),
+      completeMission(m.id, { durationSeconds, response }),
       new Promise((resolve) => setTimeout(resolve, bannerLeft)),
     ]);
     announcedAt.current = 0;
@@ -282,16 +284,16 @@ function MissionsPage() {
 
     <Suspense fallback={<MissionLoading />}>
     {active?.type === "breathing" && <BreathingMission cycles={active.id === "deep-breath" ? 8 : active.id === "breath-box" || active.id === "breath-night" ? 6 : 4} onComplete={() => finishMission(active, "Respiración completada")} onClose={closeMission} />}
-    {(active?.type === "journal" || active?.type === "social") && <JournalMission title={active.title} icon={active.icon} prompts={WRITING_PROMPTS[active.id]} onComplete={(_t, mood) => finishMission(active, `Ánimo: ${mood}`)} onClose={closeMission} />}
+    {(active?.type === "journal" || active?.type === "social") && <JournalMission title={active.title} icon={active.icon} prompts={WRITING_PROMPTS[active.id]} onComplete={(text, mood) => finishMission(active, `Ánimo: ${mood}`, { kind: "texto", text, mood })} onClose={closeMission} />}
     {active?.type === "timer" && <TimerMission title={active.title} icon={active.icon} durationSec={active.durationSec || 60} description={active.desc} onComplete={() => finishMission(active)} onClose={closeMission} />}
-    {active?.type === "gratitude" && <GratitudeMission title={active.title} hint={GRATITUDE_HINTS[active.id]} onComplete={() => finishMission(active, "Gratitud sellada")} onClose={closeMission} />}
-    {active?.type === "quiz" && <QuizMission title={active.title} icon={active.icon} questions={quizFor(active.id)} onComplete={(s, t) => finishMission(active, `Aciertos: ${s}/${t}`)} onClose={closeMission} />}
-    {active?.type === "steps" && <StepsMission title={active.title} icon={active.icon} description={active.desc} steps={active.steps ?? []} source={active.source} onComplete={() => finishMission(active)} onClose={closeMission} />}
+    {active?.type === "gratitude" && <GratitudeMission title={active.title} hint={GRATITUDE_HINTS[active.id]} onComplete={(items) => finishMission(active, "Gratitud sellada", { kind: "gratitud", items })} onClose={closeMission} />}
+    {active?.type === "quiz" && <QuizMission title={active.title} icon={active.icon} questions={quizFor(active.id)} onComplete={(s, t, choices) => finishMission(active, `Aciertos: ${s}/${t}`, { kind: "quiz", choices })} onClose={closeMission} />}
+    {active?.type === "steps" && <StepsMission title={active.title} icon={active.icon} description={active.desc} steps={active.steps ?? []} source={active.source} onComplete={(done) => finishMission(active, undefined, { kind: "pasos", done })} onClose={closeMission} />}
     {active?.type === "ar-aura" && <ARAuraMission zone={arZoneFor(active)} onAchieved={() => announce(active)} onComplete={() => finishMission(active, "Aura sincronizada")} onClose={closeMission} />}
     {active?.type === "ar-energy" && <AREnergyMission zone={arZoneFor(active)} onAchieved={() => announce(active)} onComplete={() => finishMission(active, "Personaje cargado de energía")} onClose={closeMission} />}
     {active?.type === "ar-focus" && <ARFocusMission zone={arZoneFor(active)} onAchieved={() => announce(active)} onComplete={() => finishMission(active, "Enfoque sostenido")} onClose={closeMission} />}
     {active?.type === "meditation" && <MeditationMission title={active.title} guide={MEDITATION_GUIDES[active.id]} durationSec={active.durationSec || 120} onComplete={() => finishMission(active, "Meditación completada")} onClose={closeMission} />}
-    {active?.type === "daily-challenge" && <DailyChallengeMission onComplete={(title) => finishMission(active, title)} onClose={closeMission} />}
+    {active?.type === "daily-challenge" && <DailyChallengeMission onComplete={(title) => finishMission(active, title, { kind: "reto", challenge: title })} onClose={closeMission} />}
     {active?.type === "ar-walk" && <ARWalkMission zone={arZoneFor(active)} onAchieved={() => announce(active)} goal={active.id === "ar-walk-60" ? 60 : 30} onComplete={() => finishMission(active, "Caminata completada")} onClose={closeMission} />}
     </Suspense>
   </div></MobileLayout>;

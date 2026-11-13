@@ -14,13 +14,17 @@ type Db = SupabaseClient<Database>;
 /** Consentimiento persistido en `research_consent`. */
 export const supabaseConsentRepository = (db: Db): ConsentRepository => ({
   hasActiveConsent: (userId) => hasActiveConsent(db, userId),
-  async accept(userId, wearablesOptIn) {
-    await db.from("research_consent").insert({ user_id: userId, consent_version: CONSENT_VERSION, wearables_opt_in: wearablesOptIn });
+  async accept(userId, wearablesOptIn, shareWriting) {
+    await db.from("research_consent").insert({ user_id: userId, consent_version: CONSENT_VERSION, wearables_opt_in: wearablesOptIn, share_writing: shareWriting });
+  },
+  async setShareWriting(userId, share) {
+    const { error } = await db.from("research_consent").update({ share_writing: share }).eq("user_id", userId).is("revoked_at", null);
+    if (error) throw new Error("No se pudo actualizar tu preferencia.");
   },
   async revokeAndPurge(userId) {
     await db.from("research_consent").update({ revoked_at: new Date().toISOString() }).eq("user_id", userId).is("revoked_at", null);
     // Minimización de datos: se elimina todo lo recogido por el módulo.
-    for (const t of ["wellbeing_predictions", "wellbeing_checkins", "wellbeing_scales", "timeline_events", "task_events", "activity_logs", "recommendation_log", "participant_profile"] as const) {
+    for (const t of ["wellbeing_predictions", "wellbeing_checkins", "wellbeing_scales", "timeline_events", "task_events", "activity_logs", "recommendation_log", "participant_profile", "mission_responses"] as const) {
       await db.from(t).delete().eq("user_id", userId);
     }
   },

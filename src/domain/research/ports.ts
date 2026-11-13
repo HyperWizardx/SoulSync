@@ -1,6 +1,7 @@
 /** Contratos del panel de investigación, independientes de React y de la persistencia. */
 import type { StudentRow } from './aggregate';
 import type { CheckinRecord, FactorExplanation } from '@/domain/wellbeing/types';
+import type { MissionResponseRecord } from '@/domain/gamification/missionResponses';
 
 export interface AdminAccess {
   psicologo: boolean;
@@ -22,6 +23,8 @@ export interface StudentDetail {
   stats: { bienestar: number; resiliencia: number; energia: number; claridad: number } | null;
   attributes: Record<string, number> | null;
   followUps?: { id: string; studentId: string; note: string; createdAt: string }[];
+  /** Respuestas en misiones (solo psicología): quiz, pasos, reto y escritos autorizados. */
+  responses?: MissionResponseRecord[];
   prediction?: { confidence: string | null; safetyFlags: string[]; protective: string[]; adjustments: { personal: number; protective: number; academic: number; hysteresis: string } | null } | null;
 }
 

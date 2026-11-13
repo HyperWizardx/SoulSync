@@ -4,7 +4,8 @@ import { X, Check } from "lucide-react";
 import type { QuizQuestion } from "@/domain/gamification/quizzes";
 
 interface Props {
-  onComplete: (score: number, total: number) => void;
+  /** Aciertos, total y la opción elegida en cada pregunta (para el acompañamiento). */
+  onComplete: (score: number, total: number, choices: number[]) => void;
   onClose: () => void;
   title?: string;
   icon?: string;
@@ -16,15 +17,18 @@ export function QuizMission({ onComplete, onClose, title = "Quiz de atención pl
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
+  const [choices, setChoices] = useState<number[]>([]);
   const [done, setDone] = useState(false);
 
   const q = QUESTIONS[idx];
 
   const next = () => {
+    const all = [...choices, selected ?? -1];
     if (idx + 1 >= QUESTIONS.length) {
       setDone(true);
-      onComplete(score + (selected === q.correct ? 1 : 0), QUESTIONS.length);
+      onComplete(score + (selected === q.correct ? 1 : 0), QUESTIONS.length, all);
     } else {
+      setChoices(all);
       if (selected === q.correct) setScore((s) => s + 1);
       setIdx((i) => i + 1);
       setSelected(null);

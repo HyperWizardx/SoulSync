@@ -38,7 +38,9 @@ export interface TimelineInput {
 /** Gestión del consentimiento informado de investigación. */
 export interface ConsentRepository {
   hasActiveConsent(userId: string): Promise<boolean>;
-  accept(userId: string, wearablesOptIn: boolean): Promise<void>;
+  accept(userId: string, wearablesOptIn: boolean, shareWriting: boolean): Promise<void>;
+  /** Cambia si el equipo de psicología puede leer lo que escribe en sus misiones. */
+  setShareWriting(userId: string, share: boolean): Promise<void>;
   /** Revoca y elimina los datos del módulo (minimización de datos). */
   revokeAndPurge(userId: string): Promise<void>;
 }

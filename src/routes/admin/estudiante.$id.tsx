@@ -8,6 +8,7 @@ import { CategoryChart, ChartCard, MoodStressChart, ScoreHistoryChart, SleepChar
 import { PRIORITY_STYLE, followUpText } from "@/presentation/components/admin/AlertsPanel";
 import { alertFor, FOLLOW_UP_WINDOW_DAYS } from "@/domain/research/alerts";
 import { displayTimelineTitle } from "@/domain/wellbeing/copy";
+import { MissionResponses } from "@/presentation/components/admin/MissionResponses";
 import type { StudentRow } from "@/service/server-functions/admin.functions";
 
 export const Route = createFileRoute("/admin/estudiante/$id")({
@@ -200,6 +201,7 @@ function StudentDetailPage() {
 
           <StudentAlertBanner row={data.row} />
           <FollowUpSection studentId={id} items={data.followUps ?? []} />
+          <MissionResponses items={data.responses ?? []} />
 
           <ChartCard title="Ánimo y estrés (30 días)">
             <MoodStressChart data={data.checkins} />

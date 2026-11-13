@@ -27,6 +27,8 @@ export type ConsentState = {
   consentVersion: string | null;
   acceptedAt: string | null;
   wearablesOptIn: boolean;
+  /** Autorizó que psicología lea lo que escribe en sus misiones. */
+  shareWriting: boolean;
   currentVersion: string;
 };
 
@@ -108,7 +110,7 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     await Promise.all([
       supabase
         .from("research_consent")
-        .select("consent_version, accepted_at, revoked_at, wearables_opt_in")
+        .select("consent_version, accepted_at, revoked_at, wearables_opt_in, share_writing")
         .eq("user_id", userId)
         .order("accepted_at", { ascending: false })
         .limit(1)
@@ -155,6 +157,7 @@ export async function loadWellbeing(supabase: Db, userId: string): Promise<Wellb
     consentVersion: consentRow?.consent_version ?? null,
     acceptedAt: consentRow?.accepted_at ?? null,
     wearablesOptIn: Boolean(consentRow?.wearables_opt_in),
+    shareWriting: Boolean(consentRow?.share_writing),
     currentVersion: CONSENT_VERSION,
   };
 

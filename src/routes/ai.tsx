@@ -38,14 +38,17 @@ export const Route = createFileRoute("/ai")({
 });
 
 function AIPage() {
-  const { data, isLoading, isError, error, checkin, consent, refetch, isFetching, who5 } = useWellbeing();
+  const { data, isLoading, isError, error, checkin, consent, refetch, isFetching, who5, writingShare } = useWellbeing();
   const consentCard = data && (
     <ConsentCard
       accepted={data.consent.accepted}
       acceptedAt={data.consent.acceptedAt}
       wearablesOptIn={data.consent.wearablesOptIn}
+      shareWriting={data.consent.shareWriting}
+      onShareWritingChange={(share) => writingShare.mutate(share)}
+      sharePending={writingShare.isPending}
       pending={consent.isPending}
-      onChange={(accepted, wearablesOptIn) => consent.mutate({ accepted, wearablesOptIn })}
+      onChange={(accepted, wearablesOptIn, shareWriting) => consent.mutate({ accepted, wearablesOptIn, shareWriting })}
       outdated={!data.consent.accepted && !!data.consent.consentVersion && data.consent.consentVersion !== data.consent.currentVersion}
     />
   );

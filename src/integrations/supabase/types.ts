@@ -266,6 +266,45 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_responses: {
+        Row: {
+          category: string
+          completed_date: string
+          created_at: string
+          id: string
+          kind: string
+          mission_id: string
+          mission_title: string
+          payload: Json
+          shared_writing: boolean
+          user_id: string
+        }
+        Insert: {
+          category: string
+          completed_date: string
+          created_at?: string
+          id?: string
+          kind: string
+          mission_id: string
+          mission_title: string
+          payload?: Json
+          shared_writing?: boolean
+          user_id?: string
+        }
+        Update: {
+          category?: string
+          completed_date?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          mission_id?: string
+          mission_title?: string
+          payload?: Json
+          shared_writing?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       model_versions: {
         Row: {
           active: boolean
@@ -462,6 +501,7 @@ export type Database = {
           updated_at: string
           user_id: string
           wearables_opt_in: boolean
+          share_writing: boolean
         }
         Insert: {
           accepted_at?: string
@@ -472,6 +512,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           wearables_opt_in?: boolean
+          share_writing?: boolean
         }
         Update: {
           accepted_at?: string
@@ -482,6 +523,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wearables_opt_in?: boolean
+          share_writing?: boolean
         }
         Relationships: []
       }

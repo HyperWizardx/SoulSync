@@ -11,7 +11,8 @@ interface Props {
   description: string;
   steps: readonly string[];
   source?: string;
-  onComplete: () => void;
+  /** Índices de los pasos marcados. */
+  onComplete: (done: number[]) => void;
   onClose: () => void;
 }
 
@@ -63,7 +64,7 @@ export function StepsMission({ title, icon, description, steps, source, onComple
 
         <button
           disabled={!all}
-          onClick={onComplete}
+          onClick={() => onComplete(done.flatMap((d, i) => (d ? [i] : [])))}
           className="mt-4 w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-all active:scale-95 disabled:opacity-40"
         >
           {all ? "¡Misión lista!" : `Marca los ${steps.length - count} pasos que faltan`}

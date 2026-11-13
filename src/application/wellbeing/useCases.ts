@@ -65,9 +65,17 @@ export async function updateConsent<P>(
   userId: string,
   accepted: boolean,
   wearablesOptIn = false,
+  shareWriting = false,
 ): Promise<P> {
-  if (accepted) await deps.consent.accept(userId, wearablesOptIn);
+  if (accepted) await deps.consent.accept(userId, wearablesOptIn, shareWriting);
   else await deps.consent.revokeAndPurge(userId);
+  return deps.reader.load(userId);
+}
+
+/** Autoriza o retira el permiso para que psicología lea sus escritos (requiere consentimiento vigente). */
+export async function updateWritingShare<P>(deps: WellbeingDeps<P>, userId: string, share: boolean): Promise<P> {
+  if (!(await deps.consent.hasActiveConsent(userId))) throw new ConsentRequiredError();
+  await deps.consent.setShareWriting(userId, share);
   return deps.reader.load(userId);
 }
 

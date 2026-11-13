@@ -6,7 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { recordTaskEvent, recordWho5, registerCheckin, updateConsent } from "@/application/wellbeing/useCases";
+import { recordTaskEvent, recordWho5, registerCheckin, updateConsent, updateWritingShare } from "@/application/wellbeing/useCases";
 import { evaluateAndGrant } from "@/infrastructure/persistence/supabase/gamificationRepository";
 import { buildWellbeingDeps } from "@/infrastructure/persistence/supabase/wellbeingAdapters";
 import type { WellbeingPayload } from "@/infrastructure/persistence/supabase/wellbeingRepository";
@@ -24,10 +24,18 @@ export const getWellbeing = createServerFn({ method: "GET" })
 export const setResearchConsent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ accepted: z.boolean(), wearablesOptIn: z.boolean().optional() }).parse(d),
+    z.object({ accepted: z.boolean(), wearablesOptIn: z.boolean().optional(), shareWriting: z.boolean().optional() }).parse(d),
   )
   .handler(async ({ data, context }): Promise<WellbeingPayload> =>
-    updateConsent(buildWellbeingDeps(context.supabase), context.userId, data.accepted, data.wearablesOptIn ?? false),
+    updateConsent(buildWellbeingDeps(context.supabase), context.userId, data.accepted, data.wearablesOptIn ?? false, data.shareWriting ?? false),
+  );
+
+/** Autoriza o retira que el equipo de psicología lea lo que escribe en sus misiones. */
+export const setWritingShare = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ share: z.boolean() }).parse(d))
+  .handler(async ({ data, context }): Promise<WellbeingPayload> =>
+    updateWritingShare(buildWellbeingDeps(context.supabase), context.userId, data.share),
   );
 
 /** Escalas del check-in: enteros 1–5; sueño 0–24 h. */

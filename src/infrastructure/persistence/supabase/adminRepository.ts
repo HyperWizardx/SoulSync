@@ -4,6 +4,7 @@ import type { Database } from '@/integrations/supabase/types';
 import { DATASET_COLUMNS, type AdminRepository } from '@/domain/research/ports';
 import type { CheckinRecord } from '@/domain/wellbeing/types';
 import { activateCompassVersion, fetchAll, loadActiveCompassParams, saveCompassVersion } from './modelRegistry';
+import { toResponseRecords } from '@/domain/gamification/missionResponses';
 
 // El cliente privilegiado se suministra desde el handler y solo se solicita tras comprobar el rol.
 export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityClient: () => Promise<SupabaseClient<Database>>) {
@@ -67,7 +68,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
       return { profiles, consents, checkins, missions, tasks, scales: scales.map((s) => ({ ...s, raw_score: Number(s.raw_score), max_score: Number(s.max_score), answered_at: String(s.answered_at) })), emails };
     },
     async loadDetail(uid, since30) {
-    const [checkinRes, predRes, missionRes, taskRes, timelineRes, scaleRes, worldRes, statRes, attrRes] =
+    const [checkinRes, predRes, missionRes, taskRes, timelineRes, scaleRes, worldRes, statRes, attrRes, responseRes] =
       await Promise.all([
         supabase.from("wellbeing_checkins").select("checkin_date, mood, stress, energy, social, sleep_hours, checkin_local_hour, response_seconds").eq("user_id", uid).gte("checkin_date", since30).order("checkin_date", { ascending: true }),
         supabase.from("wellbeing_predictions").select("generated_at, risk_level, trend, score, coverage").eq("user_id", uid).order("generated_at", { ascending: false }).limit(30),
@@ -78,6 +79,8 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
         supabase.from("world_state").select("vitality, harmony, zones_unlocked, season").eq("user_id", uid).maybeSingle(),
         supabase.from("user_stats").select("bienestar, resiliencia, energia, claridad").eq("user_id", uid).maybeSingle(),
         supabase.from("user_attributes").select("*").eq("user_id", uid).maybeSingle(),
+        // RLS: solo el rol de psicología (o el propio estudiante) puede leerlas.
+        supabase.from("mission_responses").select("id, mission_id, mission_title, category, created_at, shared_writing, payload").eq("user_id", uid).order("created_at", { ascending: false }).limit(60),
       ]);
 
     const checkins: CheckinRecord[] = (checkinRes.data ?? []).map((c) => ({
@@ -133,6 +136,7 @@ export function buildAdminDeps(supabase: SupabaseClient<Database>, getIdentityCl
         : null,
       stats: statRes.data ?? null,
       attributes: Object.keys(attrs).length ? (attrs as Record<string, number>) : null,
+      responses: toResponseRecords(responseRes.data ?? []),
     };
   },
 

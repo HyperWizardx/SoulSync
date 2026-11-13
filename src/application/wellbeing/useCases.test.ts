@@ -1,6 +1,6 @@
 /** Pruebas de casos de uso con repositorios simulados (sin base de datos). */
 import { describe, expect, it } from "vitest";
-import { ConsentRequiredError, ScaleNotDueError, recordTaskEvent, recordWho5, registerCheckin, updateConsent, type WellbeingDeps } from "./useCases";
+import { ConsentRequiredError, ScaleNotDueError, recordTaskEvent, recordWho5, registerCheckin, updateConsent, updateWritingShare, type WellbeingDeps } from "./useCases";
 
 function fakeDeps(consented: boolean, lastScale: string | null = null) {
   const log: string[] = [];
@@ -9,6 +9,7 @@ function fakeDeps(consented: boolean, lastScale: string | null = null) {
       hasActiveConsent: async () => consented,
       accept: async () => void log.push("accept"),
       revokeAndPurge: async () => void log.push("purge"),
+      setShareWriting: async (_u: string, share: boolean) => void log.push(`share:${share}`),
     },
     events: {
       upsertCheckin: async (_u, d) => void log.push(`checkin:${d}`),
@@ -61,5 +62,12 @@ describe("casos de uso de bienestar", () => {
     const { deps, log } = fakeDeps(true);
     await updateConsent(deps, "u", false);
     expect(log).toEqual(["purge"]);
+  });
+  it("compartir los escritos con psicología exige consentimiento vigente", async () => {
+    const ok = fakeDeps(true);
+    await updateWritingShare(ok.deps, "u", true);
+    expect(ok.log).toEqual(["share:true"]);
+    const no = fakeDeps(false);
+    await expect(updateWritingShare(no.deps, "u", true)).rejects.toBeInstanceOf(ConsentRequiredError);
   });
 });
